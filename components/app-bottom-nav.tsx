@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
-import { BarChart2, Home, UserRound } from "lucide-react";
+import { BarChart2, CalendarDays, Home } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,12 @@ const items = [
     icon: BarChart2,
     match: (p: string) => p === "/standings" || p.startsWith("/standings/"),
   },
-  { href: "/me", label: "Me", icon: UserRound, match: (p: string) => p === "/me" || p.startsWith("/me/") },
+  {
+    href: "/calendar",
+    label: "Calendar",
+    icon: CalendarDays,
+    match: (p: string) => p === "/calendar" || p.startsWith("/calendar/"),
+  },
 ] as const;
 
 export function AppBottomNav() {

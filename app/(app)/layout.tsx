@@ -3,6 +3,8 @@ import { AppBottomNav } from "@/components/app-bottom-nav";
 import { AppHeaderNav } from "@/components/app-header-nav";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { requireCompleteProfile } from "@/lib/auth/require-complete-profile";
+import { getStandings } from "@/lib/standings/get-standings";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,18 @@ export default async function AppShellLayout({
 }) {
   const { user, email } = await requireAllowlistedUser();
   await requireCompleteProfile(user.id);
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, avatar_url")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const profileName = profile?.display_name?.trim() || user.email || "You";
+  const profileAvatarUrl = profile?.avatar_url?.trim() || "";
+  const standings = await getStandings();
+  const scoreEntry = standings?.points.find((entry) => entry.id === user.id);
+  const streakEntry = standings?.streaks.find((entry) => entry.id === user.id);
 
   return (
     <div className="flex min-h-full w-full min-w-0 flex-1 flex-col">
@@ -28,7 +42,13 @@ export default async function AppShellLayout({
           >
             Gunanuvad
           </Link>
-          <AppHeaderNav email={email} />
+          <AppHeaderNav
+            email={email}
+            displayName={scoreEntry?.display_name ?? profileName}
+            avatarUrl={scoreEntry?.avatar_url ?? profileAvatarUrl}
+            totalScore={scoreEntry?.score ?? 0}
+            totalStreak={streakEntry?.streak ?? 0}
+          />
         </div>
       </header>
       <main className="mx-auto flex w-full min-w-0 max-w-5xl flex-1 flex-col px-3 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-4">
