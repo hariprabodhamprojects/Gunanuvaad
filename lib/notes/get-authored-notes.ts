@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { normalizeCampaignDate } from "@/lib/notes/normalize-campaign-date";
 
 export type AuthoredDailyNote = {
   id: string;
@@ -31,32 +32,25 @@ export async function getAuthoredDailyNotes(): Promise<AuthoredDailyNote[]> {
     created_at: string;
   }[];
 
-  const recipientIds = [...new Set(notes.map((n) => n.recipient_id))];
-  if (recipientIds.length === 0) return [];
+  if (notes.length === 0) return [];
 
-  const { data: recipients, error: recipientsError } = await supabase
-    .from("profiles")
-    .select("id, display_name, avatar_url")
-    .in("id", recipientIds);
-
-  if (recipientsError) {
-    console.error("[daily-note] load recipient profiles", recipientsError.message);
+  const { data: roster, error: rosterError } = await supabase.rpc("roster_for_mosaic");
+  if (rosterError) {
+    console.error("[daily-note] roster_for_mosaic", rosterError.message);
   }
 
-  const recipientMap = new Map(
-    ((recipients ?? []) as { id: string; display_name: string | null; avatar_url: string | null }[]).map((r) => [
+  const rosterMap = new Map(
+    ((roster ?? []) as { id: string; display_name: string; avatar_url: string }[]).map((r) => [
       r.id,
-      {
-        name: r.display_name?.trim() || "User",
-        avatarUrl: r.avatar_url?.trim() || "",
-      },
+      { name: r.display_name?.trim() || "", avatarUrl: r.avatar_url?.trim() || "" },
     ]),
   );
 
   return notes.map((note) => {
-    const recipient = recipientMap.get(note.recipient_id);
+    const recipient = rosterMap.get(note.recipient_id);
     return {
       ...note,
+      campaign_date: normalizeCampaignDate(note.campaign_date),
       recipient_name: recipient?.name || "User",
       recipient_avatar_url: recipient?.avatarUrl || "",
     };

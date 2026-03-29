@@ -11,9 +11,10 @@ export default async function CalendarPage() {
   const notes = await getAuthoredDailyNotes();
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">Your Calendar</h1>
+    <div className="space-y-6">
+      <header className="space-y-1">
+        <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Your Calendar</h1>
+        <p className="text-sm text-muted-foreground">Your daily notes, by campaign day.</p>
       </header>
       <NotesCalendarSection notes={notes} />
     </div>

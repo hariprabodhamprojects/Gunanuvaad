@@ -16,16 +16,16 @@ function podiumTint(rank: number): string {
   return "";
 }
 
-/** Darker same-metal inset ring for “you” on podium only — stays inside the row, no bleed into neighbors. */
+/** Same-metal inset ring for “you” on podium — slightly deeper than the row tint, not heavy. */
 function viewerPodiumInsetRing(rank: number): string {
   if (rank === 1) {
-    return "ring-2 ring-inset ring-amber-800/85 dark:ring-amber-500/80";
+    return "ring-2 ring-inset ring-amber-600/45 dark:ring-amber-400/40";
   }
   if (rank === 2) {
-    return "ring-2 ring-inset ring-slate-600/80 dark:ring-slate-400/75";
+    return "ring-2 ring-inset ring-slate-500/45 dark:ring-slate-400/38";
   }
   if (rank === 3) {
-    return "ring-2 ring-inset ring-orange-950/90 dark:ring-orange-800/85";
+    return "ring-2 ring-inset ring-amber-800/42 dark:ring-orange-700/40";
   }
   return "";
 }
