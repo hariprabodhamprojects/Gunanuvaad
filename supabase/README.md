@@ -17,6 +17,8 @@
    - `migrations/20250331130000_standings_points_formula.sql` (points = first note to each recipient 2 pts, repeats 1 pt — stored as `notes + distinct recipients`)
    - `migrations/20250331140000_standings_rank_ties.sql` (ties share the same rank — superseded by dense rank below)
    - `migrations/20250331150000_standings_dense_rank.sql` (ties share rank; next group is `DENSE_RANK` 2, 3, … not skipping)
+   - `migrations/20250331160000_repair_daily_notes_campaign_minus_one_rpc.sql` (optional **one-time** RPC to shift stored `campaign_date` back one day — see § One-time repair below)
+   - `migrations/20250331160100_repair_daily_notes_rpc_where_clause.sql` (same RPC with `WHERE true` for Supabase “UPDATE requires a WHERE clause”)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 
@@ -59,3 +61,41 @@
    `npm run dev` → `/` (splash, then **Continue with Google**) → **onboarding** → `/home`. Use the **bottom bar** for Home / Standings / Me, and the **menu** (☰) for dark mode, notifications, and sign out.
 
 If the Google account’s email is **not** in `allowed_emails`, you’ll see **Not on the invite list** (`/not-invited`) and the session is cleared.
+
+## One-time repair: `campaign_date` one day ahead
+
+If every `daily_notes.campaign_date` was stored **one calendar day too late** (a note meant for the 28th shows as the 29th), fix existing rows **once**.
+
+**Option A — SQL Editor (simplest)**  
+Project → **SQL** → run:
+
+```sql
+update public.daily_notes
+set campaign_date = campaign_date - interval '1 day'
+where true;
+```
+
+**Option B — `curl` via PostgREST** (after migration `20250331160000_repair_daily_notes_campaign_minus_one_rpc.sql` is applied)
+
+Use the **service role** key (**Settings → API**). Do **not** expose this key in the browser or commit it to git.
+
+```bash
+export SUPABASE_URL="https://YOUR_PROJECT_REF.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="YOUR_SERVICE_ROLE_SECRET"
+
+curl -sS -X POST "$SUPABASE_URL/rest/v1/rpc/repair_daily_notes_campaign_minus_one_day" \
+  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+The response body is the number of rows updated (e.g. `3`). **Run only once**; a second call shifts dates again.
+
+**Reverse** (if you overshoot): add one day instead:
+
+```sql
+update public.daily_notes
+set campaign_date = campaign_date + interval '1 day'
+where true;
+```
