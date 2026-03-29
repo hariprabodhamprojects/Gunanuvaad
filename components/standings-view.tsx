@@ -5,13 +5,27 @@ import { cn } from "@/lib/utils";
 /** One tint per dense-rank band: everyone tied at 1st → gold, 2nd → silver, 3rd → darker bronze. */
 function podiumTint(rank: number): string {
   if (rank === 1) {
-    return "bg-amber-400/28 ring-1 ring-amber-600/50 dark:bg-amber-500/22 dark:ring-amber-400/45";
+    return "bg-amber-400/28 dark:bg-amber-500/22";
   }
   if (rank === 2) {
-    return "bg-slate-400/30 ring-1 ring-slate-500/55 dark:bg-slate-500/25 dark:ring-slate-400/50";
+    return "bg-slate-400/30 dark:bg-slate-500/25";
   }
   if (rank === 3) {
-    return "bg-amber-950/28 ring-1 ring-orange-950/60 dark:bg-amber-950/40 dark:ring-orange-900/55";
+    return "bg-amber-950/28 dark:bg-amber-950/40";
+  }
+  return "";
+}
+
+/** Darker same-metal inset ring for “you” on podium only — stays inside the row, no bleed into neighbors. */
+function viewerPodiumInsetRing(rank: number): string {
+  if (rank === 1) {
+    return "ring-2 ring-inset ring-amber-800/85 dark:ring-amber-500/80";
+  }
+  if (rank === 2) {
+    return "ring-2 ring-inset ring-slate-600/80 dark:ring-slate-400/75";
+  }
+  if (rank === 3) {
+    return "ring-2 ring-inset ring-orange-950/90 dark:ring-orange-800/85";
   }
   return "";
 }
@@ -48,8 +62,7 @@ function LeaderboardTable({
               "flex items-center gap-3 py-3 sm:gap-4",
               podiumTint(row.rank),
               row.rank <= 3 && "rounded-lg px-2 -mx-2 sm:px-3 sm:-mx-3",
-              isViewer && row.rank > 3 && "rounded-lg bg-primary/8 px-2 -mx-2 sm:px-3 sm:-mx-3",
-              isViewer && row.rank <= 3 && "ring-2 ring-primary/55 ring-offset-2 ring-offset-background dark:ring-offset-background",
+              isViewer && row.rank <= 3 && viewerPodiumInsetRing(row.rank),
             )}
           >
             <span
@@ -67,7 +80,7 @@ function LeaderboardTable({
               className="size-10 shrink-0 rounded-full object-cover ring-2 ring-border/70 sm:size-11"
             />
             <div className="min-w-0 flex-1">
-              <p className={cn("truncate font-medium", isViewer && "text-primary")}>
+              <p className={cn("truncate font-medium", isViewer && "font-semibold")}>
                 {row.display_name}
                 {isViewer ? <span className="sr-only"> (you)</span> : null}
               </p>
