@@ -15,3 +15,8 @@ export const NOTE_BODY_MAX_LEN = 4000;
 /** Tie-break when streaks tie — UI order uses name; SQL uses display_name. */
 export type StreakTieBreak = "longest_historical_then_points";
 export const STREAK_TIE_BREAK: StreakTieBreak = "longest_historical_then_points";
+
+/**
+ * Standings points: first note to each recipient = 2, each further note to that recipient = 1.
+ * Per author total = note_count + distinct_recipients (see `standings_leaderboards` migration).
+ */

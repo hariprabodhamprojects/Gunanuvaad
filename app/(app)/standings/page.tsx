@@ -11,11 +11,7 @@ export default async function StandingsPage() {
   const data = await getStandings();
 
   if (!data) {
-    return (
-      <div className="rounded-xl border border-dashed border-border px-4 py-12 text-center text-sm text-muted-foreground">
-        Couldn&apos;t load standings. If this persists, confirm the Phase 5 migration is applied in Supabase.
-      </div>
-    );
+    return <div className="py-16 text-center text-sm text-muted-foreground">Unavailable.</div>;
   }
 
   return <StandingsView data={data} />;
