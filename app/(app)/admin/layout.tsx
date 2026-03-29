@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const links = [
     { href: "/admin", label: "Overview" },
     { href: "/admin/invites", label: "Invites" },
-    { href: "/admin/featured", label: "Featured notes" },
+    { href: "/admin/approved", label: "Approved notes" },
   ] as const;
 
   return (

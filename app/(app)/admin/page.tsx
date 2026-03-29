@@ -13,7 +13,8 @@ export default function AdminPage() {
       <header className="space-y-1">
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Admin</h1>
         <p className="text-sm text-muted-foreground">
-          Organizer tools: invite onboarding status and curated “featured” notes (no effect on points or streaks).
+          Organizer tools: invite onboarding status and approved notes for the home spotlight (no effect on points or
+          streaks).
         </p>
       </header>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -28,14 +29,14 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/admin/featured" className="block rounded-xl transition-opacity hover:opacity-95">
+        <Link href="/admin/approved" className="block rounded-xl transition-opacity hover:opacity-95">
           <Card className="h-full ring-border/60">
             <CardHeader>
-              <CardTitle className="text-base">Featured notes</CardTitle>
+              <CardTitle className="text-base">Approved notes</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-              Pick highlights for a “best notes” view. Original rows stay in{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">daily_notes</code>; scores are unchanged.
+              Approve notes for the home carousel. Pointers live in{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">approved_daily_notes</code>; scores are unchanged.
             </CardContent>
           </Card>
         </Link>

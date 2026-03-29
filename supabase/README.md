@@ -20,7 +20,8 @@
    - `migrations/20250331160000_repair_daily_notes_campaign_minus_one_rpc.sql` (optional **one-time** RPC to shift stored `campaign_date` back one day — see § One-time repair below)
    - `migrations/20250331160100_repair_daily_notes_rpc_where_clause.sql` (same RPC with `WHERE true` for Supabase “UPDATE requires a WHERE clause”)
    - `migrations/20250331170000_is_organizer_session.sql` (Phase 6 — `is_organizer_session()` for `/admin`; set `is_organizer = true` on your row in `allowed_emails`)
-   - `migrations/20250331180000_admin_featured_notes_allowlist_overview.sql` (`featured_daily_notes` + organizer RPCs: allowlist overview, feature/unfeature, list notes for curation)
+   - `migrations/20250331180000_admin_featured_notes_allowlist_overview.sql` (creates `featured_daily_notes` + organizer RPCs — superseded in naming by the next migration)
+   - `migrations/20250331190000_approved_notes_rename_slideshow.sql` (renames to `approved_daily_notes` / approve–disapprove RPCs + `approved_notes_slideshow_random` for the home carousel)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 

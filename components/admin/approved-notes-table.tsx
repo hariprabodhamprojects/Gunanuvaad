@@ -3,15 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { featureDailyNoteAction, unfeatureDailyNoteAction } from "@/lib/admin/actions";
-import type { AdminNoteForFeatureRow } from "@/lib/admin/types";
+import { approveDailyNoteAction, disapproveDailyNoteAction } from "@/lib/admin/actions";
+import type { AdminNoteForApprovalRow } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  rows: AdminNoteForFeatureRow[];
+  rows: AdminNoteForApprovalRow[];
 };
 
-export function FeaturedNotesTable({ rows }: Props) {
+export function ApprovedNotesTable({ rows }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -38,8 +38,8 @@ export function FeaturedNotesTable({ rows }: Props) {
             <th className="px-3 py-2.5 font-medium sm:px-4">Date</th>
             <th className="px-3 py-2.5 font-medium sm:px-4">From → To</th>
             <th className="px-3 py-2.5 font-medium sm:px-4">Preview</th>
-            <th className="px-3 py-2.5 font-medium sm:px-4">Featured</th>
-            <th className="px-3 py-2.5 font-medium sm:px-4 w-36" />
+            <th className="px-3 py-2.5 font-medium sm:px-4">Approved</th>
+            <th className="w-36 px-3 py-2.5 font-medium sm:px-4" />
           </tr>
         </thead>
         <tbody>
@@ -60,23 +60,23 @@ export function FeaturedNotesTable({ rows }: Props) {
                 <span
                   className={cn(
                     "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-                    r.is_featured ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
+                    r.is_approved ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
                   )}
                 >
-                  {r.is_featured ? "Yes" : "No"}
+                  {r.is_approved ? "Yes" : "No"}
                 </span>
               </td>
               <td className="px-3 py-2.5 sm:px-4">
-                {r.is_featured ? (
+                {r.is_approved ? (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="w-full min-w-0"
                     disabled={pending}
-                    onClick={() => run(() => unfeatureDailyNoteAction(r.note_id))}
+                    onClick={() => run(() => disapproveDailyNoteAction(r.note_id))}
                   >
-                    Unfeature
+                    Disapprove
                   </Button>
                 ) : (
                   <Button
@@ -85,9 +85,9 @@ export function FeaturedNotesTable({ rows }: Props) {
                     size="sm"
                     className="w-full min-w-0"
                     disabled={pending}
-                    onClick={() => run(() => featureDailyNoteAction(r.note_id))}
+                    onClick={() => run(() => approveDailyNoteAction(r.note_id))}
                   >
-                    Feature
+                    Approve
                   </Button>
                 )}
               </td>

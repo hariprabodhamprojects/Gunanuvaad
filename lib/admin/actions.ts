@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-export async function featureDailyNoteAction(noteId: string): Promise<{ ok: boolean; error?: string }> {
+export async function approveDailyNoteAction(noteId: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("admin_feature_daily_note", { p_note_id: noteId });
+  const { data, error } = await supabase.rpc("admin_approve_daily_note", { p_note_id: noteId });
 
   if (error) {
-    console.error("[admin] admin_feature_daily_note", error.message);
+    console.error("[admin] admin_approve_daily_note", error.message);
     return { ok: false, error: error.message };
   }
 
@@ -17,16 +17,17 @@ export async function featureDailyNoteAction(noteId: string): Promise<{ ok: bool
     return { ok: false, error: row?.code ?? "failed" };
   }
 
-  revalidatePath("/admin/featured");
+  revalidatePath("/admin/approved");
+  revalidatePath("/home");
   return { ok: true };
 }
 
-export async function unfeatureDailyNoteAction(noteId: string): Promise<{ ok: boolean; error?: string }> {
+export async function disapproveDailyNoteAction(noteId: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("admin_unfeature_daily_note", { p_note_id: noteId });
+  const { data, error } = await supabase.rpc("admin_disapprove_daily_note", { p_note_id: noteId });
 
   if (error) {
-    console.error("[admin] admin_unfeature_daily_note", error.message);
+    console.error("[admin] admin_disapprove_daily_note", error.message);
     return { ok: false, error: error.message };
   }
 
@@ -35,6 +36,7 @@ export async function unfeatureDailyNoteAction(noteId: string): Promise<{ ok: bo
     return { ok: false, error: row?.code ?? "failed" };
   }
 
-  revalidatePath("/admin/featured");
+  revalidatePath("/admin/approved");
+  revalidatePath("/home");
   return { ok: true };
 }

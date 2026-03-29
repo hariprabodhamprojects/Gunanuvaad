@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { AdminAllowlistRow, AdminNoteForFeatureRow } from "@/lib/admin/types";
+import type { AdminAllowlistRow, AdminNoteForApprovalRow } from "@/lib/admin/types";
 
 export async function fetchAllowlistOverview(): Promise<AdminAllowlistRow[]> {
   const supabase = await createClient();
@@ -13,14 +13,14 @@ export async function fetchAllowlistOverview(): Promise<AdminAllowlistRow[]> {
   return (data ?? []) as AdminAllowlistRow[];
 }
 
-export async function fetchNotesForFeature(limit = 100): Promise<AdminNoteForFeatureRow[]> {
+export async function fetchNotesForApproval(limit = 100): Promise<AdminNoteForApprovalRow[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("admin_notes_for_feature", { p_limit: limit });
+  const { data, error } = await supabase.rpc("admin_notes_for_approval", { p_limit: limit });
 
   if (error) {
-    console.error("[admin] admin_notes_for_feature", error.message);
+    console.error("[admin] admin_notes_for_approval", error.message);
     return [];
   }
 
-  return (data ?? []) as AdminNoteForFeatureRow[];
+  return (data ?? []) as AdminNoteForApprovalRow[];
 }
