@@ -12,6 +12,6 @@ export const RECIPIENT_LOCK_K = 25; // TODO: clamp to roster_size - 2 in SQL + U
 export const NOTE_BODY_MIN_LEN = 1;
 export const NOTE_BODY_MAX_LEN = 4000;
 
-/** Streak tie-breaker policy (document in Phase 5). */
+/** Tie-break when streaks tie — UI order uses name; SQL uses display_name. */
 export type StreakTieBreak = "longest_historical_then_points";
 export const STREAK_TIE_BREAK: StreakTieBreak = "longest_historical_then_points";

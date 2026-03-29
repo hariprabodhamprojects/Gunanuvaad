@@ -1,19 +1,22 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { StandingsView } from "@/components/standings-view";
+import { getStandings } from "@/lib/standings/get-standings";
 
-export default function StandingsPlaceholderPage() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Standings</CardTitle>
-        <CardDescription>Points & streak leaderboards — Phase 5.</CardDescription>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">Placeholder route.</CardContent>
-    </Card>
-  );
+export const metadata = {
+  title: "Standings — Gunanuvad",
+};
+
+export const dynamic = "force-dynamic";
+
+export default async function StandingsPage() {
+  const data = await getStandings();
+
+  if (!data) {
+    return (
+      <div className="rounded-xl border border-dashed border-border px-4 py-12 text-center text-sm text-muted-foreground">
+        Couldn&apos;t load standings. If this persists, confirm the Phase 5 migration is applied in Supabase.
+      </div>
+    );
+  }
+
+  return <StandingsView data={data} />;
 }
