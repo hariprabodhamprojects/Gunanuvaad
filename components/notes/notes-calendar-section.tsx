@@ -1,12 +1,23 @@
 "use client";
 
 import gsap from "gsap";
+import { Fraunces } from "next/font/google";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { AuthoredDailyNote } from "@/lib/notes/get-authored-notes";
 import { cn } from "@/lib/utils";
+
+/** Display serif for recipient name — distinct from UI sans (Geist). */
+const recipientDisplay = Fraunces({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+});
+
+/** Keeps the month grid from stretching on wide viewports; cells stay tap-friendly but compact. */
+const CAL_GRID_MAX = "max-w-[17.5rem] sm:max-w-[18.5rem] md:max-w-[19.5rem]";
 
 type Props = {
   notes: AuthoredDailyNote[];
@@ -67,13 +78,13 @@ function formatLongDate(dateStr: string): string {
   });
 }
 
-function NoteRecipientCard({ note, formattedDate }: { note: AuthoredDailyNote; formattedDate: string }) {
+function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
   const innerRef = useRef<HTMLDivElement>(null);
 
   const onEnter = () => {
     const el = innerRef.current;
     if (!el) return;
-    gsap.to(el, { scale: 1.01, y: -2, duration: 0.25, ease: "power2.out", overwrite: "auto" });
+    gsap.to(el, { scale: 1.008, y: -2, duration: 0.25, ease: "power2.out", overwrite: "auto" });
   };
   const onLeave = () => {
     const el = innerRef.current;
@@ -84,28 +95,47 @@ function NoteRecipientCard({ note, formattedDate }: { note: AuthoredDailyNote; f
   const avatarSrc = note.recipient_avatar_url?.trim() || "/globe.svg";
 
   return (
-    <div className="mx-auto w-full max-w-sm" onPointerEnter={onEnter} onPointerLeave={onLeave}>
+    <div className="mx-auto w-full max-w-md" onPointerEnter={onEnter} onPointerLeave={onLeave}>
       <Card
         size="sm"
         className={cn(
           "gap-0 overflow-hidden p-0 py-0 shadow-md ring-border/60",
-          "transition-shadow duration-300 hover:shadow-lg hover:ring-primary/20",
+          "transition-shadow duration-300 hover:shadow-lg hover:ring-primary/25",
         )}
       >
         <div ref={innerRef} className="flex flex-col will-change-transform">
-          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted/40">
+          {/* Shorter than square so portrait photos don’t dominate the card */}
+          <div className="relative h-28 w-full shrink-0 overflow-hidden bg-muted/50 sm:h-32 md:h-36">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatarSrc} alt="" className="size-full object-cover" />
+            <img
+              src={avatarSrc}
+              alt=""
+              className="size-full object-cover object-[center_20%]"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-card/90 via-transparent to-transparent"
+              aria-hidden
+            />
           </div>
-          <CardContent className="flex flex-col gap-1 px-3 py-3 sm:px-3.5 sm:py-3.5">
-            <p className="text-center text-xs font-medium text-muted-foreground">Written for</p>
-            <p className="line-clamp-2 text-center font-heading text-sm font-semibold leading-snug text-foreground sm:text-base">
-              {note.recipient_name}
-            </p>
-            <p className="text-center text-xs text-muted-foreground">{formattedDate}</p>
+          <CardContent className="flex flex-col gap-2 px-4 pb-2 pt-3 sm:gap-2.5 sm:px-5 sm:pb-3 sm:pt-4">
+            <div className="text-center">
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground sm:text-[0.7rem]">
+                Written for
+              </p>
+              <p
+                className={cn(
+                  recipientDisplay.className,
+                  "mt-1.5 line-clamp-2 text-pretty text-xl font-semibold leading-tight tracking-tight text-foreground sm:text-2xl md:text-[1.65rem]",
+                )}
+              >
+                {note.recipient_name}
+              </p>
+            </div>
           </CardContent>
-          <div className="border-t border-border/60 bg-muted/15 px-3 py-3 sm:px-4 sm:py-4">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{note.body}</p>
+          <div className="border-t border-border/50 bg-muted/20 px-4 py-4 sm:px-5 sm:py-5">
+            <p className="whitespace-pre-wrap text-pretty font-sans text-base leading-[1.65] text-foreground sm:text-lg sm:leading-relaxed md:text-xl md:leading-[1.7]">
+              {note.body}
+            </p>
           </div>
         </div>
       </Card>
@@ -192,11 +222,13 @@ export function NotesCalendarSection({ notes }: Props) {
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-border/80 shadow-sm ring-1 ring-border/40">
-        <CardContent className="space-y-4 p-4 sm:p-5">
+      <Card className="mx-auto w-full max-w-md overflow-hidden border-border/80 shadow-sm ring-1 ring-border/40 md:max-w-lg">
+        <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-4 md:p-5">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="font-heading text-lg font-semibold tracking-tight sm:text-xl">{monthLabel}</h2>
-            <div className="flex items-center gap-1">
+            <h2 className="font-heading text-base font-semibold tracking-tight sm:text-lg md:text-xl">
+              {monthLabel}
+            </h2>
+            <div className="flex shrink-0 items-center gap-0.5">
               <Button
                 type="button"
                 variant="outline"
@@ -220,46 +252,51 @@ export function NotesCalendarSection({ notes }: Props) {
             </div>
           </div>
 
-          <div ref={calendarRef} className="select-none">
-            <div className="mb-2 grid grid-cols-7 gap-1 text-center">
+          <div ref={calendarRef} className={cn("mx-auto select-none", CAL_GRID_MAX)}>
+            <div className="mb-1.5 grid grid-cols-7 gap-0 text-center">
               {WEEKDAYS.map((w) => (
                 <div
                   key={w}
-                  className="py-1 text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground sm:text-xs"
+                  className="flex h-7 items-center justify-center text-[0.6rem] font-semibold uppercase tracking-wide text-muted-foreground sm:h-8 sm:text-[0.65rem]"
                 >
                   {w}
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+            <div className="grid grid-cols-7 gap-y-1.5">
               {cells.map((cell) => {
                 if (cell.day === null || !cell.dateKey) {
-                  return <div key={cell.key} className="aspect-square min-h-[2.5rem] sm:min-h-10" />;
+                  return (
+                    <div key={cell.key} className="flex h-9 justify-center sm:h-10">
+                      <span className="size-9 sm:size-10" aria-hidden />
+                    </div>
+                  );
                 }
                 const hasNote = noteDates.has(cell.dateKey);
                 const isSelected = selectedDate === cell.dateKey;
                 return (
-                  <button
-                    key={cell.key}
-                    type="button"
-                    disabled={!hasNote}
-                    onClick={() => setCal((c) => ({ ...c, selectedDate: cell.dateKey! }))}
-                    aria-pressed={isSelected}
-                    className={cn(
-                      "relative flex aspect-square min-h-[2.5rem] items-center justify-center rounded-xl text-sm font-medium transition-colors sm:min-h-10 sm:text-base",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                      !hasNote && "cursor-default text-muted-foreground/35",
-                      hasNote && !isSelected && "bg-muted/40 text-foreground hover:bg-muted/70",
-                      hasNote &&
-                        isSelected &&
-                        "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30 ring-offset-2 ring-offset-background",
-                    )}
-                  >
-                    {cell.day}
-                    {hasNote && !isSelected ? (
-                      <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary/70" />
-                    ) : null}
-                  </button>
+                  <div key={cell.key} className="flex h-9 justify-center sm:h-10">
+                    <button
+                      type="button"
+                      disabled={!hasNote}
+                      onClick={() => setCal((c) => ({ ...c, selectedDate: cell.dateKey! }))}
+                      aria-pressed={isSelected}
+                      className={cn(
+                        "relative flex size-9 items-center justify-center rounded-lg text-[0.8125rem] font-semibold tabular-nums transition-[color,background-color,box-shadow] sm:size-10 sm:text-sm",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                        !hasNote && "cursor-default text-muted-foreground/30",
+                        hasNote && !isSelected && "bg-muted/50 text-foreground hover:bg-muted/80",
+                        hasNote &&
+                          isSelected &&
+                          "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25 ring-offset-2 ring-offset-card",
+                      )}
+                    >
+                      {cell.day}
+                      {hasNote && !isSelected ? (
+                        <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary/65" />
+                      ) : null}
+                    </button>
+                  </div>
                 );
               })}
             </div>
@@ -283,7 +320,7 @@ export function NotesCalendarSection({ notes }: Props) {
         ) : (
           <div className="space-y-4">
             {notesForDate.map((note) => (
-              <NoteRecipientCard key={note.id} note={note} formattedDate={formatLongDate(selectedDate)} />
+              <NoteRecipientCard key={note.id} note={note} />
             ))}
           </div>
         )}
