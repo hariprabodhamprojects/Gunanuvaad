@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { Shield, X } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { SettingsPanel } from "@/components/settings-panel";
@@ -14,6 +14,7 @@ type Props = {
   avatarUrl: string;
   totalScore: number;
   totalStreak: number;
+  isOrganizer?: boolean;
 };
 
 function initialsFromName(name: string): string {
@@ -23,7 +24,14 @@ function initialsFromName(name: string): string {
   return (parts[0]![0] + parts[parts.length - 1]![0]).toUpperCase();
 }
 
-export function AppMenu({ email, displayName, avatarUrl, totalScore, totalStreak }: Props) {
+export function AppMenu({
+  email,
+  displayName,
+  avatarUrl,
+  totalScore,
+  totalStreak,
+  isOrganizer = false,
+}: Props) {
   const [open, setOpen] = useState(false);
   const initials = initialsFromName(displayName);
 
@@ -119,6 +127,19 @@ export function AppMenu({ email, displayName, avatarUrl, totalScore, totalStreak
                 >
                   View full profile
                 </Link>
+                {isOrganizer ? (
+                  <Link
+                    href="/admin"
+                    className={cn(
+                      buttonVariants({ variant: "secondary", size: "sm" }),
+                      "mt-2 w-full gap-2",
+                    )}
+                    onClick={() => setOpen(false)}
+                  >
+                    <Shield className="size-4 shrink-0 opacity-80" aria-hidden />
+                    Admin
+                  </Link>
+                ) : null}
               </div>
               <SettingsPanel email={email} />
             </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppBottomNav } from "@/components/app-bottom-nav";
 import { AppHeaderNav } from "@/components/app-header-nav";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
+import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { requireCompleteProfile } from "@/lib/auth/require-complete-profile";
 import { getStandings } from "@/lib/standings/get-standings";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +32,7 @@ export default async function AppShellLayout({
   const standings = await getStandings();
   const scoreEntry = standings?.points.find((entry) => entry.id === user.id);
   const streakEntry = standings?.streaks.find((entry) => entry.id === user.id);
+  const isOrganizer = await getIsOrganizerSession();
 
   return (
     <div className="flex min-h-full w-full min-w-0 flex-1 flex-col">
@@ -48,6 +50,7 @@ export default async function AppShellLayout({
             avatarUrl={scoreEntry?.avatar_url ?? profileAvatarUrl}
             totalScore={scoreEntry?.score ?? 0}
             totalStreak={streakEntry?.streak ?? 0}
+            isOrganizer={isOrganizer}
           />
         </div>
       </header>

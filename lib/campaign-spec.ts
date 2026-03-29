@@ -1,5 +1,6 @@
 /**
  * Phase 0 — single place for values you will lock before building submit rules (Phase 4).
+ * Phase 6 — `/admin` uses `allowed_emails.is_organizer` + `is_organizer_session()` RPC.
  * Change these here; later phases import from this module instead of scattering magic numbers.
  */
 export const CAMPAIGN_TIMEZONE = "Asia/Kolkata"; // TODO: confirm with your group

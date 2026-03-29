@@ -8,9 +8,17 @@ type Props = {
   avatarUrl: string;
   totalScore: number;
   totalStreak: number;
+  isOrganizer?: boolean;
 };
 
-export function AppHeaderNav({ email, displayName, avatarUrl, totalScore, totalStreak }: Props) {
+export function AppHeaderNav({
+  email,
+  displayName,
+  avatarUrl,
+  totalScore,
+  totalStreak,
+  isOrganizer = false,
+}: Props) {
   return (
     <AppMenu
       email={email}
@@ -18,6 +26,7 @@ export function AppHeaderNav({ email, displayName, avatarUrl, totalScore, totalS
       avatarUrl={avatarUrl}
       totalScore={totalScore}
       totalStreak={totalStreak}
+      isOrganizer={isOrganizer}
     />
   );
 }

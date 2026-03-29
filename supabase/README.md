@@ -19,6 +19,7 @@
    - `migrations/20250331150000_standings_dense_rank.sql` (ties share rank; next group is `DENSE_RANK` 2, 3, … not skipping)
    - `migrations/20250331160000_repair_daily_notes_campaign_minus_one_rpc.sql` (optional **one-time** RPC to shift stored `campaign_date` back one day — see § One-time repair below)
    - `migrations/20250331160100_repair_daily_notes_rpc_where_clause.sql` (same RPC with `WHERE true` for Supabase “UPDATE requires a WHERE clause”)
+   - `migrations/20250331170000_is_organizer_session.sql` (Phase 6 — `is_organizer_session()` for `/admin`; set `is_organizer = true` on your row in `allowed_emails`)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 
