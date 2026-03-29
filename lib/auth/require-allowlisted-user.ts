@@ -23,7 +23,7 @@ function resolveSessionEmail(user: User): string | null {
 
 /**
  * Use in `app/(app)/layout.tsx` (and later any protected Server Component).
- * - No session → `/login`
+ * - No session → `/` (splash + Google)
  * - Session but email not in `allowed_emails` → sign out + `/not-invited`
  *
  * Allowlist is enforced via RPC `is_allowlisted_session()` (matches auth.users ↔ allowed_emails
@@ -36,7 +36,7 @@ export async function requireAllowlistedUser(): Promise<AllowlistedUser> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?next=/home");
+    redirect("/?next=/home");
   }
 
   const email = resolveSessionEmail(user);

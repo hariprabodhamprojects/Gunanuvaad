@@ -12,8 +12,9 @@
    - `migrations/20250329130000_roster_exclude_self.sql` (roster omits the signed-in user so they are not pickable)
    - `migrations/20250330120000_phase4_daily_notes.sql` (daily notes + `recipient_write_eligibility` / `submit_daily_note` RPCs)
    - `migrations/20250330140000_allowlist_display_name.sql` (`display_name` on invite list + sync into `profiles`)
+   - `migrations/20250330150000_sync_display_name_from_allowlist_fallback.sql` (name from allowlist, or derived from email local part when blank)
 
-3. **Seed `allowed_emails`** with real addresses (all **lower-case**) and **display names** (shown in the app; users only upload a photo at onboarding):
+3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 
    ```sql
    insert into public.allowed_emails (email, display_name, is_organizer) values
@@ -47,6 +48,6 @@
    ```
 
 7. **Test**  
-   `npm run dev` → `/login` → invite flow → **onboarding** → `/home`. Use the **bottom bar** for Home / Standings / Me, and the **menu** (☰) for dark mode, notifications, and sign out.
+   `npm run dev` → `/` (splash, then **Continue with Google**) → **onboarding** → `/home`. Use the **bottom bar** for Home / Standings / Me, and the **menu** (☰) for dark mode, notifications, and sign out.
 
 If the Google account’s email is **not** in `allowed_emails`, you’ll see **Not on the invite list** (`/not-invited`) and the session is cleared.

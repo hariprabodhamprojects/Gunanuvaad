@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { OnboardingMissingName } from "@/components/onboarding-missing-name";
 import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,7 +10,17 @@ export default async function OnboardingPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login?next=/onboarding");
+    redirect("/?next=/onboarding");
+  }
+
+  const { data: allowed, error: allowErr } = await supabase.rpc("is_allowlisted_session");
+  if (allowErr) {
+    console.error("[onboarding] is_allowlisted_session", allowErr.message);
+    redirect("/?error=auth");
+  }
+  if (!allowed) {
+    await supabase.auth.signOut();
+    redirect("/not-invited");
   }
 
   const { error: syncErr } = await supabase.rpc("sync_invited_display_name");
@@ -30,10 +39,6 @@ export default async function OnboardingPage() {
 
   if (hasName && hasAvatar) {
     redirect("/home");
-  }
-
-  if (!hasName) {
-    return <OnboardingMissingName />;
   }
 
   return <OnboardingWizard />;

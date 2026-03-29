@@ -1,5 +1,5 @@
 /**
- * Route group `(marketing)` — public pages (landing, future /login marketing).
+ * Route group `(marketing)` — public landing (`/`) and `/login` → `/` redirect.
  * Parentheses mean this segment does NOT appear in the URL.
  */
 export default function MarketingLayout({

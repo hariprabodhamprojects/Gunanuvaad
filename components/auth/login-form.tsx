@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { startGoogleOAuth } from "@/lib/auth/google-oauth-client";
 
 type Props = {
   /** Post-login path when onboarding is already complete (must start with `/`). */
@@ -11,7 +11,7 @@ type Props = {
 };
 
 /**
- * Invite-only: Google OAuth, then `/auth/callback` checks `allowed_emails` for the signed-in account.
+ * Thin wrapper — prefer landing splash on `/` for the main flow; kept for any embedded use.
  */
 export function LoginForm({ redirectNext = "/home" }: Props) {
   const [pending, setPending] = useState(false);
@@ -19,27 +19,9 @@ export function LoginForm({ redirectNext = "/home" }: Props) {
 
   async function signInWithGoogle() {
     setPending(true);
-    const supabase = createClient();
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
+    const r = await startGoogleOAuth(next);
     setPending(false);
-
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-
-    if (data.url) {
-      window.location.href = data.url;
-      return;
-    }
-
-    toast.error("Could not start Google sign-in.");
+    if (!r.ok) toast.error(r.message);
   }
 
   return (

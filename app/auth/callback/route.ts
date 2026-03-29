@@ -18,12 +18,12 @@ export async function GET(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(error)}`,
+      `${origin}/?error=${encodeURIComponent(error)}`,
     );
   }
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=auth`);
+    return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
   const cookieStore = await cookies();
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
   if (exchangeError) {
-    return NextResponse.redirect(`${origin}/login?error=auth`);
+    return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
   const {
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(`${origin}/login?error=auth`);
+    return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
   cookieStore.delete(PENDING_SIGNIN_COOKIE);
@@ -64,12 +64,17 @@ export async function GET(request: Request) {
   if (allowErr) {
     console.error("[auth/callback] is_allowlisted_session", allowErr.message);
     await supabase.auth.signOut();
-    return NextResponse.redirect(`${origin}/login?error=auth`);
+    return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
   if (!allowed) {
     await supabase.auth.signOut();
     return NextResponse.redirect(`${origin}/not-invited`);
+  }
+
+  const { error: syncErr } = await supabase.rpc("sync_invited_display_name");
+  if (syncErr) {
+    console.error("[auth/callback] sync_invited_display_name", syncErr.message);
   }
 
   const { data: profile } = await supabase

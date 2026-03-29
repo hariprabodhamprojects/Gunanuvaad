@@ -15,7 +15,7 @@ export default async function MePage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login?next=/me");
+    redirect("/?next=/me");
   }
 
   const { data: profile } = await supabase
