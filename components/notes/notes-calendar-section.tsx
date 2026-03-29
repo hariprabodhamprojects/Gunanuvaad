@@ -21,6 +21,8 @@ const CAL_GRID_MAX = "max-w-[17.5rem] sm:max-w-[18.5rem] md:max-w-[19.5rem]";
 
 type Props = {
   notes: AuthoredDailyNote[];
+  /** YYYY-MM-DD in Asia/Kolkata — from server, matches DB campaign day */
+  campaignToday: string;
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
@@ -42,10 +44,20 @@ function ymd(year: number, month: number, day: number): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function firstNoteDateInMonth(year: number, month: number, sortedDates: string[]): string {
+/** Prefer campaign “today” in this month, else latest note on/before today, else latest in month. */
+function defaultSelectedInMonth(
+  year: number,
+  month: number,
+  sortedDates: string[],
+  campaignToday: string,
+): string {
   const p = monthPrefix(year, month);
-  const inMonth = sortedDates.filter((d) => d.startsWith(`${p}-`));
-  return inMonth.length ? inMonth[inMonth.length - 1] : "";
+  const inMonth = sortDatesAsc(sortedDates.filter((d) => d.startsWith(`${p}-`)));
+  if (inMonth.length === 0) return "";
+  if (inMonth.includes(campaignToday)) return campaignToday;
+  const onOrBefore = inMonth.filter((d) => d <= campaignToday);
+  if (onOrBefore.length) return onOrBefore[onOrBefore.length - 1];
+  return inMonth[inMonth.length - 1];
 }
 
 /** Chronological sort for YYYY-MM-DD strings */
@@ -53,17 +65,27 @@ function sortDatesAsc(dates: string[]): string[] {
   return [...dates].sort((a, b) => a.localeCompare(b));
 }
 
-function buildInitialCal(notes: AuthoredDailyNote[]): { year: number; month: number; selectedDate: string } {
+function buildInitialCal(
+  notes: AuthoredDailyNote[],
+  campaignToday: string,
+): { year: number; month: number; selectedDate: string } {
   const sorted = sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]);
-  const last = sorted[sorted.length - 1];
-  if (!last) {
-    const t = new Date();
-    return { year: t.getFullYear(), month: t.getMonth() + 1, selectedDate: "" };
+  if (sorted.length === 0) {
+    const y = Number(campaignToday.slice(0, 4));
+    const m = Number(campaignToday.slice(5, 7));
+    return { year: y, month: m, selectedDate: "" };
+  }
+  let selected: string;
+  if (sorted.includes(campaignToday)) {
+    selected = campaignToday;
+  } else {
+    const onOrBefore = sorted.filter((d) => d <= campaignToday);
+    selected = onOrBefore.length ? onOrBefore[onOrBefore.length - 1] : sorted[sorted.length - 1];
   }
   return {
-    year: Number(last.slice(0, 4)),
-    month: Number(last.slice(5, 7)),
-    selectedDate: last,
+    year: Number(selected.slice(0, 4)),
+    month: Number(selected.slice(5, 7)),
+    selectedDate: selected,
   };
 }
 
@@ -99,18 +121,17 @@ function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
       <Card
         size="sm"
         className={cn(
-          "gap-0 overflow-hidden p-0 py-0 shadow-md ring-border/60",
-          "transition-shadow duration-300 hover:shadow-lg hover:ring-primary/25",
+          "gap-0 overflow-hidden border-0 p-0 py-0 shadow-lg ring-0",
+          "transition-shadow duration-300 hover:shadow-xl hover:ring-0",
         )}
       >
         <div ref={innerRef} className="flex flex-col will-change-transform">
-          {/* Shorter than square so portrait photos don’t dominate the card */}
-          <div className="relative h-28 w-full shrink-0 overflow-hidden bg-muted/50 sm:h-32 md:h-36">
+          <div className="relative h-40 w-full shrink-0 overflow-hidden bg-muted/50 sm:h-44 md:h-48">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={avatarSrc}
               alt=""
-              className="size-full object-cover object-[center_20%]"
+              className="size-full object-cover object-[center_15%]"
             />
             <div
               className="pointer-events-none absolute inset-0 bg-gradient-to-t from-card/90 via-transparent to-transparent"
@@ -143,10 +164,10 @@ function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
   );
 }
 
-export function NotesCalendarSection({ notes }: Props) {
+export function NotesCalendarSection({ notes, campaignToday }: Props) {
   const sortedDates = useMemo(() => sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]), [notes]);
 
-  const [cal, setCal] = useState(() => buildInitialCal(notes));
+  const [cal, setCal] = useState(() => buildInitialCal(notes, campaignToday));
 
   const calendarRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -165,7 +186,7 @@ export function NotesCalendarSection({ notes }: Props) {
       const prefix = monthPrefix(y, m);
       let nextSelected = c.selectedDate;
       if (!nextSelected || !nextSelected.startsWith(`${prefix}-`)) {
-        nextSelected = firstNoteDateInMonth(y, m, sortedDates);
+        nextSelected = defaultSelectedInMonth(y, m, sortedDates, campaignToday);
       }
       return { year: y, month: m, selectedDate: nextSelected };
     });
@@ -274,6 +295,7 @@ export function NotesCalendarSection({ notes }: Props) {
                 }
                 const hasNote = noteDates.has(cell.dateKey);
                 const isSelected = selectedDate === cell.dateKey;
+                const isCampaignToday = cell.dateKey === campaignToday;
                 return (
                   <div key={cell.key} className="flex h-9 justify-center sm:h-10">
                     <button
@@ -281,11 +303,17 @@ export function NotesCalendarSection({ notes }: Props) {
                       disabled={!hasNote}
                       onClick={() => setCal((c) => ({ ...c, selectedDate: cell.dateKey! }))}
                       aria-pressed={isSelected}
+                      aria-current={isCampaignToday ? "date" : undefined}
                       className={cn(
                         "relative flex size-9 items-center justify-center rounded-lg text-[0.8125rem] font-semibold tabular-nums transition-[color,background-color,box-shadow] sm:size-10 sm:text-sm",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                         !hasNote && "cursor-default text-muted-foreground/30",
+                        !hasNote && isCampaignToday && "ring-1 ring-dashed ring-primary/35 text-muted-foreground/45",
                         hasNote && !isSelected && "bg-muted/50 text-foreground hover:bg-muted/80",
+                        hasNote &&
+                          !isSelected &&
+                          isCampaignToday &&
+                          "ring-1 ring-primary/40 ring-offset-0",
                         hasNote &&
                           isSelected &&
                           "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25 ring-offset-2 ring-offset-card",
