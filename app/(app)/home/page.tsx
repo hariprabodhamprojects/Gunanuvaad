@@ -29,7 +29,6 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-5">
-      <ApprovedNotesSlideshow slides={approvedSlides} />
       <header>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           Jay Swaminarayan
@@ -41,6 +40,7 @@ export default async function HomePage() {
           ) : null}
         </h1>
       </header>
+      <ApprovedNotesSlideshow slides={approvedSlides} />
       <RosterPickExperience members={members} currentUserId={user.id} />
     </div>
   );
