@@ -51,7 +51,10 @@ function ymd(year: number, month: number, day: number): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-/** Prefer `todayISO` in this month, else latest note on/before it, else latest in month. */
+/**
+ * When the viewed month is the user’s **local** current month, the selected day is always **local today**
+ * (even with no note — detail panel shows empty). Never auto-select a day **after** local today.
+ */
 function defaultSelectedInMonth(
   year: number,
   month: number,
@@ -60,11 +63,20 @@ function defaultSelectedInMonth(
 ): string {
   const p = monthPrefix(year, month);
   const inMonth = sortDatesAsc(sortedDates.filter((d) => d.startsWith(`${p}-`)));
+  const ty = Number(todayISO.slice(0, 4));
+  const tm = Number(todayISO.slice(5, 7));
+  const localTodayInThisMonth = ty === year && tm === month;
+
+  if (localTodayInThisMonth) {
+    return todayISO;
+  }
+
   if (inMonth.length === 0) return "";
-  if (inMonth.includes(todayISO)) return todayISO;
+
   const onOrBefore = inMonth.filter((d) => d <= todayISO);
   if (onOrBefore.length) return onOrBefore[onOrBefore.length - 1];
-  return inMonth[inMonth.length - 1];
+
+  return inMonth[0];
 }
 
 /** Chronological sort for YYYY-MM-DD strings */
@@ -72,28 +84,11 @@ function sortDatesAsc(dates: string[]): string[] {
   return [...dates].sort((a, b) => a.localeCompare(b));
 }
 
-function buildInitialCal(
-  notes: AuthoredDailyNote[],
-  todayISO: string,
-): { year: number; month: number; selectedDate: string } {
-  const sorted = sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]);
-  if (sorted.length === 0) {
-    const y = Number(todayISO.slice(0, 4));
-    const m = Number(todayISO.slice(5, 7));
-    return { year: y, month: m, selectedDate: "" };
-  }
-  let selected: string;
-  if (sorted.includes(todayISO)) {
-    selected = todayISO;
-  } else {
-    const onOrBefore = sorted.filter((d) => d <= todayISO);
-    selected = onOrBefore.length ? onOrBefore[onOrBefore.length - 1] : sorted[sorted.length - 1];
-  }
-  return {
-    year: Number(selected.slice(0, 4)),
-    month: Number(selected.slice(5, 7)),
-    selectedDate: selected,
-  };
+/** Always opens on the user’s **local** current month with **local today** selected (Canada, etc.). */
+function buildInitialCal(_notes: AuthoredDailyNote[], todayISO: string): CalState {
+  const y = Number(todayISO.slice(0, 4));
+  const m = Number(todayISO.slice(5, 7));
+  return { year: y, month: m, selectedDate: todayISO };
 }
 
 function formatLongDate(dateStr: string): string {
@@ -317,11 +312,12 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
                 const hasNote = noteDates.has(cell.dateKey);
                 const isSelected = selectedDate === cell.dateKey;
                 const isLocalToday = cell.dateKey === localTodayISO;
+                const canSelect = hasNote || isLocalToday;
                 return (
                   <div key={cell.key} className="flex h-9 justify-center sm:h-10">
                     <button
                       type="button"
-                      disabled={!hasNote}
+                      disabled={!canSelect}
                       onClick={() =>
                         setCalPatch((prev) => ({
                           ...(prev ?? baselineCal),
@@ -333,15 +329,14 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
                       className={cn(
                         "relative flex size-9 items-center justify-center rounded-lg text-[0.8125rem] font-semibold tabular-nums transition-[color,background-color,box-shadow] sm:size-10 sm:text-sm",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                        !hasNote && "cursor-default text-muted-foreground/30",
-                        !hasNote && isLocalToday && "ring-1 ring-dashed ring-primary/35 text-muted-foreground/45",
-                        hasNote && !isSelected && "bg-muted/50 text-foreground hover:bg-muted/80",
-                        hasNote &&
+                        !canSelect && "cursor-default text-muted-foreground/30",
+                        canSelect && !isSelected && "bg-muted/50 text-foreground hover:bg-muted/80",
+                        canSelect &&
                           !isSelected &&
                           isLocalToday &&
+                          hasNote &&
                           "ring-1 ring-primary/40 ring-offset-0",
-                        hasNote &&
-                          isSelected &&
+                        isSelected &&
                           "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25 ring-offset-2 ring-offset-card",
                       )}
                     >
