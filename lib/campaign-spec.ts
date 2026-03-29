@@ -19,5 +19,5 @@ export const STREAK_TIE_BREAK: StreakTieBreak = "longest_historical_then_points"
 /**
  * Standings points: first note to each recipient = 2, each further note to that recipient = 1.
  * Per author total = note_count + distinct_recipients (see `standings_leaderboards` migration).
- * Tied scores share the same rank (`RANK()`); list order within a tie is alphabetical by name.
+ * Tied scores share the same rank (`DENSE_RANK()`); next score level is the next integer (1,1,1,2). Order within a tie: name.
  */
