@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 
 const INTERVAL_MS = 5000;
 
-/** Total card height fixed so every slide matches; long notes scroll inside. */
-const CARD_HEIGHT = "min-h-[17.5rem] h-[17.5rem] sm:min-h-[18.5rem] sm:h-[18.5rem]";
-/** ~half the previous full-width square strip — short photo band. */
-const IMAGE_STRIP_H = "h-24 sm:h-28";
+/** Square portrait tile — same proportions as roster cards (`aspect-square` on mosaic tiles). */
+const AVATAR_BOX = "size-[7.25rem] shrink-0 sm:size-32";
+/** Scroll cap for long notes; keeps carousel cards from growing without bound. */
+const NOTE_MAX_H = "max-h-[5.25rem] sm:max-h-24";
 
 type Props = {
   slides: ApprovedSlide[];
@@ -65,18 +65,18 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
       <p className="text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/90">
         Notes for each other
       </p>
-      <Card
-        className={cn(
-          "flex flex-col overflow-hidden ring-border/60",
-          CARD_HEIGHT,
-        )}
-      >
-        <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-          <div ref={cardRef} className="flex min-h-0 flex-1 flex-col">
+      <Card className="overflow-hidden ring-border/60">
+        <CardContent className="p-0">
+          <div
+            ref={cardRef}
+            className={cn(
+              "flex min-h-[7.25rem] flex-row items-center gap-3 p-3 sm:min-h-32 sm:gap-4 sm:p-4",
+            )}
+          >
             <div
               className={cn(
-                "relative w-full shrink-0 overflow-hidden bg-muted/50",
-                IMAGE_STRIP_H,
+                "relative aspect-square overflow-hidden rounded-xl bg-muted/40",
+                AVATAR_BOX,
               )}
             >
               {hasAvatar ? (
@@ -84,27 +84,27 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
                 <img
                   src={slide.recipient_avatar_url}
                   alt=""
-                  className="size-full object-cover object-center"
+                  className="size-full object-cover object-top"
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-muted-foreground">
-                  <User className="size-10 opacity-60" strokeWidth={1.25} aria-hidden />
+                  <User className="size-12 opacity-60" strokeWidth={1.25} aria-hidden />
                 </div>
               )}
             </div>
-            <div className="flex min-h-0 flex-1 flex-col gap-1.5 px-4 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-3.5">
-              <p className="shrink-0 font-heading text-base font-semibold leading-tight text-foreground sm:text-lg">
+            <div className="min-w-0 flex-1 flex flex-col gap-2">
+              <p className="font-heading text-base font-semibold leading-tight text-foreground sm:text-lg">
                 {label}
               </p>
               <div
                 className={cn(
-                  "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-1",
-                  "[scrollbar-gutter:stable]",
+                  NOTE_MAX_H,
+                  "overflow-y-auto overscroll-y-contain pr-1",
                   "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
                   "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
                 )}
               >
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground sm:text-base">
+                <p className="whitespace-pre-wrap text-base font-medium leading-relaxed text-foreground">
                   {slide.body}
                 </p>
               </div>
