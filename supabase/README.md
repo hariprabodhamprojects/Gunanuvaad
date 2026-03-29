@@ -15,6 +15,7 @@
    - `migrations/20250330150000_sync_display_name_from_allowlist_fallback.sql` (name from allowlist, or derived from email local part when blank)
    - `migrations/20250331120000_phase5_standings.sql` (`standings_leaderboards()` RPC — points + streak leaderboards)
    - `migrations/20250331130000_standings_points_formula.sql` (points = first note to each recipient 2 pts, repeats 1 pt — stored as `notes + distinct recipients`)
+   - `migrations/20250331140000_standings_rank_ties.sql` (ties share the same rank via `RANK()`)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 
