@@ -1,0 +1,43 @@
+import { RosterPickExperience } from "@/components/roster/roster-pick-experience";
+import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
+import { getRosterMembers } from "@/lib/roster/get-roster";
+import { createClient } from "@/lib/supabase/server";
+
+export const metadata = {
+  title: "Home — Gunanuvad",
+};
+
+export const dynamic = "force-dynamic";
+
+/**
+ * Home — same screen as roster: one hub, no extra hop to another route.
+ */
+export default async function HomePage() {
+  const { user } = await requireAllowlistedUser();
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const displayName = profile?.display_name?.trim() ?? "";
+  const members = await getRosterMembers();
+
+  return (
+    <div className="space-y-5">
+      <header>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">
+          Jay Swaminarayan
+          {displayName ? (
+            <>
+              {" "}
+              <span className="text-primary">{displayName}</span>
+            </>
+          ) : null}
+        </h1>
+      </header>
+      <RosterPickExperience members={members} currentUserId={user.id} />
+    </div>
+  );
+}
