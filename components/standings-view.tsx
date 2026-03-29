@@ -2,38 +2,53 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { cn } from "@/lib/utils";
 
-/** One tint per dense-rank band: everyone tied at 1st → gold, 2nd → silver, 3rd → darker bronze. */
+/**
+ * Dense-rank bands: gold / silver / bronze.
+ * Dark mode: cool slate card + warm metal accents (avoid muddy brown fills).
+ */
 function podiumTint(rank: number): string {
   if (rank === 1) {
-    return "bg-amber-400/28 dark:bg-amber-500/22";
+    return [
+      "bg-amber-400/28 ring-1 ring-amber-600/45",
+      "dark:bg-amber-400/[0.11] dark:ring-amber-200/22",
+      "dark:shadow-[inset_0_1px_0_0_rgba(253,230,138,0.14)]",
+    ].join(" ");
   }
   if (rank === 2) {
-    return "bg-slate-400/30 dark:bg-slate-500/25";
+    return [
+      "bg-slate-400/30 ring-1 ring-slate-500/50",
+      "dark:bg-slate-300/[0.09] dark:ring-slate-200/22",
+      "dark:shadow-[inset_0_1px_0_0_rgba(226,232,240,0.12)]",
+    ].join(" ");
   }
   if (rank === 3) {
-    return "bg-amber-950/28 dark:bg-amber-950/40";
+    return [
+      "bg-amber-950/28 ring-1 ring-orange-950/45",
+      "dark:bg-orange-400/[0.09] dark:ring-orange-200/20",
+      "dark:shadow-[inset_0_1px_0_0_rgba(254,215,170,0.12)]",
+    ].join(" ");
   }
   return "";
 }
 
-/** Same-metal inset ring for “you” on podium — slightly deeper than the row tint, not heavy. */
+/** Inset ring for “you” on podium — matches row metal, slightly stronger so it never looks like a bug. */
 function viewerPodiumInsetRing(rank: number): string {
   if (rank === 1) {
-    return "ring-2 ring-inset ring-amber-600/45 dark:ring-amber-400/40";
+    return "ring-2 ring-inset ring-amber-600/45 dark:ring-amber-100/28";
   }
   if (rank === 2) {
-    return "ring-2 ring-inset ring-slate-500/45 dark:ring-slate-400/38";
+    return "ring-2 ring-inset ring-slate-500/45 dark:ring-slate-100/26";
   }
   if (rank === 3) {
-    return "ring-2 ring-inset ring-amber-800/42 dark:ring-orange-700/40";
+    return "ring-2 ring-inset ring-amber-800/42 dark:ring-orange-100/26";
   }
   return "";
 }
 
 function podiumRankClass(rank: number): string {
-  if (rank === 1) return "text-amber-900 dark:text-amber-300";
-  if (rank === 2) return "text-slate-700 dark:text-slate-200";
-  if (rank === 3) return "text-orange-950 dark:text-orange-400";
+  if (rank === 1) return "text-amber-900 dark:text-amber-100";
+  if (rank === 2) return "text-slate-700 dark:text-slate-100";
+  if (rank === 3) return "text-orange-950 dark:text-orange-100";
   return "text-muted-foreground";
 }
 

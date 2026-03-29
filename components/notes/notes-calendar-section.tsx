@@ -3,10 +3,11 @@
 import gsap from "gsap";
 import { Fraunces } from "next/font/google";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { AuthoredDailyNote } from "@/lib/notes/get-authored-notes";
+import { getLocalDateTodayISO } from "@/lib/notes/local-today";
 import { cn } from "@/lib/utils";
 
 /** Display serif for recipient name — distinct from UI sans (Geist). */
@@ -19,9 +20,15 @@ const recipientDisplay = Fraunces({
 /** Keeps the month grid from stretching on wide viewports; cells stay tap-friendly but compact. */
 const CAL_GRID_MAX = "max-w-[17.5rem] sm:max-w-[18.5rem] md:max-w-[19.5rem]";
 
+type CalState = { year: number; month: number; selectedDate: string };
+
+function noopSubscribe() {
+  return () => {};
+}
+
 type Props = {
   notes: AuthoredDailyNote[];
-  /** YYYY-MM-DD in Asia/Kolkata — from server, matches DB campaign day */
+  /** IST “today” for SSR/hydration only; client switches to local timezone after mount. */
   campaignToday: string;
 };
 
@@ -44,18 +51,18 @@ function ymd(year: number, month: number, day: number): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-/** Prefer campaign “today” in this month, else latest note on/before today, else latest in month. */
+/** Prefer `todayISO` in this month, else latest note on/before it, else latest in month. */
 function defaultSelectedInMonth(
   year: number,
   month: number,
   sortedDates: string[],
-  campaignToday: string,
+  todayISO: string,
 ): string {
   const p = monthPrefix(year, month);
   const inMonth = sortDatesAsc(sortedDates.filter((d) => d.startsWith(`${p}-`)));
   if (inMonth.length === 0) return "";
-  if (inMonth.includes(campaignToday)) return campaignToday;
-  const onOrBefore = inMonth.filter((d) => d <= campaignToday);
+  if (inMonth.includes(todayISO)) return todayISO;
+  const onOrBefore = inMonth.filter((d) => d <= todayISO);
   if (onOrBefore.length) return onOrBefore[onOrBefore.length - 1];
   return inMonth[inMonth.length - 1];
 }
@@ -67,19 +74,19 @@ function sortDatesAsc(dates: string[]): string[] {
 
 function buildInitialCal(
   notes: AuthoredDailyNote[],
-  campaignToday: string,
+  todayISO: string,
 ): { year: number; month: number; selectedDate: string } {
   const sorted = sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]);
   if (sorted.length === 0) {
-    const y = Number(campaignToday.slice(0, 4));
-    const m = Number(campaignToday.slice(5, 7));
+    const y = Number(todayISO.slice(0, 4));
+    const m = Number(todayISO.slice(5, 7));
     return { year: y, month: m, selectedDate: "" };
   }
   let selected: string;
-  if (sorted.includes(campaignToday)) {
-    selected = campaignToday;
+  if (sorted.includes(todayISO)) {
+    selected = todayISO;
   } else {
-    const onOrBefore = sorted.filter((d) => d <= campaignToday);
+    const onOrBefore = sorted.filter((d) => d <= todayISO);
     selected = onOrBefore.length ? onOrBefore[onOrBefore.length - 1] : sorted[sorted.length - 1];
   }
   return {
@@ -167,7 +174,19 @@ function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
 export function NotesCalendarSection({ notes, campaignToday }: Props) {
   const sortedDates = useMemo(() => sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]), [notes]);
 
-  const [cal, setCal] = useState(() => buildInitialCal(notes, campaignToday));
+  /** Client: local calendar day; SSR / hydration first pass: IST (matches server HTML). */
+  const localTodayISO = useSyncExternalStore(
+    noopSubscribe,
+    () => getLocalDateTodayISO(),
+    () => campaignToday,
+  );
+
+  const baselineCal = useMemo(() => buildInitialCal(notes, localTodayISO), [notes, localTodayISO]);
+
+  /** User month/day picks; `null` means follow `baselineCal` (updates when local “today” or notes change). */
+  const [calPatch, setCalPatch] = useState<CalState | null>(null);
+
+  const cal = calPatch ?? baselineCal;
 
   const calendarRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -181,12 +200,14 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
   );
 
   const goMonth = (delta: number) => {
-    setCal((c) => {
+    setCalPatch((prev) => {
+      const c = prev ?? baselineCal;
+      const todayISO = getLocalDateTodayISO();
       const { y, m } = addMonths(c.year, c.month, delta);
       const prefix = monthPrefix(y, m);
       let nextSelected = c.selectedDate;
       if (!nextSelected || !nextSelected.startsWith(`${prefix}-`)) {
-        nextSelected = defaultSelectedInMonth(y, m, sortedDates, campaignToday);
+        nextSelected = defaultSelectedInMonth(y, m, sortedDates, todayISO);
       }
       return { year: y, month: m, selectedDate: nextSelected };
     });
@@ -295,24 +316,29 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
                 }
                 const hasNote = noteDates.has(cell.dateKey);
                 const isSelected = selectedDate === cell.dateKey;
-                const isCampaignToday = cell.dateKey === campaignToday;
+                const isLocalToday = cell.dateKey === localTodayISO;
                 return (
                   <div key={cell.key} className="flex h-9 justify-center sm:h-10">
                     <button
                       type="button"
                       disabled={!hasNote}
-                      onClick={() => setCal((c) => ({ ...c, selectedDate: cell.dateKey! }))}
+                      onClick={() =>
+                        setCalPatch((prev) => ({
+                          ...(prev ?? baselineCal),
+                          selectedDate: cell.dateKey!,
+                        }))
+                      }
                       aria-pressed={isSelected}
-                      aria-current={isCampaignToday ? "date" : undefined}
+                      aria-current={isLocalToday ? "date" : undefined}
                       className={cn(
                         "relative flex size-9 items-center justify-center rounded-lg text-[0.8125rem] font-semibold tabular-nums transition-[color,background-color,box-shadow] sm:size-10 sm:text-sm",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                         !hasNote && "cursor-default text-muted-foreground/30",
-                        !hasNote && isCampaignToday && "ring-1 ring-dashed ring-primary/35 text-muted-foreground/45",
+                        !hasNote && isLocalToday && "ring-1 ring-dashed ring-primary/35 text-muted-foreground/45",
                         hasNote && !isSelected && "bg-muted/50 text-foreground hover:bg-muted/80",
                         hasNote &&
                           !isSelected &&
-                          isCampaignToday &&
+                          isLocalToday &&
                           "ring-1 ring-primary/40 ring-offset-0",
                         hasNote &&
                           isSelected &&
