@@ -2,6 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { cn } from "@/lib/utils";
 
+function podiumTint(rank: number): string {
+  if (rank === 1) return "bg-amber-500/12 ring-1 ring-amber-500/30";
+  if (rank === 2) return "bg-slate-400/14 ring-1 ring-slate-400/35";
+  if (rank === 3) return "bg-orange-600/12 ring-1 ring-orange-600/30";
+  return "";
+}
+
 function LeaderboardTable({
   rows,
   viewerId,
@@ -25,10 +32,19 @@ function LeaderboardTable({
             key={`${valueKey}-${row.id}`}
             className={cn(
               "flex items-center gap-3 py-3 sm:gap-4",
+              podiumTint(row.rank),
+              row.rank <= 3 && "rounded-lg px-2 -mx-2 sm:px-3 sm:-mx-3",
               isViewer && "rounded-lg bg-primary/8 px-2 -mx-2 sm:px-3 sm:-mx-3",
             )}
           >
-            <span className="w-8 shrink-0 text-center font-heading text-sm font-semibold tabular-nums text-muted-foreground sm:w-10">
+            <span
+              className={cn(
+                "w-8 shrink-0 text-center font-heading text-sm font-semibold tabular-nums text-muted-foreground sm:w-10",
+                row.rank === 1 && "text-amber-600 dark:text-amber-400",
+                row.rank === 2 && "text-slate-600 dark:text-slate-300",
+                row.rank === 3 && "text-orange-700 dark:text-orange-400",
+              )}
+            >
               {row.rank}
             </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
