@@ -2,11 +2,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { cn } from "@/lib/utils";
 
+/** One tint per dense-rank band: everyone tied at 1st → gold, 2nd → silver, 3rd → darker bronze. */
 function podiumTint(rank: number): string {
-  if (rank === 1) return "bg-amber-500/12 ring-1 ring-amber-500/30";
-  if (rank === 2) return "bg-slate-400/14 ring-1 ring-slate-400/35";
-  if (rank === 3) return "bg-orange-600/12 ring-1 ring-orange-600/30";
+  if (rank === 1) {
+    return "bg-amber-400/28 ring-1 ring-amber-600/50 dark:bg-amber-500/22 dark:ring-amber-400/45";
+  }
+  if (rank === 2) {
+    return "bg-slate-400/30 ring-1 ring-slate-500/55 dark:bg-slate-500/25 dark:ring-slate-400/50";
+  }
+  if (rank === 3) {
+    return "bg-amber-950/28 ring-1 ring-orange-950/60 dark:bg-amber-950/40 dark:ring-orange-900/55";
+  }
   return "";
+}
+
+function podiumRankClass(rank: number): string {
+  if (rank === 1) return "text-amber-900 dark:text-amber-300";
+  if (rank === 2) return "text-slate-700 dark:text-slate-200";
+  if (rank === 3) return "text-orange-950 dark:text-orange-400";
+  return "text-muted-foreground";
 }
 
 function LeaderboardTable({
@@ -34,15 +48,14 @@ function LeaderboardTable({
               "flex items-center gap-3 py-3 sm:gap-4",
               podiumTint(row.rank),
               row.rank <= 3 && "rounded-lg px-2 -mx-2 sm:px-3 sm:-mx-3",
-              isViewer && "rounded-lg bg-primary/8 px-2 -mx-2 sm:px-3 sm:-mx-3",
+              isViewer && row.rank > 3 && "rounded-lg bg-primary/8 px-2 -mx-2 sm:px-3 sm:-mx-3",
+              isViewer && row.rank <= 3 && "ring-2 ring-primary/55 ring-offset-2 ring-offset-background dark:ring-offset-background",
             )}
           >
             <span
               className={cn(
-                "w-8 shrink-0 text-center font-heading text-sm font-semibold tabular-nums text-muted-foreground sm:w-10",
-                row.rank === 1 && "text-amber-600 dark:text-amber-400",
-                row.rank === 2 && "text-slate-600 dark:text-slate-300",
-                row.rank === 3 && "text-orange-700 dark:text-orange-400",
+                "w-8 shrink-0 text-center font-heading text-sm font-semibold tabular-nums sm:w-10",
+                podiumRankClass(row.rank),
               )}
             >
               {row.rank}
