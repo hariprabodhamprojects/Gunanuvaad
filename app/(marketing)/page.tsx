@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { LandingSplash } from "@/components/landing-splash";
+import { OAuthCallbackRecovery } from "@/components/oauth-callback-recovery";
 
 export const metadata = {
   title: "Gunanuvad",
@@ -24,5 +26,10 @@ export default async function MarketingPage({
       ? "Something went wrong. Try again."
       : null;
 
-  return <LandingSplash redirectNext={redirectNext} errorMessage={errorMessage} />;
+  return (
+    <Suspense fallback={null}>
+      <OAuthCallbackRecovery />
+      <LandingSplash redirectNext={redirectNext} errorMessage={errorMessage} />
+    </Suspense>
+  );
 }

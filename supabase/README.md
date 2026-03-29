@@ -34,10 +34,14 @@
 
 5. **Auth → URL configuration**
 
-   - **Site URL**: `http://localhost:3000` (production: your real domain).
-   - **Redirect URLs** add:
+   - **Site URL**: use your **production** URL when the app is deployed (e.g. `https://your-app.vercel.app`). For local-only testing, `http://localhost:3000` is fine.
+   - **Redirect URLs** must include every origin you use (add both):
      - `http://localhost:3000/auth/callback`
-     - Your production callback, e.g. `https://your-domain.com/auth/callback` (wildcard optional).
+     - `https://your-app.vercel.app/auth/callback` (and `/auth/callback` on any custom domain)
+   - In **Vercel → Project → Settings → Environment Variables**, set  
+     `NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app`  
+     (no trailing slash). This makes Supabase OAuth `redirectTo` use your deployment host so Google does not send users back to `localhost` after sign-in.
+   - If you land on `/?code=...` after Google, the app forwards that to `/auth/callback`; still fix **Site URL** / **Redirect URLs** and `NEXT_PUBLIC_SITE_URL` so the flow is correct end-to-end.
 
 6. **Project API keys**  
    **Settings → API** → copy **Project URL** and **anon public** key into `.env.local`:

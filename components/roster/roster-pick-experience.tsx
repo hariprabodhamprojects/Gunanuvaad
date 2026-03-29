@@ -3,6 +3,10 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { Search } from "lucide-react";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
 import type { RosterMember } from "@/lib/roster/types";
@@ -13,21 +17,21 @@ type Props = {
   currentUserId: string;
 };
 
-function RosterTile({
+function RosterMemberCard({
   member,
   onSelect,
 }: {
   member: RosterMember;
   onSelect: () => void;
 }) {
-  const tileRef = useRef<HTMLDivElement>(null);
+  const cardInnerRef = useRef<HTMLDivElement>(null);
 
   const onEnter = () => {
-    const el = tileRef.current;
+    const el = cardInnerRef.current;
     if (!el) return;
     gsap.to(el, {
-      scale: 1.08,
-      y: -6,
+      scale: 1.02,
+      y: -4,
       duration: 0.28,
       ease: "power2.out",
       overwrite: "auto",
@@ -35,7 +39,7 @@ function RosterTile({
   };
 
   const onLeave = () => {
-    const el = tileRef.current;
+    const el = cardInnerRef.current;
     if (!el) return;
     gsap.to(el, {
       scale: 1,
@@ -53,34 +57,39 @@ function RosterTile({
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
       className={cn(
-        "group relative flex flex-col items-center gap-1.5 rounded-2xl p-2 text-center outline-none",
+        "group h-full w-full min-w-0 text-left outline-none",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        "touch-manipulation",
+        "touch-manipulation rounded-xl",
       )}
       aria-label={`Open ${member.display_name}`}
     >
-      <div
-        ref={tileRef}
-        data-roster-tile
+      <Card
+        size="sm"
         className={cn(
-          "flex w-full flex-col items-center gap-1.5 rounded-2xl pb-0.5 will-change-transform",
-          "transition-[box-shadow,background-color] duration-300 ease-out",
-          "group-hover:bg-primary/[0.06] group-hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)]",
-          "dark:group-hover:shadow-[0_14px_44px_-10px_rgba(0,0,0,0.55)]",
+          "h-full min-h-[11rem] gap-0 overflow-hidden p-0 py-0 shadow-sm ring-border/60",
+          "transition-shadow duration-300 group-hover:shadow-md group-hover:ring-primary/25",
         )}
       >
-        <span className="relative mt-0.5 inline-flex rounded-full p-[3px] transition-[background,box-shadow] duration-300 group-hover:bg-gradient-to-br group-hover:from-primary/35 group-hover:to-primary/5 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={member.avatar_url}
-            alt=""
-            className="aspect-square size-full max-h-[4.75rem] max-w-[4.75rem] rounded-full object-cover shadow-md ring-2 ring-border/70 transition-[transform,box-shadow,ring-color] duration-300 group-hover:ring-primary/45"
-          />
-        </span>
-        <span className="line-clamp-2 w-full px-0.5 text-[0.65rem] font-medium leading-tight text-foreground transition-colors duration-200 group-hover:text-primary sm:text-xs">
-          {member.display_name}
-        </span>
-      </div>
+        <div
+          ref={cardInnerRef}
+          data-roster-tile
+          className="flex h-full min-h-0 flex-col will-change-transform"
+        >
+          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted/40">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={member.avatar_url}
+              alt=""
+              className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            />
+          </div>
+          <CardContent className="flex flex-1 flex-col justify-center px-2.5 py-2.5 sm:px-3 sm:py-3">
+            <p className="line-clamp-2 text-center font-heading text-xs font-medium leading-snug text-foreground sm:text-sm">
+              {member.display_name}
+            </p>
+          </CardContent>
+        </div>
+      </Card>
     </button>
   );
 }
@@ -92,8 +101,12 @@ export function RosterPickExperience({ members, currentUserId }: Props) {
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return members;
-    return members.filter((m) => m.display_name.toLowerCase().includes(s));
+    const list = !s
+      ? members
+      : members.filter((m) => m.display_name.toLowerCase().includes(s));
+    return [...list].sort((a, b) =>
+      a.display_name.localeCompare(b.display_name, undefined, { sensitivity: "base" }),
+    );
   }, [members, q]);
 
   useLayoutEffect(() => {
@@ -102,15 +115,14 @@ export function RosterPickExperience({ members, currentUserId }: Props) {
     const tiles = grid.querySelectorAll("[data-roster-tile]");
     if (tiles.length === 0) return;
     const ctx = gsap.context(() => {
-      // Entrance: opacity + y only — leaves transform free for hover tweens on the same node.
       gsap.fromTo(
         tiles,
-        { opacity: 0, y: 12 },
+        { opacity: 0, y: 14 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.36,
-          stagger: { each: 0.035, from: "start" },
+          duration: 0.38,
+          stagger: { each: 0.04, from: "start" },
           ease: "power3.out",
           overwrite: "auto",
         },
@@ -144,10 +156,17 @@ export function RosterPickExperience({ members, currentUserId }: Props) {
         ) : (
           <div
             ref={gridRef}
-            className="grid grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-3 md:grid-cols-6"
+            className={cn(
+              "grid items-stretch gap-3 sm:gap-4",
+              "grid-cols-2",
+              "sm:grid-cols-3",
+              "md:grid-cols-4",
+              "lg:grid-cols-5",
+              "xl:grid-cols-6",
+            )}
           >
             {filtered.map((m) => (
-              <RosterTile key={m.id} member={m} onSelect={() => setSelected(m)} />
+              <RosterMemberCard key={m.id} member={m} onSelect={() => setSelected(m)} />
             ))}
           </div>
         )}

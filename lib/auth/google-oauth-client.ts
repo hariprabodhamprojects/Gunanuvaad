@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { getOAuthRedirectOrigin } from "@/lib/auth/oauth-redirect-base";
 
 /**
  * Browser-only: starts Google OAuth. Call from client components only.
@@ -6,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 export async function startGoogleOAuth(redirectNext: string): Promise<{ ok: true } | { ok: false; message: string }> {
   const next = redirectNext.startsWith("/") ? redirectNext : "/home";
   const supabase = createClient();
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const origin = getOAuthRedirectOrigin();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
