@@ -6,7 +6,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requireOrganizer();
 
   const links = [
-    { href: "/admin", label: "Overview" },
     { href: "/admin/invites", label: "Invites" },
     { href: "/admin/approved", label: "Approved notes" },
   ] as const;

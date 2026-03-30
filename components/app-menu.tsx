@@ -129,7 +129,7 @@ export function AppMenu({
                 </Link>
                 {isOrganizer ? (
                   <Link
-                    href="/admin"
+                    href="/admin/invites"
                     className={cn(
                       buttonVariants({ variant: "secondary", size: "sm" }),
                       "mt-2 w-full gap-2",
