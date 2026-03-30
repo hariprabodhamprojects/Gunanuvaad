@@ -59,23 +59,19 @@
   }
   body {
     @apply min-h-dvh bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
-    /* 3D Game scrollbar */
   }
   
-  /* 3D Scrollbar */
+  /* Modern clean scrollbar */
   ::-webkit-scrollbar {
-    width: 14px;
-    height: 14px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: var(--palette-bg-subtle);
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--palette-brand-muted);
+    background: var(--palette-muted-fg);
     border-radius: 10px;
-    border: 3px solid var(--palette-bg-subtle);
-    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.2), inset -2px -2px 5px rgba(0,0,0,0.2);
   }
   ::-webkit-scrollbar-thumb:hover {
     background: var(--palette-brand);
@@ -87,7 +83,7 @@
 }
 
 /**
- * Game UI 3D Utilities
+ * Premium UI 3D Utilities
  */
 @layer utilities {
   .glass {
@@ -96,7 +92,7 @@
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow), inset 0 1px 1px var(--glass-highlight);
-    transform: translateZ(0); /* hardware accel */
+    transform: translateZ(0);
   }
 
   .glass-strong {
@@ -108,7 +104,7 @@
     transform: translateZ(0);
   }
 
-  /* Extreme 3D float card */
+  /* Smooth elegant 3D card */
   .glass-card {
     border-radius: var(--radius-xl);
     background: var(--glass-surface);
@@ -116,62 +112,40 @@
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow), inset 0 1px 1px var(--glass-highlight);
-    transform: perspective(1000px) translateZ(0);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
   }
   .glass-card:hover {
-    transform: perspective(1000px) translateY(-5px) scale(1.02) translateZ(20px);
+    transform: translateY(-4px);
     box-shadow: var(--glass-shadow-hover), inset 0 1px 1px var(--glass-highlight);
     border-color: var(--glass-border-strong);
-  }
-
-  /* Bouncing floating animation class */
-  .animate-float-3d {
-    animation: float3d 6s ease-in-out infinite;
-  }
-  
-  .animate-neon-pulse {
-    animation: neonPulse 2s infinite alternate;
   }
 
   .glass-header {
     background: var(--glass-surface-strong);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
-    border-bottom: 2px solid var(--glass-border-strong);
+    border-bottom: 1px solid var(--glass-border-strong);
     box-shadow: var(--glass-shadow);
     transform: translateZ(0);
   }
 
-  /** Full-page dynamic alien/mesh gradient */
+  /** Subtle beautiful mesh gradient */
   .bg-app-gradient {
     background:
-      radial-gradient(120% 80% at 50% -20%, var(--palette-mesh-1), transparent 55%),
-      radial-gradient(90% 60% at 100% 0%, var(--palette-mesh-2), transparent 45%),
-      radial-gradient(80% 50% at 0% 100%, var(--palette-mesh-3), transparent 50%),
+      radial-gradient(100% 80% at 50% -20%, var(--palette-mesh-1), transparent 50%),
+      radial-gradient(80% 60% at 100% 0%, var(--palette-mesh-2), transparent 45%),
+      radial-gradient(60% 50% at 0% 100%, var(--palette-mesh-3), transparent 50%),
       var(--palette-bg);
     background-attachment: fixed;
   }
 }
 
+/** Subtle float animation */
 @keyframes float3d {
-  0% {
-    transform: translateY(0px) rotateX(0deg) rotateY(0deg);
-  }
-  50% {
-    transform: translateY(-15px) rotateX(2deg) rotateY(-2deg);
-  }
-  100% {
-    transform: translateY(0px) rotateX(0deg) rotateY(0deg);
-  }
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
-
-@keyframes neonPulse {
-  0% {
-    box-shadow: 0 0 5px var(--palette-ring), inset 0 0 5px var(--palette-ring);
-  }
-  100% {
-    box-shadow: 0 0 20px var(--palette-ring), inset 0 0 10px var(--palette-ring);
-  }
+.animate-float-3d {
+  animation: float3d 8s ease-in-out infinite;
 }

@@ -107,16 +107,14 @@ export function AppMenu({
                     <p className="truncate text-xs text-muted-foreground">{email}</p>
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-3 shadow-[inset_0_2px_10px_rgba(250,115,22,0.1)] relative overflow-hidden group transform-gpu transition-transform hover:scale-105">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-primary/80 mb-1 flex items-center gap-1"><span aria-hidden>🏆</span> Score</p>
-                    <p className="font-heading text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-orange-300 drop-shadow-sm">{totalScore}</p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Score</p>
+                    <p className="font-heading text-lg font-semibold">{totalScore}</p>
                   </div>
-                  <div className="rounded-xl border border-red-500/30 bg-red-500/5 px-3 py-3 shadow-[inset_0_2px_10px_rgba(239,68,68,0.1)] relative overflow-hidden group transform-gpu transition-transform hover:scale-105">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-red-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-red-500/80 mb-1 flex items-center gap-1"><span aria-hidden>🔥</span> Streak</p>
-                    <p className="font-heading text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-red-300 drop-shadow-sm">{totalStreak}</p>
+                  <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Streak</p>
+                    <p className="font-heading text-lg font-semibold">{totalStreak}</p>
                   </div>
                 </div>
                 <Link

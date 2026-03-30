@@ -59,9 +59,9 @@ export function AppBottomNav() {
       <div
         ref={panelRef}
         className={cn(
-          "pointer-events-auto flex w-full max-w-lg items-stretch gap-2 sm:max-w-xl sm:gap-3",
-          "glass-strong rounded-[2rem] border-2 border-primary/20 bg-background/40 px-3 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_2px_10px_rgba(255,255,255,0.1)] backdrop-blur-3xl",
-          "dark:border-primary/40 dark:shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_2px_10px_rgba(255,255,255,0.05)] transform-gpu",
+          "pointer-events-auto flex w-full max-w-lg items-stretch gap-1 sm:max-w-xl md:gap-2",
+          "glass-strong rounded-3xl border border-white/20 px-2 py-2 shadow-sm backdrop-blur-2xl",
+          "dark:border-white/10 dark:shadow-md transform-gpu",
         )}
       >
         {items.map(({ href, label, icon: Icon, match }) => {
@@ -72,18 +72,18 @@ export function AppBottomNav() {
               href={href}
               className={cn(
                 buttonVariants({ variant: "ghost", size: "sm" }),
-                "relative h-auto min-h-[4rem] flex-1 flex-col gap-1 rounded-2xl py-2 text-[11px] sm:text-xs font-bold tracking-wide uppercase overflow-hidden",
+                "relative h-auto min-h-[3.5rem] flex-1 flex-col gap-1 rounded-2xl py-2 text-[10px] sm:text-xs font-medium overflow-hidden",
                 "text-muted-foreground transition-all duration-300",
-                "hover:bg-primary/10 hover:text-primary hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(250,115,22,0.2)]",
-                "active:scale-95 active:translate-y-0",
+                "hover:bg-muted/50 hover:text-foreground",
+                "active:scale-95",
                 active &&
-                  "text-primary font-black bg-primary/20 shadow-[inset_0_2px_15px_rgba(250,115,22,0.3),0_0_20px_rgba(250,115,22,0.2)] -translate-y-1 ring-1 ring-primary/50 animate-neon-pulse",
+                  "text-primary font-bold bg-primary/10 shadow-sm",
               )}
             >
               {active && (
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-50" aria-hidden />
+                <div className="absolute inset-x-4 -bottom-1 h-3 rounded-t-full bg-primary/20 blur-md" aria-hidden />
               )}
-              <Icon className={cn("relative z-10 size-5 sm:size-6 transition-transform duration-300 ease-out", active ? "scale-110 drop-shadow-[0_2px_8px_rgba(250,115,22,0.5)]" : "opacity-80")} aria-hidden />
+              <Icon className={cn("relative z-10 size-5 sm:size-6 transition-transform", active ? "scale-105" : "opacity-80")} aria-hidden />
               <span className="relative z-10">{label}</span>
             </Link>
           );
