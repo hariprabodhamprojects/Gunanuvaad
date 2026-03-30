@@ -50,7 +50,42 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
       // Hold on logo + title (~Netflix beat), then reveal the single CTA.
       .to(cta, { opacity: 1, y: 0, duration: 0.62, pointerEvents: "auto" }, "+=1.2");
 
+    // Immersive 3D Tilt Effect on mouse move
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!ctaRef.current) return;
+      const card = ctaRef.current.parentElement;
+      if (!card) return;
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      
+      gsap.to(card, {
+        rotationY: x / 25,
+        rotationX: -y / 25,
+        ease: "power2.out",
+        transformPerspective: 1000,
+        transformOrigin: "center center"
+      });
+    };
+    
+    const handleMouseLeave = () => {
+      if (!ctaRef.current) return;
+      const card = ctaRef.current.parentElement;
+      if (!card) return;
+      gsap.to(card, {
+        rotationY: 0,
+        rotationX: 0,
+        ease: "power3.out",
+        duration: 0.8
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    root.addEventListener("mouseleave", handleMouseLeave);
+
     return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      root.removeEventListener("mouseleave", handleMouseLeave);
       tl.kill();
     };
   }, []);
@@ -66,16 +101,21 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
     <div
       ref={rootRef}
       className="relative flex min-h-dvh w-full flex-col items-center justify-center overflow-hidden bg-background bg-app-gradient px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]"
+      style={{ perspective: "1500px" }}
     >
       {/* Decorative 3D Spheres using CSS radial gradients */}
-      <div className="pointer-events-none absolute -left-20 top-20 size-[30rem] rounded-full bg-[radial-gradient(circle_at_30%_30%,var(--palette-brand),transparent_60%)] opacity-30 blur-3xl mix-blend-screen" aria-hidden />
-      <div className="pointer-events-none absolute -right-20 bottom-10 size-[35rem] rounded-full bg-[radial-gradient(circle_at_70%_70%,var(--palette-accent),transparent_70%)] opacity-20 blur-3xl mix-blend-screen" aria-hidden />
+      <div className="animate-float-3d pointer-events-none absolute -left-20 top-20 size-[30rem] rounded-full bg-[radial-gradient(circle_at_30%_30%,var(--palette-brand),transparent_60%)] opacity-30 blur-3xl mix-blend-screen" aria-hidden />
+      <div className="animate-float-3d pointer-events-none absolute -right-20 bottom-10 size-[35rem] rounded-full bg-[radial-gradient(circle_at_70%_70%,var(--palette-accent),transparent_70%)] opacity-20 blur-3xl mix-blend-screen" aria-hidden style={{ animationDelay: '2s' }} />
 
-      <div className="glass-card relative z-10 flex w-full max-w-md flex-col items-center px-6 py-12 text-center shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
+      <div 
+        className="glass-card relative z-10 flex w-full max-w-md flex-col items-center px-6 py-12 text-center shadow-2xl transition-all duration-300 transform-gpu"
+        style={{ transformStyle: "preserve-3d" }}
+      >
         {errorMessage ? (
           <p
-            className="mb-8 w-full rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive shadow-sm"
+            className="mb-8 w-full rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive shadow-[0_0_15px_rgba(255,0,0,0.3)] animate-pulse"
             role="alert"
+            style={{ transform: "translateZ(30px)" }}
           >
             {errorMessage}
           </p>
@@ -83,43 +123,50 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
 
         <div
           ref={iconRef}
-          className="mb-8 flex size-24 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/30 to-primary/5 p-1 shadow-[0_8px_32px_rgba(250,115,22,0.25)] ring-1 ring-white/20 sm:size-28"
-          style={{ transformStyle: "preserve-3d" }}
+          className="mb-8 flex size-24 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/50 to-primary/10 p-1 shadow-[0_15px_40px_rgba(250,115,22,0.6)] ring-1 ring-white/30 sm:size-28 animate-neon-pulse"
+          style={{ transform: "translateZ(60px)", transformStyle: "preserve-3d" }}
         >
           <div className="flex size-full items-center justify-center rounded-2xl bg-gradient-to-tr from-background/90 to-background/50 shadow-inner">
-            <Sparkles className="size-12 text-primary drop-shadow-[0_0_15px_rgba(250,115,22,0.6)] sm:size-14" strokeWidth={1.25} aria-hidden />
+            <Sparkles className="size-12 text-primary drop-shadow-[0_0_20px_rgba(250,115,22,0.9)] sm:size-14 animate-float-3d" strokeWidth={1.5} aria-hidden />
           </div>
         </div>
 
         <h1
           ref={titleRef}
-          className="font-heading text-4xl font-bold tracking-tight text-foreground drop-shadow-md sm:text-5xl"
+          className="font-heading text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-foreground to-primary/80 drop-shadow-[0_5px_15px_rgba(250,115,22,0.4)] sm:text-6xl uppercase italic"
+          style={{ transform: "translateZ(40px)" }}
         >
           Gunanuvad
         </h1>
         <p
           ref={subRef}
-          className="mt-4 max-w-sm text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
+          className="mt-4 max-w-sm text-pretty text-base font-medium leading-relaxed text-muted-foreground/90 sm:text-lg"
+          style={{ transform: "translateZ(25px)" }}
         >
           One appreciation a day — keep the streak alive.
         </p>
 
-        <div ref={ctaRef} className="mt-12 w-full max-w-sm">
+        <div ref={ctaRef} className="mt-12 w-full max-w-sm" style={{ transform: "translateZ(50px)" }}>
           <Button
             type="button"
             size="lg"
             className={cn(
-              "h-14 w-full rounded-2xl bg-gradient-to-b from-primary to-primary/80 text-lg font-semibold text-primary-foreground shadow-[0_8px_30px_rgba(250,115,22,0.3)] ring-1 ring-primary/50 transition-all duration-300",
-              "hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(250,115,22,0.4)] hover:brightness-110 active:scale-[0.98]",
-              introDone && "motion-safe:hover:-translate-y-1",
+              "relative h-16 w-full rounded-2xl bg-gradient-to-b from-primary to-primary/70 text-xl font-bold text-primary-foreground overflow-hidden",
+              "border-t border-white/40 shadow-[0_8px_0_rgba(180,60,0,1),0_15px_30px_rgba(250,115,22,0.4)] transition-all duration-200",
+              "hover:translate-y-1 hover:shadow-[0_4px_0_rgba(180,60,0,1),0_8px_20px_rgba(250,115,22,0.3)] hover:brightness-110",
+              "active:translate-y-2 active:shadow-[0_0px_0_rgba(180,60,0,1),0_0px_10px_rgba(250,115,22,0.2)]",
+              introDone && "motion-safe:hover:-rotate-1",
             )}
             disabled={pending}
             onClick={onGoogle}
           >
-            {pending ? "Authenticating…" : "Continue with Google"}
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shine_3s_infinite]" />
+            <span className="relative z-10 flex items-center justify-center drop-shadow-md">
+              {pending ? "Authenticating…" : "PLAY NOW"}
+            </span>
           </Button>
-          <p className="mt-6 text-center text-sm font-medium text-muted-foreground/80">
-            Invite-only — use your permitted Google account.
+          <p className="mt-6 text-center text-sm font-semibold tracking-wide text-primary/70 uppercase">
+            Invite-only access
           </p>
         </div>
       </div>

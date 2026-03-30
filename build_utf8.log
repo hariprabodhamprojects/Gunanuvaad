@@ -1,0 +1,189 @@
+﻿
+> gunanuvad@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.2.1 (Turbopack)
+
+npm : ΓÜá The 
+"middleware" file 
+convention is 
+deprecated. Please use 
+"proxy" instead. Learn 
+more: https://nextjs.org
+/docs/messages/middlewar
+e-to-proxy
+At line:1 char:1
++ npm run build > 
+build.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo      
+        : NotSpecified: 
+(Γ    Üá The 
+"middle...lewa    
+re-to-proxy:String) [   
+ ], RemoteException
+    + 
+FullyQualifiedError    
+Id : NativeCommandErr   
+ or
+ 
+  Creating an optimized production build ...
+Error: Cannot apply 
+unknown utility class 
+`selection:bg-brand/20`
+    [2m[at 
+onInvalidCandidate (C:\U
+sers\nisar\OneDrive\Desk
+top\Hariprabodham-projec
+t\Gunanuvad\node_modules
+\tailwindcss\dist\lib.js
+:21:1511)][0m
+    [2m[at Ee (C:\Users
+\nisar\OneDrive\Desktop\
+Hariprabodham-project\Gu
+nanuvad\node_modules\tai
+lwindcss\dist\lib.js:16:
+37066)][0m
+    [2m[at C:\Users\nis
+ar\OneDrive\Desktop\Hari
+prabodham-project\Gunanu
+vad\node_modules\tailwin
+dcss\dist\lib.js:21:355]
+[0m
+    [2m[at _r (C:\Users
+\nisar\OneDrive\Desktop\
+Hariprabodham-project\Gu
+nanuvad\node_modules\tai
+lwindcss\dist\lib.js:3:1
+733)][0m
+    [2m[at I (C:\Users\
+nisar\OneDrive\Desktop\H
+ariprabodham-project\Gun
+anuvad\node_modules\tail
+windcss\dist\lib.js:3:13
+77)][0m
+    [2m[at Te (C:\Users
+\nisar\OneDrive\Desktop\
+Hariprabodham-project\Gu
+nanuvad\node_modules\tai
+lwindcss\dist\lib.js:21:
+172)][0m
+    [2m[at mn (C:\Users
+\nisar\OneDrive\Desktop\
+Hariprabodham-project\Gu
+nanuvad\node_modules\tai
+lwindcss\dist\lib.js:38:
+294)][0m
+    [2m[at async gn (C:
+\Users\nisar\OneDrive\De
+sktop\Hariprabodham-proj
+ect\Gunanuvad\node_modul
+es\tailwindcss\dist\lib.
+js:38:631)][0m
+    [2m[at async Xr (C:
+\Users\nisar\OneDrive\De
+sktop\Hariprabodham-proj
+ect\Gunanuvad\node_modul
+es\@tailwindcss\node\dis
+t\index.js:10:3416)][0m
+    [2m[at async N (C:\
+Users\nisar\OneDrive\Des
+ktop\Hariprabodham-proje
+ct\Gunanuvad\node_module
+s\@tailwindcss\postcss\d
+ist\index.js:10:3979)][
+0m
+
+> Build error occurred
+Error: Turbopack build 
+failed with 1 errors:
+./app/globals.css
+Error evaluating 
+Node.js code
+CssSyntaxError: 
+tailwindcss: C:\Users\ni
+sar\OneDrive\Desktop\Har
+iprabodham-project\Gunan
+uvad\app\globals.css:1:1
+: Cannot apply unknown 
+utility class 
+`selection:bg-brand/20`
+    at Input.error (node
+_modules/postcss/lib/inp
+ut.js:135:16) [C:\Users\
+nisar\OneDrive\Desktop\H
+ariprabodham-project\Gun
+anuvad\.next\build\chunk
+s\node_modules_13sb.px._
+.js:4651:22]
+    at error (node_modul
+es/postcss/lib/node.js:1
+46:32) [C:\Users\nisar\O
+neDrive\Desktop\Hariprab
+odham-project\Gunanuvad\
+.next\build\chunks\node_
+modules_13sb.px._.js:928
+:38]
+    [at Object.Once (C:\
+Users\nisar\OneDrive\Des
+ktop\Hariprabodham-proje
+ct\Gunanuvad\node_module
+s\@tailwindcss\postcss\d
+ist\index.js:10:6913)]
+    at async 
+LazyResult.runAsync (nod
+e_modules/postcss/lib/la
+zy-result.js:293:11) [C:
+\Users\nisar\OneDrive\De
+sktop\Hariprabodham-proj
+ect\Gunanuvad\.next\buil
+d\chunks\node_modules_13
+sb.px._.js:6214:21]
+    at async transform (
+turbopack:///[turbopack-
+node]/transforms/postcss
+.ts:70:34) [C:\Users\nis
+ar\OneDrive\Desktop\Hari
+prabodham-project\Gunanu
+vad\.next\build\chunks\[
+root-of-the-server]__0d-
+m0h0._.js:146:36]
+    at async run (turbop
+ack:///[turbopack-node]/
+child_process/evaluate.t
+s:89:23) [C:\Users\nisar
+\OneDrive\Desktop\Haripr
+abodham-project\Gunanuva
+d\.next\build\chunks\[ro
+ot-of-the-server]__0ubbt
+yl._.js:443:31]
+
+Import trace:
+  Client Component 
+Browser:
+    ./app/globals.css 
+[Client Component 
+Browser]
+    ./app/layout.tsx 
+[Server Component]
+
+
+    at async transform (
+turbopack:///[turbopack-
+node]/transforms/postcss
+.ts:70:34) [C:\Users\nis
+ar\OneDrive\Desktop\Hari
+prabodham-project\Gunanu
+vad\.next\build\chunks\[
+root-of-the-server]__0d-
+m0h0._.js:146:36])
+    at async run (turbop
+ack:///[turbopack-node]/
+child_process/evaluate.t
+s:89:23) [C:\Users\nisar
+\OneDrive\Desktop\Haripr
+abodham-project\Gunanuva
+d\.next\build\chunks\[ro
+ot-of-the-server]__0ubbt
+yl._.js:443:31])

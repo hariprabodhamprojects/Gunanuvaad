@@ -1,77 +1,59 @@
 /**
  * =============================================================================
- * GUNANUVAD — SINGLE PALETTE FILE (edit here to retheme the whole UI)
+ * GUNANUVAD — GAMIFIED 3D PALETTE (Swaminarayan Orange & Gold)
  * =============================================================================
- * All colors use OKLCH for predictable lightness and accessible contrast.
- *
- * How it works:
- * 1. Change only the "--palette-*" and "--glass-*" values in :root / .dark below.
- * 2. The "Semantic → shadcn" section maps those into --primary, --background, etc.
- *    shadcn components (Button, Card, …) read those tokens automatically.
- * 3. Use utility classes .glass, .glass-card, .glass-header for frosted surfaces.
+ * Vibrant orange/saffron, 3D gloss, extreme glassmorphism.
  * =============================================================================
  */
 
-/* -----------------------------------------------------------------------------
-   STEP 1 — Brand & neutrals (light mode). Tweak hue/chroma/lightness only.
-   ----------------------------------------------------------------------------- */
 :root {
-  /* Brand: Swaminarayan Saffron (Orange) — primary buttons, key accents, focus ring */
-  --palette-brand: oklch(0.65 0.18 42); /* Deep Saffron */
-  --palette-brand-hover: oklch(0.60 0.18 42);
-  --palette-brand-muted: oklch(0.95 0.05 45);
-  --palette-brand-foreground: oklch(0.99 0.01 45);
+  /* Brand: Swaminarayan Bright Saffron (Orange) — Neon/3D pop */
+  --palette-brand: oklch(0.68 0.22 45); /* Intense Saffron */
+  --palette-brand-hover: oklch(0.72 0.24 50); /* Gold-shifted hover */
+  --palette-brand-muted: oklch(0.85 0.1 45);
+  --palette-brand-foreground: oklch(1 0 0);
 
-  /* Surfaces: Warm orange-tinted cream */
-  --palette-bg: oklch(0.985 0.01 50);
-  --palette-bg-subtle: oklch(0.96 0.015 50);
-  --palette-fg: oklch(0.25 0.03 40); /* Warm charcoal/brown */
-  --palette-fg-muted: oklch(0.48 0.03 40);
+  /* Surfaces: Soft cream background with golden hints */
+  --palette-bg: oklch(0.98 0.02 55);
+  --palette-bg-subtle: oklch(0.96 0.03 55);
+  --palette-fg: oklch(0.2 0.05 45);
+  --palette-fg-muted: oklch(0.4 0.05 45);
 
-  /* Cards & popovers sit slightly above page */
-  --palette-surface: oklch(1 0.005 50);
-  --palette-surface-elevated: oklch(1 0.008 50);
+  /* Cards & popovers */
+  --palette-surface: oklch(1 0.01 60);
+  --palette-surface-elevated: oklch(1 0.02 65);
 
-  /* Secondary / muted UI chrome */
-  --palette-muted: oklch(0.94 0.02 50);
-  --palette-muted-fg: oklch(0.45 0.03 40);
-  --palette-border: oklch(0.9 0.02 50);
-  --palette-input: oklch(0.92 0.02 50);
+  --palette-muted: oklch(0.92 0.03 60);
+  --palette-muted-fg: oklch(0.35 0.05 45);
+  --palette-border: oklch(0.85 0.05 48);
+  --palette-input: oklch(0.95 0.02 55);
 
-  /* Accent: soft peach tint for hovers, selection */
-  --palette-accent: oklch(0.95 0.04 42);
-  --palette-accent-fg: oklch(0.3 0.08 42);
+  --palette-accent: oklch(0.92 0.1 50);
+  --palette-accent-fg: oklch(0.25 0.15 45);
 
-  /* Destructive */
   --palette-destructive: oklch(0.55 0.22 25);
   --palette-destructive-fg: oklch(0.99 0.01 25);
 
-  /* Ring follows brand */
-  --palette-ring: oklch(0.65 0.18 42);
+  --palette-ring: oklch(0.68 0.22 45);
 
-  /* Radius scale */
-  --palette-radius: 1rem;
+  --palette-radius: 1.5rem; /* Extra rounded for bubbly game feel */
 
-  /* Page mesh gradient (marketing hero) — warm sunshine / peach */
-  --palette-mesh-1: oklch(0.97 0.04 45);
-  --palette-mesh-2: oklch(0.94 0.06 40);
-  --palette-mesh-3: oklch(0.98 0.03 70);
+  /* Extreme Mesh 3D space */
+  --palette-mesh-1: oklch(0.95 0.08 60);
+  --palette-mesh-2: oklch(0.92 0.12 45);
+  --palette-mesh-3: oklch(0.98 0.05 75);
 
-  /* ---------------------------------------------------------------------------
-     Glass — frosted panels (light)
-     --------------------------------------------------------------------------- */
-  --glass-blur: 24px;
-  --glass-surface: oklch(1 0.01 50 / 0.65);
-  --glass-surface-strong: oklch(1 0.008 50 / 0.85);
-  --glass-border: oklch(0.65 0.18 42 / 0.15); /* Orange-tinted border */
-  --glass-border-strong: oklch(0.65 0.18 42 / 0.25);
-  --glass-shadow: 0 12px 32px oklch(0.65 0.18 42 / 0.08), 0 4px 12px oklch(0.65 0.18 42 / 0.04);
-  --glass-highlight: oklch(1 0 0 / 0.8);
-  --glass-shadow-hover: 0 16px 48px oklch(0.65 0.18 42 / 0.15), 0 8px 24px oklch(0.65 0.18 42 / 0.10);
+  /* Gaming 3D Glass (light) */
+  --glass-blur: 32px;
+  --glass-surface: oklch(1 0.02 60 / 0.55);
+  --glass-surface-strong: oklch(1 0.01 60 / 0.75);
+  --glass-border: oklch(0.68 0.22 45 / 0.2); 
+  --glass-border-strong: oklch(0.68 0.22 45 / 0.4);
+  --glass-shadow: 0 16px 40px oklch(0.68 0.22 45 / 0.12), inset 0 2px 4px oklch(1 0 0 / 1); /* 3D inner bevel */
+  --glass-highlight: oklch(1 0 0 / 0.9);
+  --glass-shadow-hover: 0 24px 60px oklch(0.68 0.22 45 / 0.2), inset 0 2px 6px oklch(1 0 0 / 1);
 
-  /* ---------------------------------------------------------------------------
-     Semantic → shadcn (do not rename --primary / --background — components rely on them)
-     --------------------------------------------------------------------------- */
+  /* Semantic */
   --background: var(--palette-bg);
   --foreground: var(--palette-fg);
   --card: var(--palette-surface);
@@ -92,14 +74,12 @@
   --ring: var(--palette-ring);
   --radius: var(--palette-radius);
 
-  /* Charts — tinted for warmth */
   --chart-1: var(--palette-brand);
   --chart-2: oklch(0.65 0.14 70);
   --chart-3: oklch(0.72 0.12 90);
   --chart-4: oklch(0.7 0.1 30);
   --chart-5: oklch(0.55 0.08 50);
 
-  /* Sidebar */
   --sidebar: var(--palette-surface);
   --sidebar-foreground: var(--palette-fg);
   --sidebar-primary: var(--palette-brand);
@@ -110,50 +90,47 @@
   --sidebar-ring: var(--palette-ring);
 }
 
-/* -----------------------------------------------------------------------------
-   Dark mode — same structure; adjust for contrast on dark bg
-   ----------------------------------------------------------------------------- */
 .dark {
-  /* Brand: Swaminarayan Saffron (Orange) */
-  --palette-brand: oklch(0.72 0.16 42); 
-  --palette-brand-hover: oklch(0.78 0.16 42);
-  --palette-brand-muted: oklch(0.3 0.08 42);
-  --palette-brand-foreground: oklch(0.15 0.05 42);
+  /* Extreme Dark Mode for glowing neon 3D effect */
+  --palette-brand: oklch(0.75 0.25 45); /* Glowing Bright Saffron */
+  --palette-brand-hover: oklch(0.85 0.28 55); /* Hot Gold */
+  --palette-brand-muted: oklch(0.35 0.12 45);
+  --palette-brand-foreground: oklch(0.1 0.02 45);
 
-  /* Surfaces: Deep warm chocolate/black */
-  --palette-bg: oklch(0.18 0.02 45);
-  --palette-bg-subtle: oklch(0.20 0.025 45);
-  --palette-fg: oklch(0.96 0.01 50);
-  --palette-fg-muted: oklch(0.65 0.02 45);
+  --palette-bg: oklch(0.12 0.02 280); /* Deep space dark (bluish tint makes orange pop) */
+  --palette-bg-subtle: oklch(0.15 0.03 280);
+  --palette-fg: oklch(0.98 0.02 50);
+  --palette-fg-muted: oklch(0.75 0.05 50);
 
-  --palette-surface: oklch(0.22 0.02 45);
-  --palette-surface-elevated: oklch(0.25 0.03 45);
+  --palette-surface: oklch(0.16 0.03 280);
+  --palette-surface-elevated: oklch(0.18 0.04 280);
 
-  --palette-muted: oklch(0.28 0.03 45);
-  --palette-muted-fg: oklch(0.62 0.02 45);
-  --palette-border: oklch(1 0 0 / 0.12);
-  --palette-input: oklch(1 0 0 / 0.15);
+  --palette-muted: oklch(0.25 0.05 280);
+  --palette-muted-fg: oklch(0.7 0.05 50);
+  --palette-border: oklch(0.75 0.25 45 / 0.2); /* Neon orange borders */
+  --palette-input: oklch(0.2 0.05 280);
 
-  --palette-accent: oklch(0.32 0.08 42);
-  --palette-accent-fg: oklch(0.96 0.04 42);
+  --palette-accent: oklch(0.3 0.15 45);
+  --palette-accent-fg: oklch(0.95 0.08 50);
 
   --palette-destructive: oklch(0.65 0.2 22);
   --palette-destructive-fg: oklch(0.99 0.01 25);
 
-  --palette-ring: oklch(0.72 0.16 42);
+  --palette-ring: oklch(0.75 0.25 45);
 
-  --palette-mesh-1: oklch(0.25 0.06 42);
-  --palette-mesh-2: oklch(0.20 0.08 35);
-  --palette-mesh-3: oklch(0.22 0.06 60);
+  /* Alien/Space neon mesh */
+  --palette-mesh-1: oklch(0.2 0.1 45);
+  --palette-mesh-2: oklch(0.15 0.15 35);
+  --palette-mesh-3: oklch(0.18 0.12 55);
 
-  /* 3D Glass effects (dark) */
-  --glass-surface: oklch(0.22 0.02 45 / 0.65);
-  --glass-surface-strong: oklch(0.26 0.02 45 / 0.85);
-  --glass-border: oklch(1 0 0 / 0.12);
-  --glass-border-strong: oklch(1 0 0 / 0.18);
-  --glass-shadow: 0 16px 40px oklch(0 0 0 / 0.6), 0 4px 12px oklch(0.72 0.16 42 / 0.05); /* slightly warm shadow */
-  --glass-highlight: oklch(1 0 0 / 0.08); /* White inner rim */
-  --glass-shadow-hover: 0 20px 50px oklch(0 0 0 / 0.7), 0 8px 24px oklch(0.72 0.16 42 / 0.12);
+  /* Gaming 3D Glass (dark) — High gloss, inset lighting */
+  --glass-surface: oklch(0.15 0.04 280 / 0.5);
+  --glass-surface-strong: oklch(0.18 0.05 280 / 0.7);
+  --glass-border: oklch(0.75 0.25 45 / 0.3); /* Strong glowing edge */
+  --glass-border-strong: oklch(0.75 0.25 45 / 0.6);
+  --glass-shadow: 0 20px 50px oklch(0 0 0 / 0.8), inset 0 2px 4px oklch(0.75 0.25 45 / 0.3), 0 0 15px oklch(0.75 0.25 45 / 0.1);
+  --glass-highlight: oklch(0.75 0.25 45 / 0.4); /* Colored highlight for 3D bounce */
+  --glass-shadow-hover: 0 30px 60px oklch(0 0 0 / 0.9), inset 0 2px 6px oklch(0.75 0.25 45 / 0.6), 0 0 25px oklch(0.75 0.25 45 / 0.3);
 
   --background: var(--palette-bg);
   --foreground: var(--palette-fg);
