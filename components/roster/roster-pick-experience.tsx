@@ -3,10 +3,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { Search } from "lucide-react";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
@@ -61,37 +57,38 @@ function RosterMemberCard({
       className={cn(
         "group h-full w-full min-w-0 text-left outline-none",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        "touch-manipulation rounded-xl",
+        "touch-manipulation rounded-2xl perspective-1000",
       )}
       aria-label={`Open ${member.display_name}`}
     >
-      <Card
-        size="sm"
+      <div
         className={cn(
-          "h-full min-h-[11rem] gap-0 overflow-hidden p-0 py-0 shadow-sm ring-border/60",
-          "transition-shadow duration-300 group-hover:shadow-md group-hover:ring-primary/25",
+          "glass-card relative flex h-full min-h-[11rem] flex-col overflow-hidden p-0 shadow-sm transition-all duration-300",
+          "group-hover:shadow-[0_12px_24px_rgba(250,115,22,0.15)] group-hover:ring-1 group-hover:ring-primary/40",
         )}
       >
         <div
           ref={cardInnerRef}
           data-roster-tile
-          className="flex h-full min-h-0 flex-col will-change-transform"
+          className="flex h-full min-h-0 flex-col will-change-transform bg-gradient-to-b from-transparent to-background/50"
         >
-          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted/40">
+          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-muted/40 group-hover:opacity-95 transition-opacity duration-300">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={member.avatar_url}
               alt=""
-              className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+              className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.08] group-hover:rotate-1"
             />
+            {/* Inner shadow overlay for 3d effect */}
+            <div className="absolute inset-0 shadow-[inset_0_-20px_20px_-10px_rgba(0,0,0,0.1)] pointer-events-none" />
           </div>
-          <CardContent className="flex flex-1 flex-col justify-center px-2.5 py-2.5 sm:px-3 sm:py-3">
-            <p className="line-clamp-2 text-center font-heading text-xs font-medium leading-snug text-foreground sm:text-sm">
+          <div className="flex flex-1 flex-col justify-center px-3 py-3 sm:px-4 sm:py-3.5 z-10">
+            <p className="line-clamp-2 text-center font-heading text-sm font-semibold leading-snug text-foreground/90 group-hover:text-primary transition-colors duration-200">
               {member.display_name}
             </p>
-          </CardContent>
+          </div>
         </div>
-      </Card>
+      </div>
     </button>
   );
 }

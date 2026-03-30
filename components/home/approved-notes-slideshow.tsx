@@ -3,7 +3,6 @@
 import gsap from "gsap";
 import { User } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import type { ApprovedSlide } from "@/lib/home/approved-slideshow";
 import { cn } from "@/lib/utils";
 
@@ -144,11 +143,12 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
       aria-live="polite"
       aria-atomic="true"
     >
-      <p className="text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/90">
+      <p className="text-center text-xs font-bold uppercase tracking-[0.15em] text-primary/80 drop-shadow-sm">
         Notes for each other
       </p>
-      <Card className="overflow-hidden ring-border/60">
-        <CardContent className="p-0">
+      <div className="glass-card overflow-hidden transition-all duration-300">
+        <div className="p-0 relative">
+          <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_right,var(--palette-bg-subtle)_0%,transparent_10%,transparent_90%,var(--palette-bg-subtle)_100%)] opacity-30 mix-blend-overlay" />
           <div
             ref={viewportRef}
             className="w-full overflow-hidden"
@@ -170,8 +170,8 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
               ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
       {slides.length > 1 ? (
         <div className="flex justify-center gap-1.5" role="tablist" aria-label="Slide">
           {slides.map((s, i) => (

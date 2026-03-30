@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
@@ -27,9 +22,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full min-w-0 w-full antialiased`}
+      className={`${outfit.variable} h-full min-w-0 w-full antialiased`}
     >
-      <body className="flex min-h-full w-full min-w-0 flex-col font-sans">
+      <body className="flex min-h-full w-full min-w-0 flex-col font-sans selection:bg-primary/30 selection:text-primary">
         <Providers>{children}</Providers>
       </body>
     </html>

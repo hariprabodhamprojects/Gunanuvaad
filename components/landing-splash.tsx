@@ -65,21 +65,16 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
   return (
     <div
       ref={rootRef}
-      className="relative flex min-h-dvh w-full flex-col items-center justify-center overflow-hidden bg-[#0c0c0c] px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]"
+      className="relative flex min-h-dvh w-full flex-col items-center justify-center overflow-hidden bg-background bg-app-gradient px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]"
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_65%_at_50%_-5%,rgba(220,90,70,0.22),transparent_58%)]"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_100%,rgba(255,255,255,0.04),transparent_55%)]"
-        aria-hidden
-      />
+      {/* Decorative 3D Spheres using CSS radial gradients */}
+      <div className="pointer-events-none absolute -left-20 top-20 size-[30rem] rounded-full bg-[radial-gradient(circle_at_30%_30%,var(--palette-brand),transparent_60%)] opacity-30 blur-3xl mix-blend-screen" aria-hidden />
+      <div className="pointer-events-none absolute -right-20 bottom-10 size-[35rem] rounded-full bg-[radial-gradient(circle_at_70%_70%,var(--palette-accent),transparent_70%)] opacity-20 blur-3xl mix-blend-screen" aria-hidden />
 
-      <div className="relative z-10 flex max-w-lg flex-col items-center text-center">
+      <div className="glass-card relative z-10 flex w-full max-w-md flex-col items-center px-6 py-12 text-center shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
         {errorMessage ? (
           <p
-            className="mb-8 w-full rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            className="mb-8 w-full rounded-xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive shadow-sm"
             role="alert"
           >
             {errorMessage}
@@ -88,20 +83,23 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
 
         <div
           ref={iconRef}
-          className="mb-7 flex size-24 items-center justify-center rounded-3xl bg-primary/12 shadow-[0_0_0_1px_rgba(255,255,255,0.06)] ring-1 ring-white/10 sm:size-28"
+          className="mb-8 flex size-24 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/30 to-primary/5 p-1 shadow-[0_8px_32px_rgba(250,115,22,0.25)] ring-1 ring-white/20 sm:size-28"
+          style={{ transformStyle: "preserve-3d" }}
         >
-          <Sparkles className="size-12 text-primary sm:size-14" strokeWidth={1.25} aria-hidden />
+          <div className="flex size-full items-center justify-center rounded-2xl bg-gradient-to-tr from-background/90 to-background/50 shadow-inner">
+            <Sparkles className="size-12 text-primary drop-shadow-[0_0_15px_rgba(250,115,22,0.6)] sm:size-14" strokeWidth={1.25} aria-hidden />
+          </div>
         </div>
 
         <h1
           ref={titleRef}
-          className="font-heading text-4xl font-semibold tracking-tight text-white sm:text-5xl"
+          className="font-heading text-4xl font-bold tracking-tight text-foreground drop-shadow-md sm:text-5xl"
         >
           Gunanuvad
         </h1>
         <p
           ref={subRef}
-          className="mt-4 max-w-sm text-pretty text-sm leading-relaxed text-zinc-400 sm:text-base"
+          className="mt-4 max-w-sm text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
         >
           One appreciation a day — keep the streak alive.
         </p>
@@ -111,17 +109,17 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
             type="button"
             size="lg"
             className={cn(
-              "h-12 w-full rounded-xl text-base font-semibold shadow-lg transition-[transform,box-shadow] duration-200",
-              "hover:scale-[1.02] active:scale-[0.98]",
-              introDone && "motion-safe:hover:shadow-xl",
+              "h-14 w-full rounded-2xl bg-gradient-to-b from-primary to-primary/80 text-lg font-semibold text-primary-foreground shadow-[0_8px_30px_rgba(250,115,22,0.3)] ring-1 ring-primary/50 transition-all duration-300",
+              "hover:scale-[1.03] hover:shadow-[0_12px_40px_rgba(250,115,22,0.4)] hover:brightness-110 active:scale-[0.98]",
+              introDone && "motion-safe:hover:-translate-y-1",
             )}
             disabled={pending}
             onClick={onGoogle}
           >
-            {pending ? "Redirecting…" : "Continue with Google"}
+            {pending ? "Authenticating…" : "Continue with Google"}
           </Button>
-          <p className="mt-4 text-center text-xs text-zinc-500">
-            Invite-only — use a Google account that&apos;s on the list.
+          <p className="mt-6 text-center text-sm font-medium text-muted-foreground/80">
+            Invite-only — use your permitted Google account.
           </p>
         </div>
       </div>
