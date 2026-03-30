@@ -16,12 +16,8 @@ export default async function AdminInvitesPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
+      <header>
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Invite list</h1>
-        <p className="text-sm text-muted-foreground">
-          Everyone on <code className="rounded bg-muted px-1 py-0.5 text-xs">allowed_emails</code> and whether they
-          have an account and a mosaic-ready profile (name + avatar).
-        </p>
       </header>
 
       <div className="grid grid-cols-3 gap-3 sm:max-w-xl">
