@@ -36,7 +36,7 @@
 
   --palette-ring: oklch(0.68 0.22 45);
 
-  --palette-radius: 1.5rem; /* Extra rounded for bubbly game feel */
+  --palette-radius: 1.5rem; /* Extra rounded for bubbly game feel test*/
 
   /* Extreme Mesh 3D space */
   --palette-mesh-1: oklch(0.95 0.08 60);
