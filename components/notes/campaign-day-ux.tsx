@@ -88,20 +88,20 @@ export function CampaignDayNotification({
     <div
       role="status"
       className={cn(
-        "relative flex items-center gap-1 rounded-xl border py-1.5 pl-3 pr-1 shadow-sm",
+        "relative flex items-center gap-2 rounded-2xl py-2 pl-4 pr-1.5 shadow-md backdrop-blur-md transition-all duration-300 ring-1",
         sentToday
-          ? "border-primary/35 bg-primary/12 text-foreground"
-          : "border-border/80 bg-muted/55 text-foreground",
+          ? "ring-primary/30 bg-gradient-to-r from-primary/20 to-primary/5 text-foreground shadow-[0_4px_16px_rgba(250,115,22,0.1)]"
+          : "ring-border/50 bg-gradient-to-r from-muted/50 to-muted/20 text-foreground",
       )}
     >
-      <p className="min-w-0 flex-1 truncate text-sm font-medium leading-snug">{line}</p>
+      <p className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug tracking-wide">{line}</p>
       <button
         type="button"
         onClick={onDismiss}
         className={cn(
-          "shrink-0 rounded-lg p-2 text-foreground/80 transition-colors",
-          "hover:bg-background/60 hover:text-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "shrink-0 rounded-xl p-2.5 text-foreground/70 transition-colors",
+          "hover:bg-background/80 hover:text-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         )}
         aria-label="Dismiss notification"
       >
@@ -116,7 +116,7 @@ function DialogCampaignTeaserSent({ nextResetAt }: { nextResetAt: string }) {
   const countdown = formatCountdown(remMs);
   return (
     <div
-      className="rounded-lg border border-border/80 bg-muted/50 px-3 py-2 text-center text-sm text-foreground"
+      className="rounded-xl border border-border/60 bg-gradient-to-b from-muted/40 to-muted/10 px-4 py-2.5 text-center text-sm text-foreground shadow-sm backdrop-blur-sm"
       role="status"
     >
       <p>
@@ -139,10 +139,10 @@ export function DialogCampaignTeaser({ status }: { status: DailyCampaignStatus }
   if (!status.sentToday) {
     return (
       <div
-        className="rounded-lg border border-primary/35 bg-primary/10 px-3 py-2 text-center text-sm text-foreground"
+        className="rounded-xl border border-primary/30 bg-gradient-to-b from-primary/10 to-transparent px-4 py-2.5 text-center text-sm text-foreground shadow-[0_2px_10px_rgba(250,115,22,0.08)] backdrop-blur-sm"
         role="status"
       >
-        <p className="font-medium">Daily note still open — send below.</p>
+        <p className="font-semibold text-primary/90">Daily note still open — send below.</p>
       </div>
     );
   }

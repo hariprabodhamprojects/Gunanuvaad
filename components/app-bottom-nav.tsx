@@ -59,9 +59,9 @@ export function AppBottomNav() {
       <div
         ref={panelRef}
         className={cn(
-          "pointer-events-auto flex w-full max-w-lg items-stretch gap-0.5 sm:max-w-xl sm:gap-1",
-          "glass-strong rounded-2xl border border-border/70 px-1.5 py-1.5 shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.12)]",
-          "dark:shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.45)]",
+          "pointer-events-auto flex w-full max-w-lg items-stretch gap-1 sm:max-w-xl sm:gap-2",
+          "glass-strong rounded-3xl border border-white/20 px-2 py-2 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl",
+          "dark:border-white/10 dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)]",
         )}
       >
         {items.map(({ href, label, icon: Icon, match }) => {
@@ -72,16 +72,19 @@ export function AppBottomNav() {
               href={href}
               className={cn(
                 buttonVariants({ variant: "ghost", size: "sm" }),
-                "h-auto min-h-[3.25rem] flex-1 flex-col gap-0.5 rounded-xl py-1.5 text-[0.7rem] font-medium tracking-tight sm:text-xs",
-                "text-muted-foreground transition-[color,background-color,transform] duration-200",
-                "hover:bg-muted/60 hover:text-foreground",
-                "active:scale-[0.97]",
+                "relative h-auto min-h-[3.5rem] flex-1 flex-col gap-1 rounded-2xl py-2 text-[10px] sm:text-xs font-medium tracking-tight overflow-hidden",
+                "text-muted-foreground transition-all duration-300",
+                "hover:bg-muted/50 hover:text-foreground",
+                "active:scale-95",
                 active &&
-                  "bg-primary/12 font-semibold text-primary shadow-sm dark:bg-primary/18 dark:text-primary",
+                  "text-primary font-bold bg-primary/10 shadow-[inset_0_2px_10px_rgba(250,115,22,0.1)]",
               )}
             >
-              <Icon className={cn("size-5 sm:size-[1.35rem]", active ? "opacity-100" : "opacity-70")} aria-hidden />
-              <span>{label}</span>
+              {active && (
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-50" aria-hidden />
+              )}
+              <Icon className={cn("relative z-10 size-5 sm:size-6 transition-transform duration-300 ease-out", active ? "scale-110 drop-shadow-[0_2px_8px_rgba(250,115,22,0.5)]" : "opacity-80")} aria-hidden />
+              <span className="relative z-10">{label}</span>
             </Link>
           );
         })}

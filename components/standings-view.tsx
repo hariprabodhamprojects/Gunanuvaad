@@ -112,26 +112,26 @@ function LeaderboardTable({
 
 export function StandingsView({ data }: { data: StandingsPayload }) {
   return (
-    <div className="space-y-5">
-      <h1 className="font-heading text-2xl font-semibold tracking-tight">Standings</h1>
+    <div className="space-y-6">
+      <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground drop-shadow-sm px-1">Standings</h1>
 
-      <Card>
-        <CardHeader className="pb-2 pt-4">
-          <CardTitle className="text-base font-semibold">Points</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0 pb-4">
+      <div className="glass-card mb-6">
+        <div className="px-5 py-4 border-b border-border/40">
+          <h2 className="text-xl font-bold tracking-tight text-primary drop-shadow-sm">Points 🏆</h2>
+        </div>
+        <div className="p-4 pt-2">
           <LeaderboardTable rows={data.points} viewerId={data.viewer_id} valueKey="score" />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader className="pb-2 pt-4">
-          <CardTitle className="text-base font-semibold">Streak</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0 pb-4">
+      <div className="glass-card mb-6">
+        <div className="px-5 py-4 border-b border-border/40">
+          <h2 className="text-xl font-bold tracking-tight text-primary drop-shadow-sm">Streak 🔥</h2>
+        </div>
+        <div className="p-4 pt-2">
           <LeaderboardTable rows={data.streaks} viewerId={data.viewer_id} valueKey="streak" />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

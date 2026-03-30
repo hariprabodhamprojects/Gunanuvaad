@@ -134,9 +134,9 @@ export function RosterPersonDialog({
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-0 outline-none sm:items-center sm:p-4">
           <Dialog.Popup
             className={cn(
-              "flex max-h-[min(90dvh,90svh)] w-full max-w-md flex-col gap-5 rounded-t-2xl border border-border bg-popover p-6 shadow-2xl outline-none sm:rounded-2xl",
-              "data-[ending-style]:translate-y-4 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-4 data-[starting-style]:opacity-0",
-              "transition-[transform,opacity] duration-200 ease-out",
+              "glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border",
+              "data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0",
+              "transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)",
             )}
           >
             <Dialog.Title className="sr-only">
@@ -148,14 +148,17 @@ export function RosterPersonDialog({
             {member ? (
               <>
                 {!isSelf ? <DialogCampaignTeaser status={dailyCampaignStatus} /> : null}
-                <div className="flex flex-col items-center gap-3 text-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={member.avatar_url}
-                    alt=""
-                    className="size-24 rounded-full object-cover ring-2 ring-border shadow-md sm:size-28"
-                  />
-                  <p className="font-heading text-xl font-semibold">{member.display_name}</p>
+                <div className="flex flex-col items-center gap-4 text-center mt-2">
+                  <div className="relative">
+                    <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary/40 to-primary/10 blur-md" aria-hidden />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={member.avatar_url}
+                      alt=""
+                      className="relative size-24 rounded-full object-cover ring-4 ring-background shadow-[0_8px_20px_rgba(250,115,22,0.2)] sm:size-28"
+                    />
+                  </div>
+                  <p className="font-heading text-2xl font-bold tracking-tight text-foreground/95 drop-shadow-sm">{member.display_name}</p>
                 </div>
                 {isSelf ? (
                   <div
@@ -190,7 +193,7 @@ export function RosterPersonDialog({
                             placeholder="Write something kind…"
                             maxLength={NOTE_BODY_MAX_LEN}
                             disabled={pending}
-                            className="resize-y"
+                            className="resize-y min-h-[100px] rounded-xl border-border/80 bg-background/50 shadow-inner backdrop-blur focus-visible:ring-primary/40"
                             aria-describedby="daily-note-counter"
                           />
                           <p
@@ -203,17 +206,20 @@ export function RosterPersonDialog({
                         <Button
                           type="button"
                           size="lg"
-                          className="w-full"
+                          className={cn(
+                            "w-full h-14 rounded-2xl bg-gradient-to-b from-primary to-primary/80 text-lg font-semibold text-primary-foreground shadow-[0_8px_24px_rgba(250,115,22,0.25)] ring-1 ring-primary/50 transition-all duration-300",
+                            "hover:shadow-[0_12px_32px_rgba(250,115,22,0.35)] hover:brightness-110 active:scale-[0.98]",
+                          )}
                           disabled={pending || !lengthOk}
                           onClick={onSubmit}
                         >
                           {pending ? (
                             <>
-                              <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+                              <Loader2 className="mr-2 size-5 animate-spin" aria-hidden />
                               Sending…
                             </>
                           ) : (
-                            <>Send to {member.display_name.split(" ")[0]}</>
+                            <>Send it to {member.display_name.split(" ")[0]} 🚀</>
                           )}
                         </Button>
                       </>
