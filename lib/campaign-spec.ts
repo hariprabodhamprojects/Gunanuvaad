@@ -3,8 +3,12 @@
  * Phase 6 — `/admin` uses `allowed_emails.is_organizer` + `is_organizer_session()` RPC.
  * Change these here; later phases import from this module instead of scattering magic numbers.
  */
-export const CAMPAIGN_TIMEZONE = "Asia/Kolkata"; // TODO: confirm with your group
-/** Must match `timezone('Asia/Kolkata', …)` in Supabase migrations for `campaign_date`. */
+/**
+ * Single timezone for “what calendar day is it?” when recording `campaign_date` (writes + calendar UI).
+ * Everyone shares one day boundary — pick the zone your group cares about (e.g. Canada vs India).
+ * Must match the `timezone('…', now())` used in `submit_daily_note` / `recipient_write_eligibility` (see migrations).
+ */
+export const CAMPAIGN_TIMEZONE = "America/Toronto";
 
 /** Recipients lock until author writes to K *other distinct* people (see product plan). */
 export const RECIPIENT_LOCK_K = 25; // TODO: clamp to roster_size - 2 in SQL + UI

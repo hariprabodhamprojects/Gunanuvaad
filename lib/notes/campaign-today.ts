@@ -1,10 +1,12 @@
+import { CAMPAIGN_TIMEZONE } from "@/lib/campaign-spec";
+
 /**
  * Calendar “today” for campaign dates — matches `submit_daily_note` in the DB
- * (`timezone('Asia/Kolkata', now())::date`).
+ * (`timezone(<CAMPAIGN_TIMEZONE>, now())::date`).
  */
 export function getCampaignDateTodayISO(reference: Date = new Date()): string {
   const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
+    timeZone: CAMPAIGN_TIMEZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

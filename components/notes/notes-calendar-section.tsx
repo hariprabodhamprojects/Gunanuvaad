@@ -7,7 +7,7 @@ import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { AuthoredDailyNote } from "@/lib/notes/get-authored-notes";
-import { getLocalDateTodayISO } from "@/lib/notes/local-today";
+import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { cn } from "@/lib/utils";
 
 /** Display serif for recipient name — distinct from UI sans (Geist). */
@@ -28,7 +28,7 @@ function noopSubscribe() {
 
 type Props = {
   notes: AuthoredDailyNote[];
-  /** IST “today” for SSR/hydration only; client switches to local timezone after mount. */
+  /** Campaign “today” in `CAMPAIGN_TIMEZONE` (matches `submit_daily_note` and stored `campaign_date`). */
   campaignToday: string;
 };
 
@@ -52,28 +52,37 @@ function ymd(year: number, month: number, day: number): string {
 }
 
 /**
- * When the viewed month is the user’s **local** current month, the selected day is always **local today**
- * (even with no note — detail panel shows empty). Never auto-select a day **after** local today.
+ * Pick a day in the viewed month for the detail panel. Uses **campaign today** (IST), same as stored
+ * `campaign_date`, so the highlighted day matches when notes were recorded.
+ *
+ * - In the current campaign month: prefer **today** if you have a note that day; otherwise the latest
+ *   note date on or before today (avoids an empty panel when “today” has no note yet).
+ * - Past/future months: latest note on or before campaign-today when applicable, else first note in month.
  */
 function defaultSelectedInMonth(
   year: number,
   month: number,
   sortedDates: string[],
-  todayISO: string,
+  campaignTodayISO: string,
 ): string {
   const p = monthPrefix(year, month);
   const inMonth = sortDatesAsc(sortedDates.filter((d) => d.startsWith(`${p}-`)));
-  const ty = Number(todayISO.slice(0, 4));
-  const tm = Number(todayISO.slice(5, 7));
-  const localTodayInThisMonth = ty === year && tm === month;
+  const ty = Number(campaignTodayISO.slice(0, 4));
+  const tm = Number(campaignTodayISO.slice(5, 7));
+  const campaignTodayInThisMonth = ty === year && tm === month;
 
-  if (localTodayInThisMonth) {
-    return todayISO;
+  if (campaignTodayInThisMonth) {
+    if (inMonth.includes(campaignTodayISO)) {
+      return campaignTodayISO;
+    }
+    const onOrBefore = inMonth.filter((d) => d <= campaignTodayISO);
+    if (onOrBefore.length) return onOrBefore[onOrBefore.length - 1];
+    return campaignTodayISO;
   }
 
   if (inMonth.length === 0) return "";
 
-  const onOrBefore = inMonth.filter((d) => d <= todayISO);
+  const onOrBefore = inMonth.filter((d) => d <= campaignTodayISO);
   if (onOrBefore.length) return onOrBefore[onOrBefore.length - 1];
 
   return inMonth[0];
@@ -84,11 +93,14 @@ function sortDatesAsc(dates: string[]): string[] {
   return [...dates].sort((a, b) => a.localeCompare(b));
 }
 
-/** Always opens on the user’s **local** current month with **local today** selected (Canada, etc.). */
-function buildInitialCal(_notes: AuthoredDailyNote[], todayISO: string): CalState {
-  const y = Number(todayISO.slice(0, 4));
-  const m = Number(todayISO.slice(5, 7));
-  return { year: y, month: m, selectedDate: todayISO };
+/** Opens on the campaign (IST) current month; selection follows `defaultSelectedInMonth`. */
+function buildInitialCal(notes: AuthoredDailyNote[], campaignTodayISO: string): CalState {
+  const y = Number(campaignTodayISO.slice(0, 4));
+  const m = Number(campaignTodayISO.slice(5, 7));
+  const sortedDates = sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]);
+  const selected =
+    defaultSelectedInMonth(y, m, sortedDates, campaignTodayISO) || campaignTodayISO;
+  return { year: y, month: m, selectedDate: selected };
 }
 
 function formatLongDate(dateStr: string): string {
@@ -169,14 +181,17 @@ function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
 export function NotesCalendarSection({ notes, campaignToday }: Props) {
   const sortedDates = useMemo(() => sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]), [notes]);
 
-  /** Client: local calendar day; SSR / hydration first pass: IST (matches server HTML). */
-  const localTodayISO = useSyncExternalStore(
+  /** Campaign today (IST); server snapshot = SSR prop, client = same clock rule as DB. */
+  const campaignTodayISO = useSyncExternalStore(
     noopSubscribe,
-    () => getLocalDateTodayISO(),
+    () => getCampaignDateTodayISO(),
     () => campaignToday,
   );
 
-  const baselineCal = useMemo(() => buildInitialCal(notes, localTodayISO), [notes, localTodayISO]);
+  const baselineCal = useMemo(
+    () => buildInitialCal(notes, campaignTodayISO),
+    [notes, campaignTodayISO],
+  );
 
   /** User month/day picks; `null` means follow `baselineCal` (updates when local “today” or notes change). */
   const [calPatch, setCalPatch] = useState<CalState | null>(null);
@@ -197,7 +212,7 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
   const goMonth = (delta: number) => {
     setCalPatch((prev) => {
       const c = prev ?? baselineCal;
-      const todayISO = getLocalDateTodayISO();
+      const todayISO = getCampaignDateTodayISO();
       const { y, m } = addMonths(c.year, c.month, delta);
       const prefix = monthPrefix(y, m);
       let nextSelected = c.selectedDate;
@@ -311,8 +326,8 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
                 }
                 const hasNote = noteDates.has(cell.dateKey);
                 const isSelected = selectedDate === cell.dateKey;
-                const isLocalToday = cell.dateKey === localTodayISO;
-                const canSelect = hasNote || isLocalToday;
+                const isCampaignToday = cell.dateKey === campaignTodayISO;
+                const canSelect = hasNote || isCampaignToday;
                 return (
                   <div key={cell.key} className="flex h-9 justify-center sm:h-10">
                     <button
@@ -325,7 +340,7 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
                         }))
                       }
                       aria-pressed={isSelected}
-                      aria-current={isLocalToday ? "date" : undefined}
+                      aria-current={isCampaignToday ? "date" : undefined}
                       className={cn(
                         "relative flex size-9 items-center justify-center rounded-lg text-[0.8125rem] font-semibold tabular-nums transition-[color,background-color,box-shadow] sm:size-10 sm:text-sm",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
@@ -333,7 +348,7 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
                         canSelect && !isSelected && "bg-muted/50 text-foreground hover:bg-muted/80",
                         canSelect &&
                           !isSelected &&
-                          isLocalToday &&
+                          isCampaignToday &&
                           hasNote &&
                           "ring-1 ring-primary/40 ring-offset-0",
                         isSelected &&
