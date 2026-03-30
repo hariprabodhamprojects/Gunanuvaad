@@ -10,6 +10,9 @@
  */
 export const CAMPAIGN_TIMEZONE = "America/Toronto";
 
+/** Short label for UI copy (“Resets at midnight …”). */
+export const CAMPAIGN_TIMEZONE_SHORT_LABEL = "Toronto time";
+
 /** Recipients lock until author writes to K *other distinct* people (see product plan). */
 export const RECIPIENT_LOCK_K = 25; // TODO: clamp to roster_size - 2 in SQL + UI
 

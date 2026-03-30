@@ -9,12 +9,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
+import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import type { RosterMember } from "@/lib/roster/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
   members: RosterMember[];
   currentUserId: string;
+  dailyCampaignStatus: DailyCampaignStatus;
 };
 
 function RosterMemberCard({
@@ -94,7 +96,7 @@ function RosterMemberCard({
   );
 }
 
-export function RosterPickExperience({ members, currentUserId }: Props) {
+export function RosterPickExperience({ members, currentUserId, dailyCampaignStatus }: Props) {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<RosterMember | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -178,6 +180,7 @@ export function RosterPickExperience({ members, currentUserId }: Props) {
           if (!open) setSelected(null);
         }}
         currentUserId={currentUserId}
+        dailyCampaignStatus={dailyCampaignStatus}
       />
     </>
   );

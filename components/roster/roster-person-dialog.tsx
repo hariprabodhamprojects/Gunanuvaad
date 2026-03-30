@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, Lock } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { toast } from "sonner";
+import { DialogCampaignTeaser } from "@/components/notes/campaign-day-ux";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -12,6 +14,7 @@ import {
   type WriteEligibility,
 } from "@/lib/notes/daily-note-actions";
 import { NOTE_BODY_MAX_LEN, RECIPIENT_LOCK_K } from "@/lib/campaign-spec";
+import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import type { RosterMember } from "@/lib/roster/types";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +23,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentUserId: string;
+  dailyCampaignStatus: DailyCampaignStatus;
 };
 
 function eligibilityHint(elig: WriteEligibility | null): string | null {
@@ -42,7 +46,14 @@ function eligibilityHint(elig: WriteEligibility | null): string | null {
   }
 }
 
-export function RosterPersonDialog({ member, open, onOpenChange, currentUserId }: Props) {
+export function RosterPersonDialog({
+  member,
+  open,
+  onOpenChange,
+  currentUserId,
+  dailyCampaignStatus,
+}: Props) {
+  const router = useRouter();
   const isSelf = member?.id === currentUserId;
   const [elig, setElig] = useState<WriteEligibility | null>(null);
   const [loadingElig, setLoadingElig] = useState(false);
@@ -88,6 +99,7 @@ export function RosterPersonDialog({ member, open, onOpenChange, currentUserId }
         toast.success("Your note is sent.");
         setBody("");
         onOpenChange(false);
+        router.refresh();
         return;
       }
       if (r.code === "invalid_body") {
@@ -135,6 +147,7 @@ export function RosterPersonDialog({ member, open, onOpenChange, currentUserId }
             </Dialog.Description>
             {member ? (
               <>
+                {!isSelf ? <DialogCampaignTeaser status={dailyCampaignStatus} /> : null}
                 <div className="flex flex-col items-center gap-3 text-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
