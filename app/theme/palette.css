@@ -40,12 +40,8 @@
   /* Ring follows brand */
   --palette-ring: oklch(0.68 0.17 42);
 
-<<<<<<< HEAD
   /* Radius scale - premium Apple-like rounded */
   --palette-radius: 1.25rem;
-=======
-  --palette-radius: 1.5rem; /* Extra rounded for bubbly game feel test*/
->>>>>>> 63d64049149a0f6fceb5daaeaa2fbd67b2e64a6d
 
   /* Page mesh gradient (marketing hero) — subtle pearl/orange */
   --palette-mesh-1: oklch(0.98 0.02 45);
