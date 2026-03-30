@@ -7,7 +7,10 @@ import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { useCampaignCountdown, formatCountdown } from "@/hooks/use-campaign-countdown";
 import { cn } from "@/lib/utils";
 
-const DISMISS_STORAGE_KEY = "gunanuvad_home_campaign_notice_dismissed";
+/** Per-user: same browser must not share dismiss state across accounts. */
+function dismissStorageKey(userId: string): string {
+  return `gunanuvad_home_campaign_notice_dismissed:${userId}`;
+}
 
 function noticeFingerprint(status: DailyCampaignStatus): string {
   return `${status.campaignTodayISO}|${status.sentToday ? "1" : "0"}`;
@@ -29,7 +32,13 @@ function useRefreshWhenCountdownEnds(nextResetAtIso: string) {
 }
 
 /** Home: one-line dismissible notification above the greeting. */
-export function CampaignDayNotification({ status }: { status: DailyCampaignStatus }) {
+export function CampaignDayNotification({
+  userId,
+  status,
+}: {
+  userId: string;
+  status: DailyCampaignStatus;
+}) {
   const { sentToday, nextResetAt } = status;
   const remMs = useRefreshWhenCountdownEnds(nextResetAt);
   const countdown = formatCountdown(remMs);
@@ -39,19 +48,20 @@ export function CampaignDayNotification({ status }: { status: DailyCampaignStatu
   );
 
   const [dismissed, setDismissed] = useState(false);
+  const storageKey = dismissStorageKey(userId);
 
   useEffect(() => {
     try {
       if (typeof window === "undefined") return;
-      setDismissed(window.localStorage.getItem(DISMISS_STORAGE_KEY) === fp);
+      setDismissed(window.localStorage.getItem(storageKey) === fp);
     } catch {
       setDismissed(false);
     }
-  }, [fp]);
+  }, [fp, storageKey]);
 
   const onDismiss = () => {
     try {
-      window.localStorage.setItem(DISMISS_STORAGE_KEY, fp);
+      window.localStorage.setItem(storageKey, fp);
     } catch {
       /* ignore */
     }

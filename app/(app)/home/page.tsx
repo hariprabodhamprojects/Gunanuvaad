@@ -32,7 +32,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-5">
-      <CampaignDayNotification status={dailyCampaignStatus} />
+      <CampaignDayNotification userId={user.id} status={dailyCampaignStatus} />
       <header>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           Jay Swaminarayan
