@@ -66,6 +66,21 @@
 
 If the Google account’s email is **not** in `allowed_emails`, you’ll see **Not on the invite list** (`/not-invited`) and the session is cleared.
 
+## Historical notes after changing campaign timezone (e.g. IST → Toronto)
+
+Applying `20250331200000_campaign_timezone_toronto.sql` only changes **how new notes get `campaign_date`** (server uses Toronto from then on). **Existing rows are not updated.**
+
+- Each old row still has the calendar date that was correct under **`Asia/Kolkata` at submit time**.
+- That can look “off by one” on the calendar **next to your Canadian evening** if you used to write when IST had already rolled to the next date — the DB was consistent with India, not with Toronto wall time.
+
+**What you can do**
+
+1. **Leave as-is** — dots and detail always match what is stored; only interpretation vs “my local day” may differ for older notes.
+2. **If almost every old note is systematically one calendar day too late** (you always saw the next day in the app vs what you meant), run a **one-time** global `- 1 day` update after backing up — see **One-time repair** below (same SQL / RPC; verify in a copy first).
+3. **If only a few rows are wrong** — fix with a targeted `update … where id = '…'` (or by `author_id` / date range) instead of shifting all rows.
+
+New notes after the Toronto migration align with **Toronto** campaign days.
+
 ## One-time repair: `campaign_date` one day ahead
 
 If every `daily_notes.campaign_date` was stored **one calendar day too late** (a note meant for the 28th shows as the 29th), fix existing rows **once**.

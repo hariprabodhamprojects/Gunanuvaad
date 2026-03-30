@@ -1,5 +1,8 @@
 -- Align campaign calendar day with `lib/campaign-spec.ts` CAMPAIGN_TIMEZONE (`America/Toronto`).
 -- Run after phase 4. One shared zone for the whole group so UI + `submit_daily_note` stay in sync.
+--
+-- Does NOT rewrite existing `daily_notes.campaign_date` rows (those still reflect the old zone at write time).
+-- See `supabase/README.md` § Historical notes after changing campaign timezone.
 
 create or replace function public.recipient_write_eligibility(p_recipient_id uuid)
 returns jsonb
