@@ -1,5 +1,5 @@
 import { ApprovedNotesSlideshow } from "@/components/home/approved-notes-slideshow";
-import { CampaignDayStatusCard } from "@/components/notes/campaign-day-ux";
+import { CampaignDayNotification } from "@/components/notes/campaign-day-ux";
 import { RosterPickExperience } from "@/components/roster/roster-pick-experience";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { getApprovedNotesSlideshowSlides } from "@/lib/home/approved-slideshow";
@@ -32,6 +32,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-5">
+      <CampaignDayNotification status={dailyCampaignStatus} />
       <header>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           Jay Swaminarayan
@@ -43,7 +44,6 @@ export default async function HomePage() {
           ) : null}
         </h1>
       </header>
-      <CampaignDayStatusCard status={dailyCampaignStatus} />
       <ApprovedNotesSlideshow slides={approvedSlides} />
       <RosterPickExperience
         members={members}

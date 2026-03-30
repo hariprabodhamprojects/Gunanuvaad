@@ -1,10 +1,17 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { useCampaignCountdown, formatCountdown } from "@/hooks/use-campaign-countdown";
 import { cn } from "@/lib/utils";
+
+const DISMISS_STORAGE_KEY = "gunanuvad_home_campaign_notice_dismissed";
+
+function noticeFingerprint(status: DailyCampaignStatus): string {
+  return `${status.campaignTodayISO}|${status.sentToday ? "1" : "0"}`;
+}
 
 function useRefreshWhenCountdownEnds(nextResetAtIso: string) {
   const router = useRouter();
@@ -21,45 +28,75 @@ function useRefreshWhenCountdownEnds(nextResetAtIso: string) {
   return remMs;
 }
 
-/** Home: compact alert strip (not a card). */
-export function CampaignDayStatusCard({ status }: { status: DailyCampaignStatus }) {
+/** Home: one-line dismissible notification above the greeting. */
+export function CampaignDayNotification({ status }: { status: DailyCampaignStatus }) {
   const { sentToday, nextResetAt } = status;
   const remMs = useRefreshWhenCountdownEnds(nextResetAt);
   const countdown = formatCountdown(remMs);
+  const fp = useMemo(
+    () => noticeFingerprint(status),
+    [status.campaignTodayISO, status.sentToday],
+  );
+
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+      setDismissed(window.localStorage.getItem(DISMISS_STORAGE_KEY) === fp);
+    } catch {
+      setDismissed(false);
+    }
+  }, [fp]);
+
+  const onDismiss = () => {
+    try {
+      window.localStorage.setItem(DISMISS_STORAGE_KEY, fp);
+    } catch {
+      /* ignore */
+    }
+    setDismissed(true);
+  };
+
+  if (dismissed) return null;
+
+  const line = !sentToday
+    ? [
+        "Your note for today is waiting.",
+        countdown ? `${countdown} left today.` : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : [
+        "You're done for today 🔥",
+        countdown ? `Come back after ${countdown}.` : "You can send your next note now.",
+      ]
+        .filter(Boolean)
+        .join(" ");
 
   return (
     <div
       role="status"
       className={cn(
-        "rounded-lg border px-3 py-2.5 text-sm leading-snug sm:px-4 sm:text-[0.9375rem]",
+        "relative flex items-center gap-1 rounded-xl border py-1.5 pl-3 pr-1 shadow-sm",
         sentToday
-          ? "border-primary/40 bg-primary/12 text-foreground"
-          : "border-border/80 bg-muted/50 text-foreground",
+          ? "border-primary/35 bg-primary/12 text-foreground"
+          : "border-border/80 bg-muted/55 text-foreground",
       )}
     >
-      {!sentToday ? (
-        <p>
-          <span className="font-semibold">Your note for today is waiting.</span>
-          {countdown ? (
-            <>
-              {" "}
-              <span className="tabular-nums font-medium">{countdown}</span> left today.
-            </>
-          ) : null}
-        </p>
-      ) : (
-        <p className="text-foreground">
-          <span className="font-semibold">You&apos;re done for today</span> <span aria-hidden>🔥</span>
-          {countdown ? (
-            <>
-              {" "}
-              Come back after <span className="tabular-nums font-semibold">{countdown}</span>.
-            </>
-          ) : (
-            <> You can send your next note now.</>
-          )}
-        </p>
-      )}
+      <p className="min-w-0 flex-1 truncate text-sm font-medium leading-snug">{line}</p>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className={cn(
+          "shrink-0 rounded-lg p-2 text-foreground/80 transition-colors",
+          "hover:bg-background/60 hover:text-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        )}
+        aria-label="Dismiss notification"
+      >
+        <X className="size-4" strokeWidth={2} aria-hidden />
+      </button>
     </div>
   );
 }
