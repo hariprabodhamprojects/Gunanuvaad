@@ -1,12 +1,7 @@
 "use client";
 
-import gsap from "gsap";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  CAMPAIGN_TIMEZONE_SHORT_LABEL,
-} from "@/lib/campaign-spec";
+import { useEffect, useRef } from "react";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { useCampaignCountdown, formatCountdown } from "@/hooks/use-campaign-countdown";
 import { cn } from "@/lib/utils";
@@ -26,134 +21,83 @@ function useRefreshWhenCountdownEnds(nextResetAtIso: string) {
   return remMs;
 }
 
-/** Home: full-width status, countdown, streak copy, subtle pulse. */
+/** Home: compact alert strip (not a card). */
 export function CampaignDayStatusCard({ status }: { status: DailyCampaignStatus }) {
-  const { sentToday, nextResetAt, currentStreak } = status;
+  const { sentToday, nextResetAt } = status;
   const remMs = useRefreshWhenCountdownEnds(nextResetAt);
   const countdown = formatCountdown(remMs);
-  const pulseRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const el = pulseRef.current;
-    if (!el) return;
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-
-    const ctx = gsap.context(() => {
-      gsap.to(el, {
-        boxShadow: "0 0 0 2px hsl(var(--primary) / 0.22)",
-        duration: 1.25,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }, el);
-    return () => ctx.revert();
-  }, [sentToday]);
-
-  return (
-    <Card className="overflow-hidden ring-border/60">
-      <CardContent className="p-4 sm:p-5">
-        <div
-          ref={pulseRef}
-          className={cn(
-            "rounded-xl border border-border/50 bg-muted/20 px-4 py-3.5 sm:px-5 sm:py-4",
-            "shadow-sm transition-shadow",
-          )}
-        >
-          {!sentToday ? (
-            <>
-              <p className="font-heading text-lg font-semibold leading-snug text-foreground sm:text-xl">
-                Your note for today is waiting
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Choose someone below and send one appreciation before the day resets.
-              </p>
-              <p className="mt-3 text-sm font-medium text-foreground">
-                {currentStreak >= 1
-                  ? `You're on a ${currentStreak}-day streak — send today to keep it alive.`
-                  : "Sending on each campaign day builds your streak on Standings."}
-              </p>
-              {countdown ? (
-                <p className="mt-2 text-xs text-muted-foreground tabular-nums">
-                  Time left today: <span className="font-medium text-foreground">{countdown}</span>
-                </p>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <p className="font-heading text-lg font-semibold leading-snug text-foreground sm:text-xl">
-                You&apos;re done for today <span aria-hidden>🔥</span>
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {countdown ? (
-                  <>
-                    Next campaign day in <span className="tabular-nums text-foreground">{countdown}</span>.
-                  </>
-                ) : (
-                  <>The new campaign day just started — you can send your next note.</>
-                )}
-              </p>
-              <p className="mt-3 text-sm font-medium text-foreground">
-                {currentStreak >= 1
-                  ? `Come back tomorrow to extend your ${currentStreak}-day streak.`
-                  : "Tomorrow you can send again and start a streak."}
-              </p>
-            </>
-          )}
-          <p className="mt-3 text-xs text-muted-foreground">
-            Resets at midnight ({CAMPAIGN_TIMEZONE_SHORT_LABEL}).
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/** Roster dialog: compact teaser above the avatar. */
-export function DialogCampaignTeaser({ status }: { status: DailyCampaignStatus }) {
-  const { sentToday, nextResetAt, currentStreak } = status;
-  const remMs = useCampaignCountdown(nextResetAt);
-  const countdown = formatCountdown(remMs);
-
-  if (!sentToday) {
-    return (
-      <div
-        className="rounded-xl border border-primary/25 bg-primary/10 px-3 py-2.5 text-center text-sm"
-        role="status"
-      >
-        <p className="font-medium text-foreground">Daily note still open</p>
-        <p className="mt-1 text-muted-foreground">
-          {currentStreak >= 1
-            ? `Streak: ${currentStreak} day${currentStreak === 1 ? "" : "s"} — send today to protect it.`
-            : "Send your one note today to start a streak."}
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div
-      className="rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5 text-center text-sm"
       role="status"
+      className={cn(
+        "rounded-lg border px-3 py-2.5 text-sm leading-snug sm:px-4 sm:text-[0.9375rem]",
+        sentToday
+          ? "border-primary/40 bg-primary/12 text-foreground"
+          : "border-border/80 bg-muted/50 text-foreground",
+      )}
     >
-      <p className="font-medium text-foreground">Already sent today</p>
-      <p className="mt-1 tabular-nums text-muted-foreground">
-        {countdown ? (
-          <>
-            Next note in <span className="text-foreground">{countdown}</span>
-          </>
-        ) : (
-          "New day — you can send again."
-        )}
-      </p>
-      {currentStreak >= 1 ? (
-        <p className="mt-1 text-xs text-muted-foreground">
-          Extend your {currentStreak}-day streak tomorrow.
+      {!sentToday ? (
+        <p>
+          <span className="font-semibold">Your note for today is waiting.</span>
+          {countdown ? (
+            <>
+              {" "}
+              <span className="tabular-nums font-medium">{countdown}</span> left today.
+            </>
+          ) : null}
         </p>
-      ) : null}
+      ) : (
+        <p className="text-foreground">
+          <span className="font-semibold">You&apos;re done for today</span> <span aria-hidden>🔥</span>
+          {countdown ? (
+            <>
+              {" "}
+              Come back after <span className="tabular-nums font-semibold">{countdown}</span>.
+            </>
+          ) : (
+            <> You can send your next note now.</>
+          )}
+        </p>
+      )}
     </div>
   );
+}
+
+function DialogCampaignTeaserSent({ nextResetAt }: { nextResetAt: string }) {
+  const remMs = useCampaignCountdown(nextResetAt);
+  const countdown = formatCountdown(remMs);
+  return (
+    <div
+      className="rounded-lg border border-border/80 bg-muted/50 px-3 py-2 text-center text-sm text-foreground"
+      role="status"
+    >
+      <p>
+        <span className="font-medium">Already sent today.</span>
+        {countdown ? (
+          <>
+            {" "}
+            Come back after <span className="tabular-nums font-semibold">{countdown}</span>.
+          </>
+        ) : (
+          <> You can send again.</>
+        )}
+      </p>
+    </div>
+  );
+}
+
+/** Roster dialog: thin banner above the avatar. */
+export function DialogCampaignTeaser({ status }: { status: DailyCampaignStatus }) {
+  if (!status.sentToday) {
+    return (
+      <div
+        className="rounded-lg border border-primary/35 bg-primary/10 px-3 py-2 text-center text-sm text-foreground"
+        role="status"
+      >
+        <p className="font-medium">Daily note still open — send below.</p>
+      </div>
+    );
+  }
+  return <DialogCampaignTeaserSent nextResetAt={status.nextResetAt} />;
 }

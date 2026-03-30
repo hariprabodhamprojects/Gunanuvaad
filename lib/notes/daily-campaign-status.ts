@@ -1,13 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { getNextCampaignDayStartDate } from "@/lib/notes/campaign-next-reset";
-import { getStandings } from "@/lib/standings/get-standings";
 
 export type DailyCampaignStatus = {
   sentToday: boolean;
   campaignTodayISO: string;
   nextResetAt: string;
-  currentStreak: number;
 };
 
 export async function getDailyCampaignStatus(userId: string): Promise<DailyCampaignStatus> {
@@ -23,17 +21,11 @@ export async function getDailyCampaignStatus(userId: string): Promise<DailyCampa
     .maybeSingle();
 
   const sentToday = row != null;
-
-  const standings = await getStandings();
-  const streakRow = standings?.streaks.find((s) => s.id === userId);
-  const currentStreak = streakRow?.streak ?? 0;
-
   const next = getNextCampaignDayStartDate();
 
   return {
     sentToday,
     campaignTodayISO,
     nextResetAt: next.toISOString(),
-    currentStreak,
   };
 }
