@@ -29,9 +29,9 @@
   --palette-border: oklch(0.92 0 0);
   --palette-input: oklch(0.92 0 0);
 
-  /* Accent */
-  --palette-accent: oklch(0.96 0.02 40);
-  --palette-accent-fg: oklch(0.2 0.04 40);
+  /* Accent: soft peach tint for hovers, selection test*/
+  --palette-accent: oklch(0.96 0.03 42);
+  --palette-accent-fg: oklch(0.3 0.06 42);
 
   /* Destructive */
   --palette-destructive: oklch(0.6 0.15 25);
