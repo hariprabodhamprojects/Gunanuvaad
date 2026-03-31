@@ -1,64 +1,62 @@
 /**
  * =============================================================================
- * GUNANUVAD — PREMIUM MODERN PALETTE
+ * GUNANUVAD — ELEGANT MODERN PALETTE
  * =============================================================================
- * Sleek, premium, minimalistic styling with Swaminarayan Orange accent.
+ * Minimalist, elegant, high-end design
  * =============================================================================
  */
 
 :root {
-  /* Brand: Swaminarayan Saffron (Orange) — Clean, elegant */
-  --palette-brand: oklch(0.68 0.17 42); 
-  --palette-brand-hover: oklch(0.62 0.17 42);
-  --palette-brand-muted: oklch(0.96 0.03 45);
-  --palette-brand-foreground: oklch(0.99 0.01 45);
+  /* Brand: Elegant subtle orange */
+  --palette-brand: oklch(0.65 0.12 40); 
+  --palette-brand-hover: oklch(0.60 0.12 40);
+  --palette-brand-muted: oklch(0.96 0.02 45);
+  --palette-brand-foreground: oklch(0.99 0.00 45);
 
-  /* Surfaces: Ultra-clean white/cream */
-  --palette-bg: oklch(0.99 0.005 50);
-  --palette-bg-subtle: oklch(0.97 0.01 50);
-  --palette-fg: oklch(0.2 0.02 40);
-  --palette-fg-muted: oklch(0.5 0.02 40);
+  /* Surfaces: Ultra-clean crisp */
+  --palette-bg: oklch(1 0 0);
+  --palette-bg-subtle: oklch(0.98 0 0);
+  --palette-fg: oklch(0.15 0 0);
+  --palette-fg-muted: oklch(0.40 0 0);
 
-  /* Cards & popovers sit slightly above page */
+  /* Cards */
   --palette-surface: oklch(1 0 0);
   --palette-surface-elevated: oklch(1 0 0);
 
-  /* Secondary / muted UI chrome */
-  --palette-muted: oklch(0.96 0.01 50);
-  --palette-muted-fg: oklch(0.45 0.02 40);
-  --palette-border: oklch(0.92 0.01 50);
-  --palette-input: oklch(0.94 0.01 50);
+  /* Chrome */
+  --palette-muted: oklch(0.96 0 0);
+  --palette-muted-fg: oklch(0.5 0 0);
+  --palette-border: oklch(0.92 0 0);
+  --palette-input: oklch(0.92 0 0);
 
-  /* Accent: soft peach tint for hovers, selection */
-  --palette-accent: oklch(0.96 0.03 42);
-  --palette-accent-fg: oklch(0.3 0.06 42);
+  /* Accent */
+  --palette-accent: oklch(0.96 0.02 40);
+  --palette-accent-fg: oklch(0.2 0.04 40);
 
   /* Destructive */
-  --palette-destructive: oklch(0.55 0.22 25);
-  --palette-destructive-fg: oklch(0.99 0.01 25);
+  --palette-destructive: oklch(0.6 0.15 25);
+  --palette-destructive-fg: oklch(1 0 0);
 
   /* Ring follows brand */
-  --palette-ring: oklch(0.68 0.17 42);
+  --palette-ring: oklch(0.65 0.12 40);
 
   /* Radius scale - premium Apple-like rounded */
-  --palette-radius: 1.25rem;
+  --palette-radius: 0.75rem;
 
-  /* Page mesh gradient (marketing hero) — subtle pearl/orange */
-  --palette-mesh-1: oklch(0.98 0.02 45);
-  --palette-mesh-2: oklch(0.96 0.03 40);
-  --palette-mesh-3: oklch(0.99 0.01 70);
+  /* Page mesh gradient */
+  --palette-mesh-1: oklch(0.98 0.005 50);
+  --palette-mesh-2: oklch(0.97 0 0);
+  --palette-mesh-3: oklch(1 0 0);
 
-  /* ---------------------------------------------------------------------------
-     Glass — frosted panels (light) - Clean, premium blur
-     --------------------------------------------------------------------------- */
-  --glass-blur: 32px;
-  --glass-surface: oklch(1 0 0 / 0.7);
-  --glass-surface-strong: oklch(1 0 0 / 0.85);
-  --glass-border: oklch(0.68 0.17 42 / 0.1); 
-  --glass-border-strong: oklch(0.68 0.17 42 / 0.2);
-  --glass-shadow: 0 8px 32px oklch(0 0 0 / 0.04), 0 2px 8px oklch(0 0 0 / 0.02);
-  --glass-highlight: oklch(1 0 0 / 0.6);
-  --glass-shadow-hover: 0 12px 40px oklch(0 0 0 / 0.08), 0 4px 12px oklch(0.68 0.17 42 / 0.05);
+  /* Glass - much more subtle */
+  --glass-blur: 16px;
+  --glass-surface: oklch(1 0 0 / 0.85);
+  --glass-surface-strong: oklch(1 0 0 / 0.95);
+  --glass-border: oklch(0 0 0 / 0.05); 
+  --glass-border-strong: oklch(0 0 0 / 0.1);
+  --glass-shadow: 0 4px 20px -5px oklch(0 0 0 / 0.05);
+  --glass-highlight: transparent;
+  --glass-shadow-hover: 0 8px 30px oklch(0 0 0 / 0.08);
 
   /* Semantic Map */
   --background: var(--palette-bg);
@@ -99,44 +97,44 @@
 
 .dark {
   /* Sleek, deep dark mode */
-  --palette-brand: oklch(0.72 0.16 42); 
-  --palette-brand-hover: oklch(0.78 0.16 42);
-  --palette-brand-muted: oklch(0.25 0.06 42);
+  --palette-brand: oklch(0.75 0.14 42); 
+  --palette-brand-hover: oklch(0.80 0.14 42);
+  --palette-brand-muted: oklch(0.20 0.04 42);
   --palette-brand-foreground: oklch(0.1 0.02 42);
 
-  --palette-bg: oklch(0.15 0.01 250); /* Very dark cool grey */
-  --palette-bg-subtle: oklch(0.18 0.015 250);
-  --palette-fg: oklch(0.96 0.01 250);
-  --palette-fg-muted: oklch(0.65 0.01 250);
+  --palette-bg: oklch(0.12 0 0);
+  --palette-bg-subtle: oklch(0.15 0 0);
+  --palette-fg: oklch(0.95 0 0);
+  --palette-fg-muted: oklch(0.65 0 0);
 
-  --palette-surface: oklch(0.19 0.015 250);
-  --palette-surface-elevated: oklch(0.22 0.02 250);
+  --palette-surface: oklch(0.14 0 0);
+  --palette-surface-elevated: oklch(0.17 0 0);
 
-  --palette-muted: oklch(0.25 0.015 250);
-  --palette-muted-fg: oklch(0.6 0.01 250);
+  --palette-muted: oklch(0.18 0 0);
+  --palette-muted-fg: oklch(0.6 0 0);
   --palette-border: oklch(1 0 0 / 0.1);
   --palette-input: oklch(1 0 0 / 0.12);
 
-  --palette-accent: oklch(0.28 0.04 42);
+  --palette-accent: oklch(0.20 0.04 42);
   --palette-accent-fg: oklch(0.95 0.02 42);
 
   --palette-destructive: oklch(0.65 0.2 22);
   --palette-destructive-fg: oklch(0.99 0.01 25);
 
-  --palette-ring: oklch(0.72 0.16 42);
+  --palette-ring: oklch(0.75 0.14 42);
 
-  --palette-mesh-1: oklch(0.2 0.04 42);
-  --palette-mesh-2: oklch(0.18 0.02 250);
-  --palette-mesh-3: oklch(0.2 0.03 260);
+  --palette-mesh-1: oklch(0.16 0.02 42);
+  --palette-mesh-2: oklch(0.14 0 0);
+  --palette-mesh-3: oklch(0.12 0 0);
 
   /* 3D Glass effects (dark) - Clean */
-  --glass-surface: oklch(0.19 0.015 250 / 0.65);
-  --glass-surface-strong: oklch(0.22 0.02 250 / 0.85);
+  --glass-surface: oklch(0.14 0 0 / 0.7);
+  --glass-surface-strong: oklch(0.16 0 0 / 0.85);
   --glass-border: oklch(1 0 0 / 0.08);
   --glass-border-strong: oklch(1 0 0 / 0.15);
-  --glass-shadow: 0 16px 32px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.2); 
-  --glass-highlight: oklch(1 0 0 / 0.06); 
-  --glass-shadow-hover: 0 20px 40px oklch(0 0 0 / 0.5), 0 8px 20px oklch(0.72 0.16 42 / 0.1);
+  --glass-shadow: 0 4px 20px -5px oklch(0 0 0 / 0.4); 
+  --glass-highlight: transparent; 
+  --glass-shadow-hover: 0 8px 30px oklch(0 0 0 / 0.5);
 
   --background: var(--palette-bg);
   --foreground: var(--palette-fg);

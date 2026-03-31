@@ -83,7 +83,7 @@
 }
 
 /**
- * Premium UI 3D Utilities
+ * Premium Minimalistic Utilities
  */
 @layer utilities {
   .glass {
@@ -91,7 +91,7 @@
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow), inset 0 1px 1px var(--glass-highlight);
+    box-shadow: var(--glass-shadow);
     transform: translateZ(0);
   }
 
@@ -100,23 +100,22 @@
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border-strong);
-    box-shadow: var(--glass-shadow), inset 0 1px 1px var(--glass-highlight);
+    box-shadow: var(--glass-shadow);
     transform: translateZ(0);
   }
 
-  /* Smooth elegant 3D card */
+  /* Smooth elegant card */
   .glass-card {
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     background: var(--glass-surface);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow), inset 0 1px 1px var(--glass-highlight);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
   }
   .glass-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--glass-shadow-hover), inset 0 1px 1px var(--glass-highlight);
+    box-shadow: var(--glass-shadow-hover);
     border-color: var(--glass-border-strong);
   }
 
@@ -129,7 +128,7 @@
     transform: translateZ(0);
   }
 
-  /** Subtle beautiful mesh gradient */
+  /** Subtle aesthetic gradient */
   .bg-app-gradient {
     background:
       radial-gradient(100% 80% at 50% -20%, var(--palette-mesh-1), transparent 50%),
@@ -138,14 +137,4 @@
       var(--palette-bg);
     background-attachment: fixed;
   }
-}
-
-/** Subtle float animation */
-@keyframes float3d {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-.animate-float-3d {
-  animation: float3d 8s ease-in-out infinite;
 }
