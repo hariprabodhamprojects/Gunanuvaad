@@ -4,21 +4,27 @@ import { useState } from "react";
 import { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { cn } from "@/lib/utils";
 
-function Podium({
-  entries,
+function PodiumPlace({
+  group,
   viewerId,
   valueKey,
+  place,
 }: {
-  entries: StandingsEntry[];
+  group: StandingsEntry[];
   viewerId: string;
   valueKey: "score" | "streak";
+  place: number;
 }) {
-  const rank1 = entries.find((e) => e.rank === 1);
-  const rank2 = entries.find((e) => e.rank === 2);
-  const rank3 = entries.find((e) => e.rank === 3);
+  if (!group || group.length === 0) {
+    return <div className="flex-1 flex flex-col justify-end items-center opacity-0"><div className="w-full h-8" /></div>;
+  }
 
-  const getPodiumClasses = (rank: number) => {
-    switch(rank) {
+  const val = valueKey === "score" ? group[0].score ?? 0 : group[0].streak ?? 0;
+  const rank = group[0].rank;
+  const hasViewer = group.some(r => r.id === viewerId);
+
+  const getPodiumClasses = (p: number) => {
+    switch(p) {
       case 1: return { color: "ring-amber-400/80 bg-gradient-to-t from-amber-500/20 to-amber-500/5", tag: "bg-amber-400 text-amber-950", h: "h-40 sm:h-48", size: "size-20 sm:size-24" };
       case 2: return { color: "ring-slate-300/80 bg-gradient-to-t from-slate-400/20 to-slate-400/5", tag: "bg-slate-300 text-slate-900", h: "h-32 sm:h-40", size: "size-16 sm:size-20" };
       case 3: return { color: "ring-orange-700/80 bg-gradient-to-t from-orange-800/20 to-orange-800/5 dark:ring-orange-800/80 dark:bg-gradient-to-t dark:from-orange-800/40 dark:to-orange-800/10", tag: "bg-orange-700 text-orange-50 dark:bg-orange-800", h: "h-28 sm:h-32", size: "size-14 sm:size-16" };
@@ -26,49 +32,109 @@ function Podium({
     }
   }
 
-  const renderSlot = (record?: StandingsEntry) => {
-    if (!record) {
-      return <div className="flex-1 flex flex-col justify-end items-center opacity-0"><div className="w-full h-8" /></div>;
-    }
-    const val = valueKey === "score" ? record.score ?? 0 : record.streak ?? 0;
-    const isViewer = record.id === viewerId;
-    const style = getPodiumClasses(record.rank);
+  const style = getPodiumClasses(place);
+  const displayLimit = 3;
+  const avatarsToShow = group.slice(0, displayLimit);
+  const extraCount = group.length - displayLimit;
 
-    return (
-      <div className="flex flex-1 flex-col items-center justify-end">
-        <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: `${(record.rank - 1) * 150}ms` }}>
-          <div className="relative mb-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={record.avatar_url}
-              alt=""
-              className={cn("rounded-full ring-[3px] shadow-lg object-cover transition-transform hover:scale-105 bg-background", style.color.split(" ")[0], style.size)}
-            />
-            <div className={cn("absolute -bottom-2.5 left-1/2 -translate-x-1/2 rounded-full px-2.5 py-0.5 text-[10px] sm:text-xs font-bold shadow-sm whitespace-nowrap tracking-wider", style.tag)}>
-              #{record.rank}
-            </div>
-          </div>
-          <p className={cn("truncate max-w-[80px] sm:max-w-[100px] text-[11px] sm:text-sm font-bold", isViewer ? "text-primary" : "text-foreground")}>
-            {record.display_name}
+  let namesDisplay;
+  if (group.length === 1) {
+    namesDisplay = <p className={cn("truncate max-w-[80px] sm:max-w-[100px] text-[11px] sm:text-sm font-bold", hasViewer ? "text-primary" : "text-foreground")}>{group[0].display_name}</p>;
+  } else if (group.length === 2) {
+    namesDisplay = (
+      <div className="flex flex-col items-center">
+        {group.map(r => (
+          <p key={r.id} className={cn("truncate max-w-[80px] sm:max-w-[100px] text-[11px] sm:text-xs font-bold leading-tight", r.id === viewerId ? "text-primary" : "text-foreground")}>
+            {r.display_name}
           </p>
-          <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mt-0.5 uppercase tracking-wide">
-            {val} {valueKey}
-          </p>
-        </div>
-        
-        {/* Simple elegant pedestal bar */}
-        <div className={cn("w-full max-w-[90px] mt-4 rounded-t-2xl flex items-end justify-center pb-3 border-t border-x border-border/50", style.color.split(" ").slice(1).join(" "), style.h)}>
-          <span className="opacity-20 text-4xl font-extrabold tracking-tighter" style={{WebkitTextStroke: "1px currentColor", color: "transparent"}}>{record.rank}</span>
-        </div>
+        ))}
       </div>
     );
-  };
+  } else {
+    // 3 or more tied
+    const topUser = group.find(r => r.id === viewerId) || group[0];
+    namesDisplay = (
+      <div className="flex flex-col items-center">
+        <p className={cn("truncate max-w-[80px] sm:max-w-[100px] text-[11px] sm:text-sm font-bold", topUser.id === viewerId ? "text-primary" : "text-foreground")}>
+          {topUser.display_name}
+        </p>
+        <p className="text-[10px] sm:text-xs font-medium text-muted-foreground mt-0.5">
+          + {group.length - 1} tied
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-end">
+      <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: `${(place - 1) * 150}ms` }}>
+        
+        <div className="relative mb-4 flex flex-col items-center">
+          <div className={cn("flex justify-center items-center drop-shadow-xl", group.length > 1 && "-space-x-4 sm:-space-x-5")}>
+            {avatarsToShow.map((r, i) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={r.id}
+                src={r.avatar_url}
+                alt=""
+                className={cn(
+                  "rounded-full ring-[3px] object-cover transition-transform hover:scale-105 bg-background relative",
+                  style.color.split(" ")[0],
+                  style.size
+                )}
+                style={{ zIndex: 10 - i }}
+              />
+            ))}
+            {extraCount > 0 && (
+              <div 
+                className={cn(
+                  "rounded-full ring-[3px] bg-muted/90 backdrop-blur-sm flex items-center justify-center relative",
+                  style.color.split(" ")[0],
+                  style.size
+                )}
+                style={{ zIndex: 0 }}
+              >
+                <span className="text-xs sm:text-sm font-bold text-muted-foreground/80">+{extraCount}</span>
+              </div>
+            )}
+          </div>
+          <div className={cn("absolute -bottom-2.5 left-1/2 -translate-x-1/2 rounded-full px-2.5 py-0.5 text-[10px] sm:text-xs font-bold shadow-sm whitespace-nowrap tracking-wider z-20", style.tag)}>
+            #{rank}
+          </div>
+        </div>
+
+        {namesDisplay}
+        <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mt-0.5 uppercase tracking-wide">
+          {val} {valueKey}
+        </p>
+      </div>
+      
+      {/* Pedestal */}
+      <div className={cn("w-full max-w-[90px] mt-4 rounded-t-2xl flex items-end justify-center pb-3 border-t border-x border-border/50", style.color.split(" ").slice(1).join(" "), style.h)}>
+        <span className="opacity-20 text-4xl font-extrabold tracking-tighter" style={{WebkitTextStroke: "1px currentColor", color: "transparent"}}>{rank}</span>
+      </div>
+    </div>
+  );
+}
+
+function Podium({
+  groups,
+  viewerId,
+  valueKey,
+}: {
+  groups: { place: number; entries: StandingsEntry[] }[];
+  viewerId: string;
+  valueKey: "score" | "streak";
+}) {
+  const g1 = groups.find(g => g.place === 1)?.entries;
+  const g2 = groups.find(g => g.place === 2)?.entries;
+  const g3 = groups.find(g => g.place === 3)?.entries;
 
   return (
     <div className="flex items-end justify-center gap-2 sm:gap-4 lg:gap-8 pt-4 px-2 h-[260px] sm:h-[320px]">
-      {renderSlot(rank2)}
-      {renderSlot(rank1)}
-      {renderSlot(rank3)}
+      <PodiumPlace group={g2 || []} viewerId={viewerId} valueKey={valueKey} place={2} />
+      <PodiumPlace group={g1 || []} viewerId={viewerId} valueKey={valueKey} place={1} />
+      <PodiumPlace group={g3 || []} viewerId={viewerId} valueKey={valueKey} place={3} />
     </div>
   );
 }
@@ -110,8 +176,26 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
   const [tab, setTab] = useState<"score" | "streak">("score");
 
   const rows = tab === "score" ? data.points : data.streaks;
-  const top3 = rows.filter(r => r.rank <= 3);
-  const rest = rows.filter(r => r.rank > 3);
+
+  const getVal = (r: StandingsEntry) => tab === "score" ? r.score ?? 0 : r.streak ?? 0;
+  
+  // Extract unique sorted values descending
+  const uniqueVals = Array.from(new Set(rows.map(getVal))).sort((a, b) => b - a);
+
+  // Group top 3 unique values into places
+  const top3Groups = [1, 2, 3].map(place => {
+    const val = uniqueVals[place - 1];
+    return {
+      place,
+      entries: val !== undefined ? rows.filter(r => getVal(r) === val) : []
+    };
+  }).filter(g => g.entries.length > 0);
+
+  // The rest are strictly those with lower values
+  const rest = rows.filter(r => {
+    const val = getVal(r);
+    return !uniqueVals.slice(0, 3).includes(val);
+  });
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24">
@@ -148,8 +232,8 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
       </div>
 
       <div className="relative pt-8 mb-6">
-        {top3.length > 0 ? (
-          <Podium entries={top3} viewerId={data.viewer_id} valueKey={tab} />
+        {top3Groups.length > 0 ? (
+          <Podium groups={top3Groups} viewerId={data.viewer_id} valueKey={tab} />
         ) : (
           <div className="py-20 text-center text-sm font-medium text-muted-foreground border border-dashed border-border rounded-3xl">No data available</div>
         )}
