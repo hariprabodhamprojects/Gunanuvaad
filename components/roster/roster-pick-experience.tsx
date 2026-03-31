@@ -1,13 +1,12 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import type { RosterMember } from "@/lib/roster/types";
-import { cn } from "@/lib/utils";
 
 type Props = {
   members: RosterMember[];
@@ -18,39 +17,60 @@ type Props = {
 function RosterMemberCard({
   member,
   onSelect,
+  onAvatarClick,
 }: {
   member: RosterMember;
   onSelect: () => void;
+  onAvatarClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        "group flex flex-col items-center justify-center gap-3 w-full text-center outline-none",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        "rounded-2xl p-5 glass-card hover:bg-muted/40 transition-all duration-300 active:scale-95"
-      )}
-      aria-label={`Open ${member.display_name}`}
-    >
-      <div className="relative size-16 sm:size-20 shrink-0 overflow-hidden rounded-full ring-2 ring-border group-hover:ring-primary/30 transition-all shadow-sm">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={member.avatar_url}
-          alt=""
-          className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+    <div className="group flex items-stretch w-full text-left outline-none px-2 sm:px-4 hover:bg-muted/30 transition-colors duration-200">
+      {/* Avatar Button */}
+      <div className="py-2 pr-3 sm:pr-4 flex items-center justify-center shrink-0 pl-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAvatarClick();
+          }}
+          className="relative size-12 sm:size-14 overflow-hidden rounded-full ring-2 ring-transparent group-hover:ring-primary/20 transition-all active:scale-95 shadow-sm"
+          aria-label={`View profile picture of ${member.display_name}`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={member.avatar_url}
+            alt=""
+            className="size-full object-cover transition-transform duration-500 hover:scale-105"
+          />
+        </button>
       </div>
-      <p className="truncate w-full text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-        {member.display_name}
-      </p>
-    </button>
+
+      {/* Select Area Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect();
+        }}
+        className="min-w-0 flex-1 py-3 border-b border-border/40 flex flex-row items-center justify-between text-left outline-none active:opacity-70 transition-opacity pr-2"
+      >
+        <div className="flex flex-col">
+          <p className="truncate text-[16px] sm:text-[17px] font-semibold text-foreground tracking-tight">
+            {member.display_name}
+          </p>
+          <p className="text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 line-clamp-1">
+            Tap to write a meaningful note
+          </p>
+        </div>
+      </button>
+    </div>
   );
 }
 
 export function RosterPickExperience({ members, currentUserId, dailyCampaignStatus }: Props) {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<RosterMember | null>(null);
+  const [zoomedAvatar, setZoomedAvatar] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
@@ -76,7 +96,7 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
           opacity: 1,
           y: 0,
           duration: 0.4,
-          stagger: { each: 0.04, from: "start" },
+          stagger: { each: 0.02, from: "start" },
           ease: "power2.out",
           overwrite: "auto",
         },
@@ -84,6 +104,33 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
     }, list);
     return () => ctx.revert();
   }, [filtered]);
+
+  // Build the list with dictionary headers
+  let currentLetter = "";
+  const listItems = filtered.map((m) => {
+    const firstLetter = m.display_name.charAt(0).toUpperCase();
+    const showHeader = firstLetter !== currentLetter;
+    if (showHeader) {
+      currentLetter = firstLetter;
+    }
+
+    return (
+      <Fragment key={m.id}>
+        {showHeader && (
+          <div className="pt-6 pb-2 px-6 sm:px-8 w-full shrink-0">
+            <span className="text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
+              {firstLetter}
+            </span>
+          </div>
+        )}
+        <RosterMemberCard 
+          member={m} 
+          onSelect={() => setSelected(m)}
+          onAvatarClick={() => setZoomedAvatar(m.avatar_url)} 
+        />
+      </Fragment>
+    );
+  });
 
   return (
     <>
@@ -101,23 +148,24 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
             aria-label="Search roster by name"
           />
         </div>
+        
         {filtered.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
             {members.length === 0
-              ? "No members found."
+              ? "All eligible members have been written about!"
               : "No matches for your search."}
           </p>
         ) : (
           <div
             ref={listRef}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 pb-24"
+            className="flex flex-col pb-24 w-full bg-card/30 rounded-3xl overflow-hidden border border-border/50 shadow-sm"
           >
-            {filtered.map((m) => (
-              <RosterMemberCard key={m.id} member={m} onSelect={() => setSelected(m)} />
-            ))}
+            {listItems}
           </div>
         )}
       </div>
+
+      {/* Roster Pick Dialog */}
       <RosterPersonDialog
         member={selected}
         open={selected !== null}
@@ -127,6 +175,30 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
         currentUserId={currentUserId}
         dailyCampaignStatus={dailyCampaignStatus}
       />
+
+      {/* Lightweight Avatar Lightbox */}
+      {zoomedAvatar && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setZoomedAvatar(null)}
+        >
+          <button 
+            type="button"
+            onClick={() => setZoomedAvatar(null)}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            aria-label="Close zoomed image"
+          >
+            <X className="size-6" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src={zoomedAvatar} 
+            alt="Profile zoom" 
+            className="max-w-[85vw] max-h-[85vh] object-contain shadow-2xl animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
     </>
   );
 }
