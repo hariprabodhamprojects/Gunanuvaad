@@ -3,10 +3,10 @@ import type { RosterMember } from "@/lib/roster/types";
 
 export async function getRosterMembers(): Promise<RosterMember[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("roster_for_mosaic");
+  const { data, error } = await supabase.rpc("roster_for_picker");
 
   if (error) {
-    console.error("[roster] roster_for_mosaic", error.message);
+    console.error("[roster] roster_for_picker", error.message);
     return [];
   }
 
