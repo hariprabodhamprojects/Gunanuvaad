@@ -59,6 +59,7 @@ export default async function HomePage() {
               <span className="text-primary">{displayName}</span>
             </>
           ) : null}
+          {" "}
           !
         </h1>
       </header>
