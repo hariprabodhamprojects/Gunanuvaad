@@ -144,7 +144,7 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
       aria-atomic="true"
     >
       <p className="text-center text-xs font-bold uppercase tracking-[0.15em] text-primary/80 drop-shadow-sm">
-        Notes for each other
+        Ghunos for each other
       </p>
       <div className="glass-card overflow-hidden transition-all duration-300">
         <div className="p-0 relative">
@@ -191,7 +191,7 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
       ) : null}
       <span className="sr-only">
         {current
-          ? `Showing note for ${current.recipient_display_name.trim() || "community member"}.`
+          ? `Showing ghun for ${current.recipient_display_name.trim() || "community member"}.`
           : null}
       </span>
     </section>

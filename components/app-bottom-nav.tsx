@@ -40,7 +40,6 @@ export function AppBottomNav() {
   const pathname = usePathname() ?? "";
   const panelRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-  const indicatorRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const prevIndexRef = useRef<number>(-1);
 
   // ── Mount animation: slide up the whole bar ──────────────────────────────
@@ -78,20 +77,6 @@ export function AppBottomNav() {
 
     const prevIndex = prevIndexRef.current;
     prevIndexRef.current = activeIndex;
-
-    // Animate the active indicator bar
-    indicatorRefs.current.forEach((el, i) => {
-      if (!el) return;
-      if (i === activeIndex) {
-        gsap.fromTo(
-          el,
-          { scaleX: 0, opacity: 0 },
-          { scaleX: 1, opacity: 1, duration: 0.4, ease: "expo.out" },
-        );
-      } else {
-        gsap.to(el, { scaleX: 0, opacity: 0, duration: 0.25, ease: "power2.in" });
-      }
-    });
 
     // Bounce the tapped icon
     if (activeIndex !== prevIndex && itemRefs.current[activeIndex]) {
@@ -141,17 +126,6 @@ export function AppBottomNav() {
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {/* Active indicator bar — animated by GSAP */}
-              <span
-                ref={(el) => { indicatorRefs.current[i] = el; }}
-                className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-primary"
-                style={{
-                  opacity: active ? 1 : 0,
-                  transform: `translateX(-50%) scaleX(${active ? 1 : 0})`,
-                  transformOrigin: "center",
-                }}
-              />
-
               <Icon
                 className="size-[1.2rem]"
                 strokeWidth={active ? 2.5 : 2}
