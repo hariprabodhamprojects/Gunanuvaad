@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 /**
- * Supabase sometimes returns OAuth `?code=` on `/` instead of `/auth/callback`.
+ * Supabase sometimes returns OAuth `?code=` on `/` itestnstead of `/auth/callback`.
  * Forwards to the route handler so the session can be exchanged.
  */
 export function OAuthCallbackRecovery() {
