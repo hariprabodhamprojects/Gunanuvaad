@@ -59,7 +59,7 @@ function RosterMemberCard({
             {member.display_name}
           </p>
           <p className="text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 line-clamp-1">
-            Tap to write a meaningful note
+            Tap to write a meaningful ghun
           </p>
         </div>
       </button>

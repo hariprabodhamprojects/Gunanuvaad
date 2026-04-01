@@ -85,6 +85,9 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
           >
             {pending ? "Authenticating…" : "Continue with Google"}
           </Button>
+          <p className="mt-4 text-center text-sm font-medium text-primary/80">
+            ગુણ ગાવાથી જીવ બ્રહ્મરૂપ થઈ જાય.
+          </p>
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@
    - `migrations/20250331190000_approved_notes_rename_slideshow.sql` (renames to `approved_daily_notes` / approve–disapprove RPCs + `approved_notes_slideshow_random` for the home carousel)
    - `migrations/20250331200000_campaign_timezone_toronto.sql` (campaign day = `America/Toronto` in `submit_daily_note` / `recipient_write_eligibility` — keep in sync with `lib/campaign-spec.ts` `CAMPAIGN_TIMEZONE`)
    - `migrations/20250331210000_recipient_lock_50_and_picker_filter.sql` (recipient lock `K = 50`; new `roster_for_picker()` hides currently locked recipients from the pick list)
+   - `migrations/20250331220000_note_min_100.sql` (enforces minimum 100 characters in `submit_daily_note`)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 
