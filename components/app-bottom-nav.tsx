@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
@@ -29,8 +29,7 @@ const items = [
 ] as const;
 
 // ─── IMPORTANT ───────────────────────────────────────────────────────────────
-// To stop page content from being hidden under the nav, wrap {children} in
-// your root layout like this:
+// Wrap {children} in your root layout to prevent content hiding under the nav:
 //
 //   <main className="pb-[calc(3.25rem+env(safe-area-inset-bottom))]">
 //     {children}
@@ -40,19 +39,80 @@ const items = [
 export function AppBottomNav() {
   const pathname = usePathname() ?? "";
   const panelRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const indicatorRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const prevIndexRef = useRef<number>(-1);
 
+  // ── Mount animation: slide up the whole bar ──────────────────────────────
   useLayoutEffect(() => {
     const el = panelRef.current;
     if (!el) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         el,
-        { y: 48, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" },
+        { y: 56, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.75, ease: "expo.out", delay: 0.1 },
+      );
+
+      // Stagger each nav item in after the bar
+      gsap.fromTo(
+        itemRefs.current,
+        { y: 16, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: "back.out(1.8)",
+          stagger: 0.08,
+          delay: 0.35,
+        },
       );
     }, el);
     return () => ctx.revert();
   }, []);
+
+  // ── Tab-switch animation ─────────────────────────────────────────────────
+  useEffect(() => {
+    const activeIndex = items.findIndex(({ match }) => match(pathname));
+    if (activeIndex === -1) return;
+
+    const prevIndex = prevIndexRef.current;
+    prevIndexRef.current = activeIndex;
+
+    // Animate the active indicator bar
+    indicatorRefs.current.forEach((el, i) => {
+      if (!el) return;
+      if (i === activeIndex) {
+        gsap.fromTo(
+          el,
+          { scaleX: 0, opacity: 0 },
+          { scaleX: 1, opacity: 1, duration: 0.4, ease: "expo.out" },
+        );
+      } else {
+        gsap.to(el, { scaleX: 0, opacity: 0, duration: 0.25, ease: "power2.in" });
+      }
+    });
+
+    // Bounce the tapped icon
+    if (activeIndex !== prevIndex && itemRefs.current[activeIndex]) {
+      gsap.fromTo(
+        itemRefs.current[activeIndex],
+        { scale: 0.85 },
+        { scale: 1, duration: 0.45, ease: "back.out(2.5)" },
+      );
+    }
+
+    // Subtle press-down on the previously active item
+    if (prevIndex !== -1 && prevIndex !== activeIndex && itemRefs.current[prevIndex]) {
+      gsap.to(itemRefs.current[prevIndex], {
+        scale: 0.95,
+        duration: 0.15,
+        yoyo: true,
+        repeat: 1,
+        ease: "power1.inOut",
+      });
+    }
+  }, [pathname]);
 
   return (
     <nav
@@ -69,28 +129,32 @@ export function AppBottomNav() {
           "shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
         )}
       >
-        {items.map(({ href, label, icon: Icon, match }) => {
+        {items.map(({ href, label, icon: Icon, match }, i) => {
           const active = match(pathname);
           return (
             <Link
               key={href}
               href={href}
+              ref={(el) => { itemRefs.current[i] = el; }}
               className={cn(
-                "group relative flex flex-1 flex-col items-center justify-center gap-0.5",
-                "h-[3.25rem] transition-all duration-300 ease-out active:scale-95",
+                "relative flex flex-1 flex-col items-center justify-center gap-0.5",
+                "h-[3.25rem] transition-colors duration-300 active:scale-95",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {/* Active indicator — thin bar at top edge */}
+              {/* Active indicator bar — animated by GSAP */}
               <span
-                className={cn(
-                  "absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-primary transition-all duration-300",
-                  active ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
-                )}
+                ref={(el) => { indicatorRefs.current[i] = el; }}
+                className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-primary"
+                style={{
+                  opacity: active ? 1 : 0,
+                  transform: `translateX(-50%) scaleX(${active ? 1 : 0})`,
+                  transformOrigin: "center",
+                }}
               />
 
               <Icon
-                className="size-[1.2rem] transition-all duration-300 ease-out"
+                className="size-[1.2rem]"
                 strokeWidth={active ? 2.5 : 2}
                 aria-hidden
               />
