@@ -17,10 +17,9 @@ export default async function CalendarPage() {
     .join("|");
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-1">
+    <div className="space-y-4">
+      <header>
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Your Calendar</h1>
-        <p className="text-sm text-muted-foreground">Your daily notes, by campaign day.</p>
       </header>
       <NotesCalendarSection key={notesKey} notes={notes} campaignToday={campaignToday} />
     </div>

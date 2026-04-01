@@ -273,7 +273,7 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
   const hasAnyNotes = notes.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card className="mx-auto w-full max-w-md overflow-hidden border-border/80 shadow-sm ring-1 ring-border/40 md:max-w-lg">
         <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-4 md:p-5">
           <div className="flex items-center justify-between gap-2">
@@ -368,7 +368,7 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
         </CardContent>
       </Card>
 
-      <div ref={detailRef} className="min-h-[12rem]">
+      <div ref={detailRef} className="min-h-[8rem]">
         {!hasAnyNotes ? (
           <p className="rounded-2xl border border-dashed border-border/80 bg-muted/15 px-4 py-14 text-center text-sm text-muted-foreground">
             You have not written any notes yet.
