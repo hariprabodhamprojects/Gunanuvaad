@@ -70,7 +70,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
 
         <h1
           ref={titleRef}
-          className="font-mono text-4xl font-extrabold tracking-[0.01em] text-primary sm:text-5xl"
+          className="font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
         >
           Gunanuvad
         </h1>
