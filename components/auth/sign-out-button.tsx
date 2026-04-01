@@ -15,12 +15,12 @@ export function SignOutButton({ className }: Props) {
 
   async function signOut() {
     const supabase = createClient();
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: "global" });
     if (error) {
       toast.error(error.message);
       return;
     }
-    router.push("/");
+    router.replace("/");
     router.refresh();
   }
 

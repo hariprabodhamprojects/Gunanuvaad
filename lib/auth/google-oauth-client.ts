@@ -12,6 +12,10 @@ export async function startGoogleOAuth(redirectNext: string): Promise<{ ok: true
     provider: "google",
     options: {
       redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      // Always show Google account chooser so users can switch accounts explicitly.
+      queryParams: {
+        prompt: "select_account",
+      },
     },
   });
   if (error) return { ok: false, message: error.message };
