@@ -6,7 +6,7 @@ import { Loader2, Lock } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { toast } from "sonner";
 import { DialogCampaignTeaser } from "@/components/notes/campaign-day-ux";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getRecipientWriteEligibility,
@@ -58,12 +58,14 @@ export function RosterPersonDialog({
   const [elig, setElig] = useState<WriteEligibility | null>(null);
   const [loadingElig, setLoadingElig] = useState(false);
   const [body, setBody] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     if (!open) {
       setBody("");
       setElig(null);
+      setShowConfirm(false);
     }
   }, [open]);
 
@@ -98,26 +100,31 @@ export function RosterPersonDialog({
       if (r.ok) {
         toast.success("Your note is sent.");
         setBody("");
+        setShowConfirm(false);
         onOpenChange(false);
         router.refresh();
         return;
       }
       if (r.code === "invalid_body") {
         toast.error(`Use between 1 and ${NOTE_BODY_MAX_LEN} characters.`);
+        setShowConfirm(false); // Go back to editing if invalid
         return;
       }
       if (r.code === "already_today") {
         toast.error("You already sent today’s note.");
         setElig({ ok: false, code: "already_today" });
+        setShowConfirm(false);
         return;
       }
       if (r.code === "recipient_locked") {
         const n = r.need_more ?? RECIPIENT_LOCK_K;
         toast.error(`Appreciate ${n} more ${n === 1 ? "person" : "people"} first.`);
         setElig({ ok: false, code: "recipient_locked", need_more: r.need_more });
+        setShowConfirm(false);
         return;
       }
       toast.error("Couldn’t send your note. Try again.");
+      setShowConfirm(false);
     });
   };
 
@@ -134,11 +141,47 @@ export function RosterPersonDialog({
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-0 outline-none sm:items-center sm:p-4">
           <Dialog.Popup
             className={cn(
-              "glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border",
+              "relative glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border overflow-hidden",
               "data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0",
               "transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)",
             )}
           >
+            {/* Confirmation Overlay within the Popup */}
+            {showConfirm && member && (
+              <div className="absolute inset-0 z-[60] bg-background/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-full flex flex-col items-center gap-4">
+                  <h2 className="text-2xl font-bold font-heading tracking-tight text-foreground">Are you sure?</h2>
+                  <p className="text-sm text-muted-foreground w-full break-words">Do you really want to send this message to <span className="font-semibold text-foreground">{member.display_name.split(" ")[0]}</span>?</p>
+                  
+                  <div className="w-full bg-muted/40 border border-border/60 p-5 rounded-[1.25rem] my-2 max-h-[30vh] overflow-y-auto text-left shadow-inner">
+                    <p className="text-[15px] leading-relaxed text-foreground/90 whitespace-pre-wrap italic opacity-90">
+                      &quot;{body}&quot;
+                    </p>
+                  </div>
+
+                  <div className="flex flex-row items-center gap-3 w-full mt-4">
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      className="flex-1 h-14 rounded-2xl text-[15px] font-semibold border-border/70 shadow-sm" 
+                      onClick={() => setShowConfirm(false)} 
+                      disabled={pending}
+                    >
+                      No
+                    </Button>
+                    <Button 
+                      type="button"
+                      className="flex-1 h-14 rounded-2xl text-[15px] font-semibold bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_8px_20px_rgba(250,115,22,0.25)] hover:brightness-110" 
+                      onClick={onSubmit} 
+                      disabled={pending}
+                    >
+                      {pending ? <Loader2 className="mx-auto size-5 animate-spin" aria-hidden /> : "Yes"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Dialog.Title className="sr-only">
               {member ? `${member.display_name}` : "Person"}
             </Dialog.Title>
@@ -161,13 +204,22 @@ export function RosterPersonDialog({
                   <p className="font-heading text-2xl font-bold tracking-tight text-foreground/95 drop-shadow-sm">{member.display_name}</p>
                 </div>
                 {isSelf ? (
-                  <div
-                    className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-4 py-5 text-center"
-                    role="status"
-                  >
-                    <Lock className="size-7 text-muted-foreground" aria-hidden />
-                    <p className="text-sm font-medium text-foreground">That&apos;s you</p>
-                  </div>
+                  <>
+                    <div
+                      className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-4 py-5 text-center"
+                      role="status"
+                    >
+                      <Lock className="size-7 text-muted-foreground" aria-hidden />
+                      <p className="text-sm font-medium text-foreground">That&apos;s you</p>
+                    </div>
+                    <div className="flex flex-row items-center gap-3 mt-2">
+                      <Dialog.Close
+                        className="flex-1 h-14 rounded-2xl text-[15px] font-semibold border border-border/70 hover:bg-muted/50 transition-colors flex items-center justify-center"
+                      >
+                        Close
+                      </Dialog.Close>
+                    </div>
+                  </>
                 ) : loadingElig ? (
                   <div className="flex flex-col items-center gap-3 py-6 text-muted-foreground">
                     <Loader2 className="size-8 animate-spin" aria-hidden />
@@ -181,7 +233,7 @@ export function RosterPersonDialog({
                       </p>
                     ) : null}
                     {canWrite ? (
-                      <>
+                      <div className="space-y-4">
                         <div className="space-y-2">
                           <label htmlFor="daily-note-body" className="sr-only">
                             Your note
@@ -193,44 +245,46 @@ export function RosterPersonDialog({
                             placeholder="Write something kind…"
                             maxLength={NOTE_BODY_MAX_LEN}
                             disabled={pending}
-                            className="resize-y min-h-[100px] rounded-xl border-border/80 bg-background/50 shadow-inner backdrop-blur focus-visible:ring-primary/40"
+                            className="resize-y min-h-[100px] rounded-[1.25rem] border-border/80 bg-background/50 shadow-inner backdrop-blur focus-visible:ring-primary/40 text-[15px]"
                             aria-describedby="daily-note-counter"
                           />
                           <p
                             id="daily-note-counter"
-                            className="text-right text-xs text-muted-foreground"
+                            className="text-right text-xs font-medium text-muted-foreground/80 px-1"
                           >
                             {body.length}/{NOTE_BODY_MAX_LEN}
                           </p>
                         </div>
-                        <Button
-                          type="button"
-                          size="lg"
-                          className={cn(
-                            "w-full h-14 rounded-2xl bg-gradient-to-b from-primary to-primary/80 text-lg font-semibold text-primary-foreground shadow-[0_8px_24px_rgba(250,115,22,0.25)] ring-1 ring-primary/50 transition-all duration-300",
-                            "hover:shadow-[0_12px_32px_rgba(250,115,22,0.35)] hover:brightness-110 active:scale-[0.98]",
-                          )}
-                          disabled={pending || !lengthOk}
-                          onClick={onSubmit}
+                        <div className="flex flex-row items-center gap-3 w-full">
+                          <Dialog.Close
+                            className="h-14 w-1/3 rounded-2xl border border-border/70 hover:bg-muted/50 transition-colors text-[15px] font-semibold text-foreground/80 flex items-center justify-center bg-transparent"
+                          >
+                            Close
+                          </Dialog.Close>
+                          <Button
+                            type="button"
+                            className={cn(
+                              "flex-1 h-14 rounded-2xl bg-gradient-to-b from-primary to-primary/80 text-[15px] sm:text-[16px] font-bold text-primary-foreground shadow-[0_8px_24px_rgba(250,115,22,0.25)] ring-1 ring-primary/50 transition-all duration-300",
+                              "hover:shadow-[0_12px_32px_rgba(250,115,22,0.35)] hover:brightness-110 active:scale-[0.98]",
+                            )}
+                            disabled={pending || !lengthOk}
+                            onClick={() => setShowConfirm(true)}
+                          >
+                            Send it 🚀
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-row items-center justify-center gap-3 mt-2">
+                        <Dialog.Close
+                          className="w-full h-14 rounded-2xl text-[15px] font-semibold border border-border/70 hover:bg-muted/50 transition-colors flex items-center justify-center bg-transparent"
                         >
-                          {pending ? (
-                            <>
-                              <Loader2 className="mr-2 size-5 animate-spin" aria-hidden />
-                              Sending…
-                            </>
-                          ) : (
-                            <>Send it to {member.display_name.split(" ")[0]} 🚀</>
-                          )}
-                        </Button>
-                      </>
-                    ) : null}
+                          Close
+                        </Dialog.Close>
+                      </div>
+                    )}
                   </div>
                 )}
-                <Dialog.Close
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
-                >
-                  Close
-                </Dialog.Close>
               </>
             ) : null}
           </Dialog.Popup>
