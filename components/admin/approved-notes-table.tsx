@@ -80,63 +80,64 @@ export function ApprovedNotesTable({ rows }: Props) {
             </div>
 
             {/* List of Notes for the Date */}
-            <div className="flex flex-col space-y-4">
+            <div className="flex flex-col divide-y divide-border/50 border border-border/60 rounded-[1.5rem] bg-card overflow-hidden shadow-sm">
               {dateRows.map((r) => (
                 <div
                   key={r.note_id}
                   className={cn(
-                    "flex flex-col gap-4 rounded-3xl border p-5 sm:p-6 transition-all shadow-sm",
-                    r.is_approved ? "bg-muted/10 border-border/40" : "bg-card border-border/80"
+                    "flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 p-4 sm:p-5 transition-colors",
+                    r.is_approved ? "bg-muted/10" : "hover:bg-muted/30"
                   )}
                 >
-                  {/* From -> To */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <p className="font-semibold text-foreground text-[15px] sm:text-[16px]">
-                      {r.author_display_name} 
-                      <span className="font-medium text-muted-foreground mx-2 text-[13px] sm:text-[14px]">wrote for</span> 
-                      <span className="text-primary">{r.recipient_display_name}</span>
-                    </p>
+                  {/* From -> To Segment */}
+                  <div className="flex flex-col w-full md:w-[220px] shrink-0 border-b md:border-b-0 md:border-r border-border/40 pb-3 md:pb-0 md:pr-4">
                     <span
                       className={cn(
-                        "inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-bold border tracking-wider uppercase",
+                        "inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-bold border tracking-wider uppercase mb-2",
                         r.is_approved 
                           ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400" 
-                          : "bg-muted/50 text-muted-foreground border-transparent",
+                          : "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400",
                       )}
                     >
-                      {r.is_approved ? "Approved" : "Pending"}
+                      {r.is_approved ? "Approved" : "Pending Action"}
                     </span>
+                    <p className="font-bold text-foreground text-[14px] sm:text-[15px] leading-tight">
+                      {r.author_display_name} 
+                    </p>
+                    <p className="font-medium text-muted-foreground text-[12px] sm:text-[13px] mt-1">
+                      wrote for <span className="text-primary font-semibold">{r.recipient_display_name}</span>
+                    </p>
                   </div>
 
-                  {/* What has been written */}
-                  <div className="rounded-2xl bg-muted/40 p-4 sm:p-5 border border-border/50 shadow-inner">
-                    <p className="text-[15px] sm:text-[16px] font-medium text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                  {/* Body Text Segment */}
+                  <div className="flex-1 w-full min-w-0 py-1 md:py-0">
+                    <p className="text-[14px] sm:text-[15px] font-medium text-foreground/90 whitespace-pre-wrap leading-relaxed md:px-2 italic">
                       "{r.body_preview}"
                     </p>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-row items-center gap-3 pt-1">
-                    <Button
-                      type="button"
-                      variant={r.is_approved ? "outline" : "secondary"}
-                      className="flex-1 rounded-xl h-12 text-[14px] font-semibold border-border/60"
-                      disabled={pending}
-                      onClick={() => run(() => disapproveDailyNoteAction(r.note_id))}
-                    >
-                      {r.is_approved ? "Revoke Approval" : "Disapprove"}
-                    </Button>
+                  {/* Action Buttons Segment */}
+                  <div className="flex flex-row md:flex-col items-center gap-2 shrink-0 w-full md:w-[140px] pt-3 md:pt-0 border-t md:border-t-0 md:border-l border-border/40 md:pl-4">
                     <Button
                       type="button"
                       className={cn(
-                        "flex-1 rounded-xl h-12 text-[14px] font-semibold",
-                        !r.is_approved && "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_4px_14px_rgba(250,115,22,0.25)] hover:brightness-110"
+                        "flex-1 md:w-full rounded-xl h-10 text-[13px] font-bold transition-all",
+                        !r.is_approved && "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-sm hover:brightness-110"
                       )}
                       variant={r.is_approved ? "outline" : "default"}
                       disabled={pending}
                       onClick={() => run(() => approveDailyNoteAction(r.note_id))}
                     >
-                      {r.is_approved ? "Already Approved" : "Approve Note"}
+                      {r.is_approved ? "Revoke" : "Approve"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={r.is_approved ? "ghost" : "secondary"}
+                      className="flex-1 md:w-full rounded-xl h-10 text-[13px] font-bold border-border/60 hover:bg-muted/60"
+                      disabled={pending}
+                      onClick={() => run(() => disapproveDailyNoteAction(r.note_id))}
+                    >
+                      Disapprove
                     </Button>
                   </div>
                 </div>

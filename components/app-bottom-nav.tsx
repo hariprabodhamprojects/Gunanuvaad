@@ -38,12 +38,12 @@ export function AppBottomNav() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         el,
-        { y: 40, opacity: 0 },
+        { y: 60, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.5,
-          ease: "back.out(1.2)",
+          duration: 0.8,
+          ease: "expo.out",
         },
       );
     }, el);
@@ -52,14 +52,14 @@ export function AppBottomNav() {
 
   return (
     <nav
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex justify-center px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] drop-shadow-2xl"
       aria-label="Primary navigation"
     >
       <div
         ref={panelRef}
         className={cn(
-          "pointer-events-auto flex w-full max-w-sm items-center justify-around gap-2",
-          "glass-strong rounded-full border border-border px-2 py-2 shadow-lg backdrop-blur-3xl"
+          "pointer-events-auto flex w-full max-w-[320px] items-center justify-around gap-1",
+          "bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-full border border-white/20 dark:border-white/10 p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
         )}
       >
         {items.map(({ href, label, icon: Icon, match }) => {
@@ -69,30 +69,37 @@ export function AppBottomNav() {
               key={href}
               href={href}
               className={cn(
-                "relative flex flex-1 flex-col items-center justify-center gap-1 overflow-hidden rounded-full py-2.5 transition-all duration-300",
-                "hover:text-foreground text-muted-foreground",
-                active ? "text-primary" : "active:scale-95"
+                "group relative flex flex-col items-center justify-center h-[3.5rem] w-20 rounded-full transition-all duration-500 ease-out",
+                active ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground active:scale-95 bg-transparent"
               )}
             >
-              {active && (
-                <div className="absolute inset-0 bg-primary/10 rounded-full" aria-hidden />
-              )}
-              <Icon
-                className={cn(
-                  "relative z-10 size-5 transition-transform duration-300",
-                  active ? "scale-110" : ""
-                )}
-                strokeWidth={active ? 2.5 : 2}
-                aria-hidden
-              />
-              <span
-                className={cn(
-                  "relative z-10 text-[10px] sm:text-xs font-semibold",
-                  active ? "" : "font-medium"
-                )}
-              >
-                {label}
-              </span>
+              <div className="relative z-10 flex flex-col items-center justify-center">
+                <Icon
+                  className={cn(
+                    "transition-all duration-500 ease-out",
+                    active ? "size-5 -translate-y-[2px]" : "size-6 group-hover:-translate-y-1"
+                  )}
+                  strokeWidth={active ? 2.5 : 2}
+                  aria-hidden
+                />
+                
+                <span
+                  className={cn(
+                    "text-[10px] font-bold tracking-wide transition-all duration-500 ease-out absolute pointer-events-none",
+                    active ? "opacity-100 translate-y-[12px]" : "opacity-0 translate-y-[20px]"
+                  )}
+                >
+                  {label}
+                </span>
+
+                {/* Glowing Active Dot */}
+                <div 
+                  className={cn(
+                    "absolute -bottom-[20px] w-1.5 h-1.5 bg-primary rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_2px_rgba(250,115,22,0.6)]",
+                    active ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                  )} 
+                />
+              </div>
             </Link>
           );
         })}
