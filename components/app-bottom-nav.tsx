@@ -28,6 +28,15 @@ const items = [
   },
 ] as const;
 
+// ─── IMPORTANT ───────────────────────────────────────────────────────────────
+// To stop page content from being hidden under the nav, wrap {children} in
+// your root layout like this:
+//
+//   <main className="pb-[calc(3.25rem+env(safe-area-inset-bottom))]">
+//     {children}
+//   </main>
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function AppBottomNav() {
   const pathname = usePathname() ?? "";
   const panelRef = useRef<HTMLDivElement>(null);
@@ -38,13 +47,8 @@ export function AppBottomNav() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         el,
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "expo.out",
-        },
+        { y: 48, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" },
       );
     }, el);
     return () => ctx.revert();
@@ -52,14 +56,17 @@ export function AppBottomNav() {
 
   return (
     <nav
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex justify-center px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] drop-shadow-2xl"
       aria-label="Primary navigation"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100]"
     >
       <div
         ref={panelRef}
         className={cn(
-          "pointer-events-auto flex w-full max-w-[320px] items-center justify-around gap-1",
-          "rounded-full border border-white/20 bg-white/70 p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-black/70",
+          "pointer-events-auto flex w-full items-center justify-around",
+          "border-t border-white/20 dark:border-white/10",
+          "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
+          "pb-[env(safe-area-inset-bottom)]",
+          "shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
         )}
       >
         {items.map(({ href, label, icon: Icon, match }) => {
@@ -69,39 +76,28 @@ export function AppBottomNav() {
               key={href}
               href={href}
               className={cn(
-                "group relative flex h-[3.5rem] w-20 flex-col items-center justify-center rounded-full transition-all duration-500 ease-out",
-                active
-                  ? "bg-primary/10 text-primary"
-                  : "bg-transparent text-muted-foreground hover:text-foreground active:scale-95",
+                "group relative flex flex-1 flex-col items-center justify-center gap-0.5",
+                "h-[3.25rem] transition-all duration-300 ease-out active:scale-95",
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <div className="relative z-10 flex flex-col items-center justify-center">
-                <Icon
-                  className={cn(
-                    "transition-all duration-500 ease-out",
-                    active ? "size-5 -translate-y-[2px]" : "size-6 group-hover:-translate-y-1",
-                  )}
-                  strokeWidth={active ? 2.5 : 2}
-                  aria-hidden
-                />
+              {/* Active indicator — thin bar at top edge */}
+              <span
+                className={cn(
+                  "absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-primary transition-all duration-300",
+                  active ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
+                )}
+              />
 
-                <span
-                  className={cn(
-                    "pointer-events-none absolute text-[10px] font-bold tracking-wide transition-all duration-500 ease-out",
-                    active ? "translate-y-[12px] opacity-100" : "translate-y-[20px] opacity-0",
-                  )}
-                >
-                  {label}
-                </span>
+              <Icon
+                className="size-[1.2rem] transition-all duration-300 ease-out"
+                strokeWidth={active ? 2.5 : 2}
+                aria-hidden
+              />
 
-                {/* Glowing active dot */}
-                <div
-                  className={cn(
-                    "absolute -bottom-[20px] h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_2px_rgba(250,115,22,0.6)] transition-all duration-500 ease-out",
-                    active ? "scale-100 opacity-100" : "scale-0 opacity-0",
-                  )}
-                />
-              </div>
+              <span className="text-[10px] font-semibold tracking-wide leading-none">
+                {label}
+              </span>
             </Link>
           );
         })}
