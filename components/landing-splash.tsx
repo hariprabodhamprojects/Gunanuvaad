@@ -62,11 +62,26 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
           </p>
         ) : null}
 
-        <div
-          ref={iconRef}
-          className="mb-6 flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary"
-        >
-          <Sparkles className="size-8" strokeWidth={1.5} aria-hidden />
+        <div ref={iconRef} className="relative mb-6 flex size-24 sm:size-28 items-center justify-center rounded-[2rem] bg-card border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.15)] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src="/logo.png" 
+            alt="Gunanuvad Logo"
+            className="size-full object-contain"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              (e.target as HTMLImageElement).parentElement?.classList.add('fallback-logo-landing');
+            }}
+          />
+          <style dangerouslySetInnerHTML={{ __html: `
+            .fallback-logo-landing::after {
+              content: "G";
+              font-size: 3.5rem;
+              font-family: inherit;
+              font-weight: 800;
+              color: hsl(var(--primary));
+            }
+          `}} />
         </div>
 
         <h1
