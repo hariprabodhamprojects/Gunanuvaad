@@ -1,8 +1,9 @@
 "use client";
 
+import gsap from "gsap";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { useCampaignCountdown, formatCountdown } from "@/hooks/use-campaign-countdown";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,7 @@ export function CampaignDayNotification({
 
   const [dismissed, setDismissed] = useState(false);
   const storageKey = dismissStorageKey(userId);
+  const noticeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -60,13 +62,41 @@ export function CampaignDayNotification({
   }, [fp, storageKey]);
 
   const onDismiss = () => {
+    const el = noticeRef.current;
     try {
       window.localStorage.setItem(storageKey, fp);
     } catch {
       /* ignore */
     }
+    if (el) {
+      gsap.to(el, {
+        opacity: 0,
+        y: -8,
+        duration: 0.2,
+        ease: "power2.in",
+        onComplete: () => setDismissed(true),
+      });
+      return;
+    }
     setDismissed(true);
   };
+
+  useLayoutEffect(() => {
+    const el = noticeRef.current;
+    if (!el || dismissed) return;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: -8 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+      );
+    }, el);
+    return () => ctx.revert();
+  }, [dismissed, fp]);
 
   if (dismissed) return null;
 
@@ -86,6 +116,7 @@ export function CampaignDayNotification({
 
   return (
     <div
+      ref={noticeRef}
       role="status"
       className={cn(
         "relative flex items-center gap-2 rounded-2xl py-2 pl-4 pr-1.5 shadow-md backdrop-blur-md transition-all duration-300 ring-1",
