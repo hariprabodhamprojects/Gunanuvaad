@@ -31,7 +31,7 @@ const items = [
 // ─── IMPORTANT ───────────────────────────────────────────────────────────────
 // Wrap {children} in your root layout to prevent content hiding under the nav:
 //
-//   <main className="pb-[calc(3.25rem+env(safe-area-inset-bottom))]">
+//   <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
 //     {children}
 //   </main>
 // ─────────────────────────────────────────────────────────────────────────────
@@ -117,15 +117,14 @@ export function AppBottomNav() {
   return (
     <nav
       aria-label="Primary navigation"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
     >
       <div
         ref={panelRef}
         className={cn(
           "pointer-events-auto flex w-full items-center justify-around",
-          "border-t border-white/20 dark:border-white/10",
+          "rounded-2xl border border-white/20 dark:border-white/10",
           "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
-          "pb-[env(safe-area-inset-bottom)]",
           "shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
         )}
       >
