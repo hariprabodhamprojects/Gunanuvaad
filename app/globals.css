@@ -59,6 +59,7 @@
   }
   body {
     @apply min-h-dvh bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    overscroll-behavior-y: none;
   }
   
   /* Modern clean scrollbar */
@@ -79,6 +80,7 @@
 
   html {
     @apply font-sans;
+    overscroll-behavior-y: none;
   }
 }
 

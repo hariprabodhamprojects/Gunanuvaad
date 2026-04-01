@@ -133,12 +133,12 @@ export function RosterPersonDialog({
       <Dialog.Portal>
         <Dialog.Backdrop
           className={cn(
-            "fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]",
+            "fixed inset-0 z-[160] bg-black/40 backdrop-blur-[2px]",
             "transition-opacity duration-200 ease-out",
             "data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
           )}
         />
-        <Dialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-0 outline-none sm:items-center sm:p-4">
+        <Dialog.Viewport className="fixed inset-0 z-[160] flex items-end justify-center p-0 outline-none sm:items-center sm:p-4">
           <Dialog.Popup
             className={cn(
               "relative glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border overflow-hidden",
