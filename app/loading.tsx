@@ -4,28 +4,14 @@ export default function GlobalLoadingSplash() {
   return (
     <div className="fixed inset-0 z-[100] flex min-h-dvh flex-col items-center justify-center bg-background bg-app-gradient text-foreground animate-in fade-in duration-500">
       <div className="flex flex-col items-center justify-center animate-pulse gap-6">
-        {/* Placeholder for actual Logo (Using an explicit img tag for /logo.png as requested) */}
+        {/* Placeholder for actual logo */}
         <div className="relative flex size-24 sm:size-32 items-center justify-center rounded-3xl bg-card border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] overflow-hidden transition-transform">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/logo.png" 
             alt="Gunanuvad Logo"
             className="size-full object-contain"
-            // Fallback gracefully if logo is missing
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-              (e.target as HTMLImageElement).parentElement?.classList.add('fallback-logo');
-            }}
           />
-          <style dangerouslySetInnerHTML={{ __html: `
-            .fallback-logo::after {
-              content: "G";
-              font-size: 3rem;
-              font-family: inherit;
-              font-weight: 800;
-              color: hsl(var(--primary));
-            }
-          `}} />
         </div>
 
         <h1 className="font-heading text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground drop-shadow-md">
