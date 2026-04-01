@@ -1,151 +1,297 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { approveDailyNoteAction, disapproveDailyNoteAction } from "@/lib/admin/actions";
 import type { AdminNoteForApprovalRow } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
-import { AlertCircle, CheckCircle2, MessageSquare } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  Filter,
+} from "lucide-react";
 
 type Props = {
   rows: AdminNoteForApprovalRow[];
 };
 
+type SortKey = "date" | "author" | "recipient" | "status";
+type FilterStatus = "all" | "pending" | "approved";
+
 export function ApprovedNotesTable({ rows }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [filterDate, setFilterDate] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortAsc, setSortAsc] = useState(false);
 
-  const run = (fn: () => Promise<{ ok: boolean }>) => {
+  const run = (noteId: string, fn: () => Promise<{ ok: boolean }>) => {
+    setLoadingId(noteId);
     startTransition(async () => {
       const r = await fn();
       if (r.ok) router.refresh();
+      setLoadingId(null);
     });
   };
+
+  const uniqueDates = useMemo(() => {
+    const dates = [...new Set(rows.map((r) => r.campaign_date))].sort(
+      (a, b) => new Date(b).getTime() - new Date(a).getTime()
+    );
+    return dates;
+  }, [rows]);
+
+  const filtered = useMemo(() => {
+    return rows
+      .filter((r) => {
+        if (filterStatus === "pending" && r.is_approved) return false;
+        if (filterStatus === "approved" && !r.is_approved) return false;
+        if (filterDate !== "all" && r.campaign_date !== filterDate) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        let cmp = 0;
+        if (sortKey === "date") cmp = new Date(a.campaign_date).getTime() - new Date(b.campaign_date).getTime();
+        else if (sortKey === "author") cmp = a.author_display_name.localeCompare(b.author_display_name);
+        else if (sortKey === "recipient") cmp = a.recipient_display_name.localeCompare(b.recipient_display_name);
+        else if (sortKey === "status") cmp = Number(a.is_approved) - Number(b.is_approved);
+        return sortAsc ? cmp : -cmp;
+      });
+  }, [rows, filterStatus, filterDate, sortKey, sortAsc]);
+
+  const pendingCount = rows.filter((r) => !r.is_approved).length;
+  const approvedCount = rows.filter((r) => r.is_approved).length;
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortAsc((v) => !v);
+    else { setSortKey(key); setSortAsc(true); }
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) =>
+    sortKey === k ? (
+      sortAsc ? <ChevronUp className="size-3 ml-0.5 inline" /> : <ChevronDown className="size-3 ml-0.5 inline" />
+    ) : (
+      <ChevronDown className="size-3 ml-0.5 inline opacity-30" />
+    );
 
   if (rows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/80 bg-muted/15 px-4 py-16 text-center text-muted-foreground gap-4">
         <MessageSquare className="size-10 opacity-40" />
-        <p className="text-sm px-4">
-          No notes yet, or RPC unavailable. Wait for members to submit notes!
-        </p>
+        <p className="text-sm px-4">No notes yet. Wait for members to submit!</p>
       </div>
     );
   }
 
-  // Group by date
-  const grouped = rows.reduce((acc, row) => {
-    if (!acc[row.campaign_date]) acc[row.campaign_date] = [];
-    acc[row.campaign_date].push(row);
-    return acc;
-  }, {} as Record<string, AdminNoteForApprovalRow[]>);
-
-  // Sort dates descending
-  const dates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
   return (
-    <div className="flex flex-col space-y-10 pb-16">
-      {dates.map((date) => {
-        const dateRows = grouped[date];
-        const unapprovedCount = dateRows.filter((r) => !r.is_approved).length;
+    <div className="flex flex-col gap-4 pb-10">
 
-        // Make date look extremely highlighted (e.g. Wednesday, May 15)
-        // using native format if possible, otherwise rely on the string natively.
-        const niceDate = new Date(date).toLocaleDateString(undefined, {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-          timeZone: "UTC"
-        });
+      {/* Summary pills */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-1.5 rounded-full bg-orange-500/10 px-3 py-1 text-[12px] font-bold text-orange-600 border border-orange-500/20 dark:text-orange-400">
+          <AlertCircle className="size-3.5" />
+          {pendingCount} pending
+        </span>
+        <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[12px] font-bold text-emerald-600 border border-emerald-500/20 dark:text-emerald-400">
+          <CheckCircle2 className="size-3.5" />
+          {approvedCount} approved
+        </span>
+        <span className="ml-auto text-[12px] text-muted-foreground">
+          {filtered.length} of {rows.length} shown
+        </span>
+      </div>
 
-        return (
-          <div key={date} className="flex flex-col space-y-5 animate-in fade-in duration-500">
-            {/* Header for the Date */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
-              <h2 className="text-xl sm:text-2xl font-extrabold font-heading text-primary tracking-tight">
-                {niceDate === "Invalid Date" ? date : niceDate}
-              </h2>
-              {unapprovedCount > 0 ? (
-                <span className="flex items-center gap-1.5 rounded-full bg-orange-500/10 px-3.5 py-1.5 text-[13px] font-bold text-orange-600 border border-orange-500/20 dark:text-orange-400">
-                  <AlertCircle className="size-4" />
-                  {unapprovedCount} request{unapprovedCount !== 1 ? "s" : ""} remaining
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-[13px] font-bold text-emerald-600 border border-emerald-500/20 dark:text-emerald-400">
-                  <CheckCircle2 className="size-4" />
-                  All reviewed
-                </span>
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Filter className="size-3.5 text-muted-foreground shrink-0" />
+
+        {/* Status filter */}
+        <div className="flex rounded-lg border border-border/60 overflow-hidden text-[12px] font-semibold">
+          {(["all", "pending", "approved"] as FilterStatus[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => setFilterStatus(s)}
+              className={cn(
+                "px-3 py-1.5 capitalize transition-colors",
+                filterStatus === s
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground hover:bg-muted/50"
               )}
-            </div>
+            >
+              {s}
+            </button>
+          ))}
+        </div>
 
-            {/* List of Notes for the Date */}
-            <div className="flex flex-col divide-y divide-border/50 border border-border/60 rounded-[1.5rem] bg-card overflow-hidden shadow-sm">
-              {dateRows.map((r) => (
-                <div
-                  key={r.note_id}
-                  className={cn(
-                    "flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 p-4 sm:p-5 transition-colors",
-                    r.is_approved ? "bg-muted/10" : "hover:bg-muted/30"
-                  )}
+        {/* Date filter */}
+        <select
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          className="rounded-lg border border-border/60 bg-card px-2.5 py-1.5 text-[12px] font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+        >
+          <option value="all">All dates</option>
+          {uniqueDates.map((d) => (
+            <option key={d} value={d}>
+              {new Date(d).toLocaleDateString(undefined, {
+                weekday: "short", month: "short", day: "numeric", timeZone: "UTC",
+              })}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-border/60 bg-muted/30 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <th
+                  className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
+                  onClick={() => toggleSort("date")}
                 >
-                  {/* From -> To Segment */}
-                  <div className="flex flex-col w-full md:w-[220px] shrink-0 border-b md:border-b-0 md:border-r border-border/40 pb-3 md:pb-0 md:pr-4">
-                    <span
+                  Date <SortIcon k="date" />
+                </th>
+                <th
+                  className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
+                  onClick={() => toggleSort("author")}
+                >
+                  From <SortIcon k="author" />
+                </th>
+                <th
+                  className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
+                  onClick={() => toggleSort("recipient")}
+                >
+                  To <SortIcon k="recipient" />
+                </th>
+                <th className="px-4 py-3 hidden md:table-cell">Preview</th>
+                <th
+                  className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
+                  onClick={() => toggleSort("status")}
+                >
+                  Status <SortIcon k="status" />
+                </th>
+                <th className="px-4 py-3 text-right whitespace-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {filtered.map((r) => {
+                const isExpanded = expandedId === r.note_id;
+                const isLoading = loadingId === r.note_id;
+                return (
+                  <>
+                    <tr
+                      key={r.note_id}
                       className={cn(
-                        "inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-bold border tracking-wider uppercase mb-2",
-                        r.is_approved 
-                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400" 
-                          : "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400",
+                        "transition-colors group",
+                        r.is_approved ? "bg-muted/10" : "hover:bg-muted/20",
+                        isExpanded && "bg-muted/25"
                       )}
                     >
-                      {r.is_approved ? "Approved" : "Pending Action"}
-                    </span>
-                    <p className="font-bold text-foreground text-[14px] sm:text-[15px] leading-tight">
-                      {r.author_display_name} 
-                    </p>
-                    <p className="font-medium text-muted-foreground text-[12px] sm:text-[13px] mt-1">
-                      wrote for <span className="text-primary font-semibold">{r.recipient_display_name}</span>
-                    </p>
-                  </div>
+                      {/* Date */}
+                      <td className="px-4 py-3 whitespace-nowrap text-[12px] text-muted-foreground font-medium">
+                        {new Date(r.campaign_date).toLocaleDateString(undefined, {
+                          month: "short", day: "numeric", timeZone: "UTC",
+                        })}
+                      </td>
 
-                  {/* Body Text Segment */}
-                  <div className="flex-1 w-full min-w-0 py-1 md:py-0">
-                    <p className="text-[14px] sm:text-[15px] font-medium text-foreground/90 whitespace-pre-wrap leading-relaxed md:px-2 italic">
-                      "{r.body_preview}"
-                    </p>
-                  </div>
+                      {/* From */}
+                      <td className="px-4 py-3 whitespace-nowrap font-semibold text-[13px] text-foreground">
+                        {r.author_display_name}
+                      </td>
 
-                  {/* Action Buttons Segment */}
-                  <div className="flex flex-row md:flex-col items-center gap-2 shrink-0 w-full md:w-[140px] pt-3 md:pt-0 border-t md:border-t-0 md:border-l border-border/40 md:pl-4">
-                    <Button
-                      type="button"
-                      className={cn(
-                        "flex-1 md:w-full rounded-xl h-10 text-[13px] font-bold transition-all",
-                        !r.is_approved && "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-sm hover:brightness-110"
-                      )}
-                      variant={r.is_approved ? "outline" : "default"}
-                      disabled={pending}
-                      onClick={() => run(() => approveDailyNoteAction(r.note_id))}
-                    >
-                      {r.is_approved ? "Revoke" : "Approve"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={r.is_approved ? "ghost" : "secondary"}
-                      className="flex-1 md:w-full rounded-xl h-10 text-[13px] font-bold border-border/60 hover:bg-muted/60"
-                      disabled={pending}
-                      onClick={() => run(() => disapproveDailyNoteAction(r.note_id))}
-                    >
-                      Disapprove
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
+                      {/* To */}
+                      <td className="px-4 py-3 whitespace-nowrap font-semibold text-[13px] text-primary">
+                        {r.recipient_display_name}
+                      </td>
+
+                      {/* Preview — click to expand */}
+                      <td className="px-4 py-3 hidden md:table-cell max-w-[260px]">
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : r.note_id)}
+                          className="text-left text-[13px] text-foreground/70 italic truncate w-full hover:text-foreground transition-colors"
+                        >
+                          "{r.body_preview}"
+                        </button>
+                      </td>
+
+                      {/* Status badge */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border tracking-wider uppercase",
+                            r.is_approved
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400"
+                              : "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400"
+                          )}
+                        >
+                          {r.is_approved ? <CheckCircle2 className="size-2.5" /> : <AlertCircle className="size-2.5" />}
+                          {r.is_approved ? "Approved" : "Pending"}
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={r.is_approved ? "outline" : "default"}
+                            disabled={pending || isLoading}
+                            onClick={() => run(r.note_id, () => approveDailyNoteAction(r.note_id))}
+                            className={cn(
+                              "h-7 rounded-lg px-3 text-[12px] font-bold",
+                              !r.is_approved && "bg-gradient-to-b from-primary to-primary/80 shadow-sm hover:brightness-110"
+                            )}
+                          >
+                            {isLoading ? "…" : r.is_approved ? "Revoke" : "Approve"}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            disabled={pending || isLoading}
+                            onClick={() => run(r.note_id, () => disapproveDailyNoteAction(r.note_id))}
+                            className="h-7 rounded-lg px-3 text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Expanded full preview row */}
+                    {isExpanded && (
+                      <tr key={`${r.note_id}-expanded`} className="bg-muted/20">
+                        <td colSpan={6} className="px-6 py-3">
+                          <p className="text-[13px] italic text-foreground/80 leading-relaxed whitespace-pre-wrap border-l-2 border-primary/40 pl-3">
+                            "{r.body_preview}"
+                          </p>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
+
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                    No notes match the current filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
