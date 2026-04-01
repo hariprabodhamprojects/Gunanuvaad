@@ -59,7 +59,7 @@ export function AppBottomNav() {
         ref={panelRef}
         className={cn(
           "pointer-events-auto flex w-full max-w-[320px] items-center justify-around gap-1",
-          "bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-full border border-white/20 dark:border-white/10 p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+          "rounded-full border border-white/20 bg-white/70 p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-black/70",
         )}
       >
         {items.map(({ href, label, icon: Icon, match }) => {
@@ -69,35 +69,37 @@ export function AppBottomNav() {
               key={href}
               href={href}
               className={cn(
-                "group relative flex flex-col items-center justify-center h-[3.5rem] w-20 rounded-full transition-all duration-500 ease-out",
-                active ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground active:scale-95 bg-transparent"
+                "group relative flex h-[3.5rem] w-20 flex-col items-center justify-center rounded-full transition-all duration-500 ease-out",
+                active
+                  ? "bg-primary/10 text-primary"
+                  : "bg-transparent text-muted-foreground hover:text-foreground active:scale-95",
               )}
             >
               <div className="relative z-10 flex flex-col items-center justify-center">
                 <Icon
                   className={cn(
                     "transition-all duration-500 ease-out",
-                    active ? "size-5 -translate-y-[2px]" : "size-6 group-hover:-translate-y-1"
+                    active ? "size-5 -translate-y-[2px]" : "size-6 group-hover:-translate-y-1",
                   )}
                   strokeWidth={active ? 2.5 : 2}
                   aria-hidden
                 />
-                
+
                 <span
                   className={cn(
-                    "text-[10px] font-bold tracking-wide transition-all duration-500 ease-out absolute pointer-events-none",
-                    active ? "opacity-100 translate-y-[12px]" : "opacity-0 translate-y-[20px]"
+                    "pointer-events-none absolute text-[10px] font-bold tracking-wide transition-all duration-500 ease-out",
+                    active ? "translate-y-[12px] opacity-100" : "translate-y-[20px] opacity-0",
                   )}
                 >
                   {label}
                 </span>
 
-                {/* Glowing Active Dot */}
-                <div 
+                {/* Glowing active dot */}
+                <div
                   className={cn(
-                    "absolute -bottom-[20px] w-1.5 h-1.5 bg-primary rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_2px_rgba(250,115,22,0.6)]",
-                    active ? "opacity-100 scale-100" : "opacity-0 scale-0"
-                  )} 
+                    "absolute -bottom-[20px] h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_2px_rgba(250,115,22,0.6)] transition-all duration-500 ease-out",
+                    active ? "scale-100 opacity-100" : "scale-0 opacity-0",
+                  )}
                 />
               </div>
             </Link>
