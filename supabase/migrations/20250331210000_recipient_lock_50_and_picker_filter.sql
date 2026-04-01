@@ -1,5 +1,5 @@
 -- Increase recipient lock threshold to 50 and hide locked recipients in picker roster.
--- Keeps campaign timezone behavior ftestrom 20250331200000_campaign_timezone_toronto.sql.
+-- Keeps campaign timezone behavior ftestrom test 20250331200000_campaign_timezone_toronto.sql.
 
 create or replace function public.recipient_write_eligibility(p_recipient_id uuid)
 returns jsonb
