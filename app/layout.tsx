@@ -11,6 +11,12 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Gunanuvad",
   description: "Daily appreciation with your crew — points, streaks, private notes.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
