@@ -25,6 +25,7 @@
    - `migrations/20250331200000_campaign_timezone_toronto.sql` (campaign day = `America/Toronto` in `submit_daily_note` / `recipient_write_eligibility` — keep in sync with `lib/campaign-spec.ts` `CAMPAIGN_TIMEZONE`)
    - `migrations/20250331210000_recipient_lock_50_and_picker_filter.sql` (recipient lock `K = 50`; new `roster_for_picker()` hides currently locked recipients from the pick list)
    - `migrations/20250331220000_note_min_100.sql` (enforces minimum 100 characters in `submit_daily_note`)
+   - `migrations/20250331230000_admin_ghunos_export.sql` (organizer RPC `admin_ghunos_for_recipient()` for per-person export/copy workflows)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 

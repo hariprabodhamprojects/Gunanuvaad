@@ -8,6 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const links = [
     { href: "/admin/invites", label: "Invites" },
     { href: "/admin/approved", label: "Approved notes" },
+    { href: "/admin/exports", label: "Ghunos export" },
   ] as const;
 
   return (

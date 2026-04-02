@@ -18,3 +18,14 @@ export type AdminNoteForApprovalRow = {
   is_approved: boolean;
   created_at: string;
 };
+
+export type AdminGhunExportRow = {
+  note_id: string;
+  campaign_date: string;
+  created_at: string;
+  author_display_name: string;
+  author_email: string;
+  recipient_display_name: string;
+  recipient_email: string;
+  body: string;
+};
