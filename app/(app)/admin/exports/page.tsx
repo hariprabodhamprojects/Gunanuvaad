@@ -16,12 +16,7 @@ type Search = {
 };
 
 function makeReportText(rows: Awaited<ReturnType<typeof fetchGhunosForRecipientExport>>) {
-  return rows
-    .map(
-      (r) =>
-        `Date: ${r.campaign_date}\nFrom: ${r.author_display_name} (${r.author_email})\nTo: ${r.recipient_display_name} (${r.recipient_email})\nGhun: ${r.body}\n--------------------`,
-    )
-    .join("\n");
+  return rows.map((r) => r.body.trim()).join("\n\n");
 }
 
 export default async function AdminGhunosExportPage({
