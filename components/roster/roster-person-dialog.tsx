@@ -13,7 +13,7 @@ import {
   submitDailyNote,
   type WriteEligibility,
 } from "@/lib/notes/daily-note-actions";
-import { NOTE_BODY_MAX_LEN, RECIPIENT_LOCK_K } from "@/lib/campaign-spec";
+import { NOTE_BODY_MAX_LEN, NOTE_BODY_MIN_LEN, RECIPIENT_LOCK_K } from "@/lib/campaign-spec";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import type { RosterMember } from "@/lib/roster/types";
 import { cn } from "@/lib/utils";
@@ -91,7 +91,8 @@ export function RosterPersonDialog({
   const canWrite = elig?.ok === true;
   const blockHint = eligibilityHint(elig);
   const trimmedLen = body.trim().length;
-  const lengthOk = trimmedLen >= 1 && trimmedLen <= NOTE_BODY_MAX_LEN;
+  const lengthOk =
+    trimmedLen >= NOTE_BODY_MIN_LEN && trimmedLen <= NOTE_BODY_MAX_LEN;
 
   const onSubmit = () => {
     if (!member || isSelf || !canWrite || !lengthOk) return;
@@ -106,7 +107,9 @@ export function RosterPersonDialog({
         return;
       }
       if (r.code === "invalid_body") {
-        toast.error(`Use between 1 and ${NOTE_BODY_MAX_LEN} characters.`);
+        toast.error(
+          `Use between ${NOTE_BODY_MIN_LEN} and ${NOTE_BODY_MAX_LEN} characters.`,
+        );
         setShowConfirm(false); // Go back to editing if invalid
         return;
       }
@@ -173,7 +176,7 @@ export function RosterPersonDialog({
                       type="button"
                       className="flex-1 h-14 rounded-2xl text-[15px] font-semibold bg-gradient-to-b from-primary to-primary/80 text-primary-foreground shadow-[0_8px_20px_rgba(250,115,22,0.25)] hover:brightness-110" 
                       onClick={onSubmit} 
-                      disabled={pending}
+                      disabled={pending || !lengthOk}
                     >
                       {pending ? <Loader2 className="mx-auto size-5 animate-spin" aria-hidden /> : "Yes"}
                     </Button>
@@ -248,12 +251,20 @@ export function RosterPersonDialog({
                             className="resize-y min-h-[100px] rounded-[1.25rem] border-border/80 bg-background/50 shadow-inner backdrop-blur focus-visible:ring-primary/40 text-[15px]"
                             aria-describedby="daily-note-counter"
                           />
-                          <p
+                          <div
                             id="daily-note-counter"
-                            className="text-right text-xs font-medium text-muted-foreground/80 px-1"
+                            className="space-y-0.5 px-1 text-right text-xs font-medium text-muted-foreground/80"
                           >
-                            {body.length}/{NOTE_BODY_MAX_LEN}
-                          </p>
+                            {trimmedLen < NOTE_BODY_MIN_LEN ? (
+                              <p className="text-amber-700/90 dark:text-amber-400/90">
+                                At least {NOTE_BODY_MIN_LEN} characters (
+                                {NOTE_BODY_MIN_LEN - trimmedLen} more needed)
+                              </p>
+                            ) : null}
+                            <p>
+                              {body.length}/{NOTE_BODY_MAX_LEN}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex flex-row items-center gap-3 w-full">
                           <Dialog.Close
