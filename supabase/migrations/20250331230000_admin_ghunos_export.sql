@@ -1,4 +1,4 @@
--- Admin export: per-recipient ghunos for test ctest opy/paste (Word, testdocs, etc.)
+-- Admin export: per-recipient ghunos for test ctest otestpy/paste (Word, testdocs, etc.)
 
 create or replace function public.admin_ghunos_for_recipient(
   p_recipient_query text,
