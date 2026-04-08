@@ -28,7 +28,7 @@
    - `migrations/20250331230000_admin_ghunos_export.sql` (organizer RPC `admin_ghunos_for_recipient()` for per-person export/copy workflows)
    - `migrations/20250331231000_admin_ghunos_export_approved_only.sql` (changes `admin_ghunos_for_recipient()` to export approved ghunos only)
    - `migrations/20260408120000_remove_recipient_lock_and_show_full_picker.sql` (removes recipient lock; `roster_for_picker()` returns all eligible people except self)
-   - `migrations/20260408124500_seed_invites_and_show_users_without_photos.sql` (seeds two invites with names; keeps picker visible for users without photos via `/logo.png` fallback)
+   - `migrations/20260408124500_seed_invites_and_show_users_without_photos.sql` (seeds two invites with names; picker includes invited-not-joined rows, with `/logo.png` fallback and disabled write until signup)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 

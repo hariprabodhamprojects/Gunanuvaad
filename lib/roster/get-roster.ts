@@ -10,10 +10,18 @@ export async function getRosterMembers(): Promise<RosterMember[]> {
     return [];
   }
 
-  const rows = (data ?? []) as { id: string; display_name: string; avatar_url: string | null }[];
+  const rows = (data ?? []) as {
+    row_id: string;
+    recipient_id: string | null;
+    display_name: string;
+    avatar_url: string | null;
+    has_signed_up: boolean;
+  }[];
   return rows.map((r) => ({
-    id: r.id,
+    id: r.row_id,
+    recipient_id: r.recipient_id,
     display_name: r.display_name,
     avatar_url: r.avatar_url?.trim() || "/logo.png",
+    has_signed_up: r.has_signed_up === true,
   }));
 }

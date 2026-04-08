@@ -23,18 +23,21 @@ function RosterMemberCard({
   onSelect: () => void;
   onAvatarClick: () => void;
 }) {
+  const canWrite = member.has_signed_up && Boolean(member.recipient_id);
   return (
-    <div className="group flex items-stretch w-full text-left outline-none px-2 sm:px-4 hover:bg-muted/30 transition-colors duration-200">
+    <div className="group flex items-stretch w-full text-left outline-none px-2 transition-colors duration-200 hover:bg-muted/30 sm:px-4">
       {/* Avatar Button */}
       <div className="py-2 pr-3 sm:pr-4 flex items-center justify-center shrink-0 pl-2">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
+            if (!canWrite) return;
             onAvatarClick();
           }}
-          className="relative size-12 sm:size-14 overflow-hidden rounded-full ring-2 ring-transparent group-hover:ring-primary/20 transition-all active:scale-95 shadow-sm"
+          className="relative size-12 overflow-hidden rounded-full ring-2 ring-transparent shadow-sm transition-all sm:size-14 group-hover:ring-primary/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           aria-label={`View profile picture of ${member.display_name}`}
+          disabled={!canWrite}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -50,16 +53,18 @@ function RosterMemberCard({
         type="button"
         onClick={(e) => {
           e.stopPropagation();
+          if (!canWrite) return;
           onSelect();
         }}
-        className="min-w-0 flex-1 py-3 border-b border-border/40 flex flex-row items-center justify-between text-left outline-none active:opacity-70 transition-opacity pr-2"
+        className="min-w-0 flex-1 border-b border-border/40 py-3 pr-2 text-left outline-none transition-opacity active:opacity-70 disabled:cursor-not-allowed disabled:opacity-70"
+        disabled={!canWrite}
       >
         <div className="flex flex-col">
           <p className="truncate text-[16px] sm:text-[17px] font-semibold text-foreground tracking-tight">
             {member.display_name}
           </p>
           <p className="text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 line-clamp-1">
-            Tap to write a meaningful ghun.
+            {canWrite ? "Tap to write a meaningful ghun." : "Invited - not joined yet."}
           </p>
         </div>
       </button>
@@ -152,7 +157,7 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
         {filtered.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
             {members.length === 0
-              ? "All eligible members have been written about!"
+              ? "No members to show."
               : "No matches for your search."}
           </p>
         ) : (

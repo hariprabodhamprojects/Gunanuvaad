@@ -17,11 +17,15 @@ set
   display_name = excluded.display_name,
   is_organizer = excluded.is_organizer;
 
-create or replace function public.roster_for_picker()
+drop function if exists public.roster_for_picker();
+
+create function public.roster_for_picker()
 returns table (
-  id uuid,
+  row_id text,
+  recipient_id uuid,
   display_name text,
-  avatar_url text
+  avatar_url text,
+  has_signed_up boolean
 )
 language plpgsql
 stable
@@ -30,22 +34,29 @@ set search_path = public
 as $$
 declare
   v_uid uuid := auth.uid();
+  v_email text;
 begin
   if v_uid is null or not public.is_allowlisted_session() then
     return;
   end if;
 
+  select lower(p.email) into v_email
+  from public.profiles p
+  where p.id = v_uid;
+
   return query
   select
-    p.id,
+    coalesce(p.id::text, 'invite:' || ae.email) as row_id,
+    p.id as recipient_id,
     coalesce(
       nullif(trim(p.display_name), ''),
       nullif(trim(ae.display_name), '')
     ) as display_name,
-    coalesce(nullif(trim(p.avatar_url), ''), '/logo.png') as avatar_url
-  from public.profiles p
-  inner join public.allowed_emails ae on ae.email = lower(p.email)
-  where p.id <> v_uid
+    coalesce(nullif(trim(p.avatar_url), ''), '/logo.png') as avatar_url,
+    (p.id is not null) as has_signed_up
+  from public.allowed_emails ae
+  left join public.profiles p on lower(p.email) = ae.email
+  where ae.email <> coalesce(v_email, '')
     and coalesce(
       nullif(trim(p.display_name), ''),
       nullif(trim(ae.display_name), ''),

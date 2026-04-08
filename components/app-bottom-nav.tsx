@@ -102,15 +102,15 @@ export function AppBottomNav() {
   return (
     <nav
       aria-label="Primary navigation"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100]"
     >
       <div
         ref={panelRef}
         className={cn(
           "pointer-events-auto flex w-full items-center justify-around",
-          "rounded-2xl border border-white/20 dark:border-white/10",
+          "rounded-t-2xl border border-b-0 border-white/20 dark:border-white/10",
           "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
-          "shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
+          "pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
         )}
       >
         {items.map(({ href, label, icon: Icon, match }, i) => {
