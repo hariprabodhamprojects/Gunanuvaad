@@ -113,7 +113,7 @@ export function AppBottomNav() {
       <div
         ref={panelRef}
         className={cn(
-          "pointer-events-auto flex w-full items-center justify-around",
+          "pointer-events-none flex w-full items-center justify-around",
           "rounded-t-2xl border border-b-0 border-white/20 dark:border-white/10",
           "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
           "pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
@@ -127,7 +127,7 @@ export function AppBottomNav() {
               href={href}
               ref={(el) => { itemRefs.current[i] = el; }}
               className={cn(
-                "relative flex flex-1 flex-col items-center justify-center gap-0.5",
+                "pointer-events-auto relative flex flex-1 flex-col items-center justify-center gap-0.5",
                 "h-[3.25rem] transition-colors duration-300 active:scale-95",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
