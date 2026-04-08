@@ -18,23 +18,38 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
   const iconRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const quoteRef = useRef<HTMLDivElement>(null);
   const [pending, setPending] = useState(false);
 
   useLayoutEffect(() => {
     const icon = iconRef.current;
     const title = titleRef.current;
     const cta = ctaRef.current;
-    if (!icon || !title || !cta) return;
+    const quote = quoteRef.current;
+    if (!icon || !title || !cta || !quote) return;
 
-    gsap.set([icon, title, cta], { opacity: 0, y: 15 });
+    gsap.set([icon, title, cta, quote], { opacity: 0, y: 15 });
 
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
     tl.delay(0.2)
       .to(icon, { opacity: 1, y: 0, duration: 0.8 })
       .to(title, { opacity: 1, y: 0, duration: 0.8 }, "-=0.6")
-      .to(cta, { opacity: 1, y: 0, duration: 0.8 }, "-=0.4");
+      .to(cta, { opacity: 1, y: 0, duration: 0.8 }, "-=0.4")
+      .to(quote, { opacity: 1, y: 0, duration: 0.6 }, "-=0.35");
 
-    return () => { tl.kill(); };
+    const pulse = gsap.to(quote, {
+      y: -2,
+      scale: 1.01,
+      duration: 1.8,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1,
+    });
+
+    return () => {
+      tl.kill();
+      pulse.kill();
+    };
   }, []);
 
   async function onGoogle() {
@@ -72,7 +87,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
           ref={titleRef}
           className="font-heading text-[2.85rem] font-normal tracking-tight text-primary/80 sm:text-[3.2rem]"
         >
-          MananChintan
+          Manan Chintan
         </h1>
 
         <div ref={ctaRef} className="mt-10 w-full">
@@ -85,9 +100,20 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
           >
             {pending ? "Authenticating…" : "Continue with Google"}
           </Button>
-          <p className="mt-4 text-center text-base font-medium text-primary/80 sm:text-[1.05rem]">
-            તારે લઈ ને હું, હું તો નિમિત માત્ર.
-          </p>
+          <div
+            ref={quoteRef}
+            className={cn(
+              "mt-4 inline-flex items-center gap-2 rounded-full border border-primary/20",
+              "bg-primary/10 px-4 py-2 text-sm font-semibold text-primary sm:text-base",
+              "shadow-[0_4px_16px_rgba(250,115,22,0.16)]",
+            )}
+            role="note"
+            aria-label="Daily spiritual line"
+          >
+            <Sparkles className="size-4 shrink-0" aria-hidden />
+            <span>તારે લઈને હું, હું તો નિમિત માત્ર!</span>
+            <span aria-hidden>✨</span>
+          </div>
         </div>
       </div>
     </div>
