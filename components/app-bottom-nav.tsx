@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
-import { BarChart2, CalendarDays, Home } from "lucide-react";
+import { BarChart2, BookOpenText, CalendarDays, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -19,6 +19,12 @@ const items = [
     label: "Standings",
     icon: BarChart2,
     match: (p: string) => p === "/standings" || p.startsWith("/standings/"),
+  },
+  {
+    href: "/swadhyay",
+    label: "Swadhyay",
+    icon: BookOpenText,
+    match: (p: string) => p === "/swadhyay" || p.startsWith("/swadhyay/"),
   },
   {
     href: "/calendar",
