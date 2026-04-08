@@ -13,6 +13,7 @@ export async function getRosterMembers(): Promise<RosterMember[]> {
   const rows = (data ?? []) as {
     row_id: string;
     recipient_id: string | null;
+    recipient_email: string | null;
     display_name: string;
     avatar_url: string | null;
     has_signed_up: boolean;
@@ -20,6 +21,7 @@ export async function getRosterMembers(): Promise<RosterMember[]> {
   return rows.map((r) => ({
     id: r.row_id,
     recipient_id: r.recipient_id,
+    recipient_email: r.recipient_email,
     display_name: r.display_name,
     avatar_url: r.avatar_url?.trim() || "/logo.png",
     has_signed_up: r.has_signed_up === true,

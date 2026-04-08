@@ -11,6 +11,11 @@ export type WriteEligibility =
   | { ok: true; code: string }
   | { ok: false; code: string; need_more?: number };
 
+export type RecipientTarget = {
+  recipientId?: string | null;
+  recipientEmail?: string | null;
+};
+
 function parseEligibility(raw: unknown): WriteEligibility | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -21,11 +26,15 @@ function parseEligibility(raw: unknown): WriteEligibility | null {
   return { ok: false, code, need_more: needMore };
 }
 
-export async function getRecipientWriteEligibility(recipientId: string): Promise<WriteEligibility | null> {
-  if (!UUID_RE.test(recipientId)) return null;
+export async function getRecipientWriteEligibility(target: RecipientTarget): Promise<WriteEligibility | null> {
+  const recipientId = target.recipientId?.trim() || null;
+  const recipientEmail = target.recipientEmail?.trim().toLowerCase() || null;
+  if (!recipientId && !recipientEmail) return null;
+  if (recipientId && !UUID_RE.test(recipientId)) return null;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("recipient_write_eligibility", {
     p_recipient_id: recipientId,
+    p_recipient_email: recipientEmail,
   });
   if (error) {
     console.error("[daily-note] recipient_write_eligibility", error.message);
@@ -52,10 +61,13 @@ function parseSubmitResult(raw: unknown): SubmitDailyNoteResult | null {
   return null;
 }
 
-export async function submitDailyNote(recipientId: string, body: string): Promise<SubmitDailyNoteResult> {
-  if (!UUID_RE.test(recipientId)) {
+export async function submitDailyNote(target: RecipientTarget, body: string): Promise<SubmitDailyNoteResult> {
+  const recipientId = target.recipientId?.trim() || null;
+  const recipientEmail = target.recipientEmail?.trim().toLowerCase() || null;
+  if (!recipientId && !recipientEmail) {
     return { ok: false, code: "invalid_recipient" };
   }
+  if (recipientId && !UUID_RE.test(recipientId)) return { ok: false, code: "invalid_recipient" };
   const trimmed = body.trim();
   if (trimmed.length < NOTE_BODY_MIN_LEN || trimmed.length > NOTE_BODY_MAX_LEN) {
     return { ok: false, code: "invalid_body" };
@@ -64,6 +76,7 @@ export async function submitDailyNote(recipientId: string, body: string): Promis
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("submit_daily_note", {
     p_recipient_id: recipientId,
+    p_recipient_email: recipientEmail,
     p_body: trimmed,
   });
 

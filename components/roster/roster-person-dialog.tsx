@@ -51,6 +51,7 @@ export function RosterPersonDialog({
 }: Props) {
   const router = useRouter();
   const recipientId = member?.recipient_id ?? null;
+  const recipientEmail = member?.recipient_email ?? null;
   const isSelf = recipientId === currentUserId;
   const [elig, setElig] = useState<WriteEligibility | null>(null);
   const [loadingElig, setLoadingElig] = useState(false);
@@ -67,14 +68,14 @@ export function RosterPersonDialog({
   }, [open]);
 
   useEffect(() => {
-    if (!open || !member || !recipientId || isSelf) {
+    if (!open || !member || (!recipientId && !recipientEmail) || isSelf) {
       setLoadingElig(false);
       return;
     }
     let cancelled = false;
     setLoadingElig(true);
     setElig(null);
-    getRecipientWriteEligibility(recipientId).then((r) => {
+    getRecipientWriteEligibility({ recipientId, recipientEmail }).then((r) => {
       if (!cancelled) {
         setElig(r ?? { ok: false, code: "rpc_error" });
         setLoadingElig(false);
@@ -83,7 +84,7 @@ export function RosterPersonDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, member?.id, recipientId, isSelf]);
+  }, [open, member?.id, recipientId, recipientEmail, isSelf]);
 
   const canWrite = elig?.ok === true;
   const blockHint = eligibilityHint(elig);
@@ -92,9 +93,9 @@ export function RosterPersonDialog({
     trimmedLen >= NOTE_BODY_MIN_LEN && trimmedLen <= NOTE_BODY_MAX_LEN;
 
   const onSubmit = () => {
-    if (!member || !recipientId || isSelf || !canWrite || !lengthOk) return;
+    if (!member || (!recipientId && !recipientEmail) || isSelf || !canWrite || !lengthOk) return;
     startTransition(async () => {
-      const r = await submitDailyNote(recipientId, body);
+      const r = await submitDailyNote({ recipientId, recipientEmail }, body);
       if (r.ok) {
         toast.success("Your note is sent.");
         setBody("");

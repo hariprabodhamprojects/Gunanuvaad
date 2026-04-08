@@ -23,7 +23,7 @@ function RosterMemberCard({
   onSelect: () => void;
   onAvatarClick: () => void;
 }) {
-  const canWrite = member.has_signed_up && Boolean(member.recipient_id);
+  const canWrite = Boolean(member.recipient_id || member.recipient_email);
   return (
     <div className="group flex items-stretch w-full text-left outline-none px-2 transition-colors duration-200 hover:bg-muted/30 sm:px-4">
       {/* Avatar Button */}
@@ -64,7 +64,9 @@ function RosterMemberCard({
             {member.display_name}
           </p>
           <p className="text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 line-clamp-1">
-            {canWrite ? "Tap to write a meaningful ghun." : "Invited - not joined yet."}
+            {canWrite
+              ? "Tap to write a meaningful ghun."
+              : "Invited - not joined yet."}
           </p>
         </div>
       </button>
