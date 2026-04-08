@@ -63,7 +63,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/logo.png" 
-            alt="Gunanuvad Logo"
+            alt="MananChintan Logo"
             className="size-full object-contain"
           />
         </div>
@@ -72,7 +72,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
           ref={titleRef}
           className="font-heading text-[2.85rem] font-normal tracking-tight text-primary/80 sm:text-[3.2rem]"
         >
-          Gunanuvad
+          MananChintan
         </h1>
 
         <div ref={ctaRef} className="mt-10 w-full">
@@ -86,7 +86,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
             {pending ? "Authenticating…" : "Continue with Google"}
           </Button>
           <p className="mt-4 text-center text-base font-medium text-primary/80 sm:text-[1.05rem]">
-            ગુણ ગાવાથી જીવ બ્રહ્મરૂપ થઈ જાય.
+            તારે લઈ ને હું, હું તો નિમિત માત્ર.
           </p>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { getAuthoredDailyNotes } from "@/lib/notes/get-authored-notes";
 
 export const metadata = {
-  title: "Calendar — Gunanuvad",
+  title: "Calendar — MananChintan",
 };
 
 export const dynamic = "force-dynamic";

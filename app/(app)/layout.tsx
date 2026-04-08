@@ -42,7 +42,7 @@ export default async function AppShellLayout({
             href="/home"
             className="shrink-0 font-heading text-base font-semibold tracking-tight sm:text-lg"
           >
-            Gunanuvad
+            MananChintan
           </Link>
           <AppHeaderNav
             email={email}

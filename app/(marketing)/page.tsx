@@ -3,7 +3,7 @@ import { LandingSplash } from "@/components/landing-splash";
 import { OAuthCallbackRecovery } from "@/components/oauth-callback-recovery";
 
 export const metadata = {
-  title: "Gunanuvad",
+  title: "MananChintan",
 };
 
 const ERROR_MESSAGES: Record<string, string> = {

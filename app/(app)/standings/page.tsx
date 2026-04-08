@@ -2,7 +2,7 @@ import { StandingsView } from "@/components/standings-view";
 import { getStandings } from "@/lib/standings/get-standings";
 
 export const metadata = {
-  title: "Standings — Gunanuvad",
+  title: "Standings — MananChintan",
 };
 
 export const dynamic = "force-dynamic";

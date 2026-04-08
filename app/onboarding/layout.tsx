@@ -19,7 +19,7 @@ export default async function OnboardingLayout({
             href="/home"
             className="shrink-0 font-heading text-base font-semibold tracking-tight sm:text-lg"
           >
-            Gunanuvad
+            MananChintan
           </Link>
           <div className="flex min-w-0 items-center justify-end gap-2">
             <span

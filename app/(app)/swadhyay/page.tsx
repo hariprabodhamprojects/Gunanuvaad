@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SwadhyayComments } from "@/components/swadhyay/swadhyay-comments";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
+import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { getTodaySwadhyayTopic, getTopicComments } from "@/lib/swadhyay/queries";
 
-export const metadata = {
-  title: "Swadhyay — Gunanuvad",
-};
+export const metadata = { title: "Swadhyay — MananChintan" };
 
 export const dynamic = "force-dynamic";
 
 export default async function SwadhyayPage() {
   const { user } = await requireAllowlistedUser();
+  const isOrganizer = await getIsOrganizerSession();
   const topic = await getTodaySwadhyayTopic();
   const comments = topic ? await getTopicComments(topic.id) : [];
 
@@ -46,7 +46,12 @@ export default async function SwadhyayPage() {
               <CardTitle className="text-base">Discussion ({comments.length})</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              <SwadhyayComments topicId={topic.id} currentUserId={user.id} comments={comments} />
+              <SwadhyayComments
+                topic={topic}
+                currentUserId={user.id}
+                isOrganizer={isOrganizer}
+                comments={comments}
+              />
             </CardContent>
           </Card>
         </>

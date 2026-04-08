@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Me — Gunanuvad",
+  title: "Me — MananChintan",
 };
 
 export const dynamic = "force-dynamic";

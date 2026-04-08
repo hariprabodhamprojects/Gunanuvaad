@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Not invited — Gunanuvad",
+  title: "Not invited — MananChintan",
 };
 
 /**

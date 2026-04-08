@@ -31,6 +31,7 @@
    - `migrations/20260408124500_seed_invites_and_show_users_without_photos.sql` (seeds two invites with names; picker includes invited-not-joined rows, with `/logo.png` fallback and disabled write until signup)
    - `migrations/20260408134000_allow_writes_to_invited_not_joined.sql` (allows writing to invited users before signup by using `recipient_email`; updates eligibility/submit + picker payload)
    - `migrations/20260408150000_swadhyay_phase1.sql` (Swadhyay: one topic/day by organizer, unlimited public comments, edit/delete own comments within 15 minutes)
+   - `migrations/20260408162000_swadhyay_phase2_replies_reactions_pin.sql` (Swadhyay phase 2: replies, reactions, organizer pin/unpin comment)
 
 3. **Seed `allowed_emails`** with real addresses (all **lower-case**). **display_name** is optional: if omitted, the app derives a label from the part before `@` (e.g. `john.doe@gmail.com` → `John Doe`). Users only upload a photo at onboarding.
 

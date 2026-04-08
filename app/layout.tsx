@@ -9,7 +9,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Gunanuvad",
+  title: "MananChintan",
   description: "Daily appreciation with your crew — points, streaks, private notes.",
   manifest: "/manifest.webmanifest",
   icons: {

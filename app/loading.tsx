@@ -9,13 +9,13 @@ export default function GlobalLoadingSplash() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/logo.png" 
-            alt="Gunanuvad Logo"
+            alt="MananChintan Logo"
             className="size-full object-contain"
           />
         </div>
 
         <h1 className="font-heading text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground drop-shadow-md">
-          Gunanuvad
+          MananChintan
         </h1>
 
         <div className="mt-8 flex flex-col items-center gap-3">

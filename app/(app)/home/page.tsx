@@ -8,7 +8,7 @@ import { getRosterMembers } from "@/lib/roster/get-roster";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
-  title: "Home — Gunanuvad",
+  title: "Home — MananChintan",
 };
 
 export const dynamic = "force-dynamic";
