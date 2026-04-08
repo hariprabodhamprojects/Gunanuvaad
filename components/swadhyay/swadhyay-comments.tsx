@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +15,49 @@ import {
   toggleSwadhyayCommentReactionAction,
 } from "@/lib/swadhyay/actions";
 import type { SwadhyayComment, SwadhyayTopic } from "@/lib/swadhyay/types";
+import { cn } from "@/lib/utils";
+
+function ThumbLikeButton({
+  reacted,
+  count,
+  disabled,
+  onClick,
+}: {
+  reacted: boolean;
+  count: number;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={reacted ? "Remove like" : "Like"}
+      aria-pressed={reacted}
+      className={cn(
+        "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 text-sm font-medium transition-all active:scale-95",
+        "disabled:pointer-events-none disabled:opacity-50",
+        reacted
+          ? "border-primary/40 bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(250,115,22,0.35)]"
+          : "border-border/70 bg-background/80 text-muted-foreground hover:border-primary/30 hover:bg-primary/5 hover:text-foreground",
+      )}
+    >
+      <ThumbsUp
+        className={cn(
+          "size-[1.125rem] shrink-0 transition-[transform,fill]",
+          reacted && "scale-105",
+        )}
+        strokeWidth={reacted ? 0 : 2}
+        fill={reacted ? "currentColor" : "none"}
+        aria-hidden
+      />
+      {count > 0 ? (
+        <span className="min-w-[1ch] tabular-nums text-xs font-semibold leading-none">{count}</span>
+      ) : null}
+    </button>
+  );
+}
 
 type Props = {
   topic: SwadhyayTopic;
@@ -226,9 +270,12 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                 <>
                   <p className="whitespace-pre-wrap text-sm text-foreground/90">{comment.body}</p>
                   <div className="mt-3 flex flex-wrap justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => toggleReaction(comment.id)} disabled={pending}>
-                      {comment.viewer_reacted ? "Liked" : "Like"} ({comment.reaction_count})
-                    </Button>
+                    <ThumbLikeButton
+                      reacted={comment.viewer_reacted}
+                      count={comment.reaction_count}
+                      disabled={pending}
+                      onClick={() => toggleReaction(comment.id)}
+                    />
                     <Button
                       variant="outline"
                       size="sm"
@@ -329,14 +376,12 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                               <>
                                 <p className="whitespace-pre-wrap text-sm text-foreground/90">{reply.body}</p>
                                 <div className="mt-2 flex flex-wrap justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => toggleReaction(reply.id)}
+                                  <ThumbLikeButton
+                                    reacted={reply.viewer_reacted}
+                                    count={reply.reaction_count}
                                     disabled={pending}
-                                  >
-                                    {reply.viewer_reacted ? "Liked" : "Like"} ({reply.reaction_count})
-                                  </Button>
+                                    onClick={() => toggleReaction(reply.id)}
+                                  />
                                   {canEditReply ? (
                                     <>
                                       <Button
