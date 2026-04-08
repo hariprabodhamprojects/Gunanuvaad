@@ -26,23 +26,7 @@ export default async function HomePage() {
     .maybeSingle();
 
   const displayName = profile?.display_name?.trim() ?? "";
-  
-  // Get all members
-  const allMembers = await getRosterMembers();
-
-  // Get last 25 people I wrote about
-  const { data: recentNotes } = await supabase
-    .from("notes")
-    .select("recipient_id")
-    .eq("author_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(25);
-
-  const restrictedIds = new Set((recentNotes || []).map((n) => n.recipient_id));
-  restrictedIds.add(user.id); // Prevent writing to self just in case
-
-  // Filter roster
-  const members = allMembers.filter(m => !restrictedIds.has(m.id));
+  const members = await getRosterMembers();
 
   const approvedSlides = await getApprovedNotesSlideshowSlides(5);
   const dailyCampaignStatus = await getDailyCampaignStatus(user.id);

@@ -13,7 +13,7 @@ import {
   submitDailyNote,
   type WriteEligibility,
 } from "@/lib/notes/daily-note-actions";
-import { NOTE_BODY_MAX_LEN, NOTE_BODY_MIN_LEN, RECIPIENT_LOCK_K } from "@/lib/campaign-spec";
+import { NOTE_BODY_MAX_LEN, NOTE_BODY_MIN_LEN } from "@/lib/campaign-spec";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import type { RosterMember } from "@/lib/roster/types";
 import { cn } from "@/lib/utils";
@@ -31,10 +31,6 @@ function eligibilityHint(elig: WriteEligibility | null): string | null {
   switch (elig.code) {
     case "already_today":
       return "You already sent today’s note. Come back tomorrow.";
-    case "recipient_locked": {
-      const n = elig.need_more ?? RECIPIENT_LOCK_K;
-      return `Appreciate ${n} more ${n === 1 ? "person" : "people"} before you can choose this person again.`;
-    }
     case "invalid_recipient":
     case "self":
       return "You can’t send a note to this person from here.";
@@ -116,13 +112,6 @@ export function RosterPersonDialog({
       if (r.code === "already_today") {
         toast.error("You already sent today’s note.");
         setElig({ ok: false, code: "already_today" });
-        setShowConfirm(false);
-        return;
-      }
-      if (r.code === "recipient_locked") {
-        const n = r.need_more ?? RECIPIENT_LOCK_K;
-        toast.error(`Appreciate ${n} more ${n === 1 ? "person" : "people"} first.`);
-        setElig({ ok: false, code: "recipient_locked", need_more: r.need_more });
         setShowConfirm(false);
         return;
       }
