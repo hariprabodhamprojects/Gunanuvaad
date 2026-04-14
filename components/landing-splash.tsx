@@ -85,9 +85,9 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
 
         <h1
           ref={titleRef}
-          className="whitespace-nowrap font-heading text-[2.1rem] font-normal tracking-tight text-primary/80 sm:text-[2.5rem]"
+          className="whitespace-nowrap font-heading text-[2.4rem] font-normal tracking-tight text-primary sm:text-[2.7rem]"
         >
-          Manan Chintan <span className="text-primary/65">| મનન ચિંતન</span>
+          મનન ચિંતન
         </h1>
 
         <div ref={ctaRef} className="mt-10 w-full">
@@ -98,7 +98,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
             disabled={pending}
             onClick={onGoogle}
           >
-            {pending ? "Authenticating…" : "Continue with Google"}
+            {pending ? "પ્રમાણીકરણ ચાલી રહ્યું છે…" : "Google સાથે આગળ વધો"}
           </Button>
           <div
             ref={quoteRef}

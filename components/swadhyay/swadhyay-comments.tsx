@@ -170,11 +170,11 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     startTransition(async () => {
       const r = await postSwadhyayCommentAction(topic.id, newComment);
       if (!r.ok) {
-        toast.error(r.error ?? "Could not post comment.");
+        toast.error(r.error ?? "કોમેન્ટ પોસ્ટ થઈ શકી નથી.");
         return;
       }
       setNewComment("");
-      toast.success("Comment posted.");
+      toast.success("કોમેન્ટ પોસ્ટ થઈ ગઈ.");
       router.refresh();
     });
   };
@@ -184,12 +184,12 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     startTransition(async () => {
       const r = await replySwadhyayCommentAction(topic.id, replyToId, replyBody);
       if (!r.ok) {
-        toast.error(r.error ?? "Could not post reply.");
+        toast.error(r.error ?? "જવાબ પોસ્ટ થઈ શક્યો નથી.");
         return;
       }
       setReplyBody("");
       setReplyToId(null);
-      toast.success("Reply posted.");
+      toast.success("જવાબ પોસ્ટ થઈ ગયો.");
       router.refresh();
     });
   };
@@ -204,12 +204,12 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     startTransition(async () => {
       const r = await editSwadhyayCommentAction(editingId, editingBody);
       if (!r.ok) {
-        toast.error(r.error ?? "Could not save edit.");
+        toast.error(r.error ?? "ફેરફાર સાચવી શકાયો નથી.");
         return;
       }
       setEditingId(null);
       setEditingBody("");
-      toast.success("Comment updated.");
+      toast.success("કોમેન્ટ અપડેટ થઈ ગઈ.");
       router.refresh();
     });
   };
@@ -218,10 +218,10 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     startTransition(async () => {
       const r = await deleteSwadhyayCommentAction(commentId);
       if (!r.ok) {
-        toast.error(r.error ?? "Could not delete comment.");
+        toast.error(r.error ?? "કોમેન્ટ કાઢી શકાઈ નથી.");
         return;
       }
-      toast.success("Comment deleted.");
+      toast.success("કોમેન્ટ કાઢી નાખી.");
       router.refresh();
     });
   };
@@ -230,7 +230,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     startTransition(async () => {
       const r = await toggleSwadhyayCommentReactionAction(commentId);
       if (!r.ok) {
-        toast.error(r.error ?? "Could not update reaction.");
+        toast.error(r.error ?? "રિએક્શન અપડેટ થઈ શક્યું નથી.");
         return;
       }
       router.refresh();
@@ -242,10 +242,10 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
       const nextPin = topic.pinned_comment_id === commentId ? null : commentId;
       const r = await pinSwadhyayCommentAction(topic.id, nextPin);
       if (!r.ok) {
-        toast.error(r.error ?? "Could not update pin.");
+        toast.error(r.error ?? "પિન અપડેટ થઈ શક્યું નથી.");
         return;
       }
-      toast.success(nextPin ? "Pinned comment." : "Unpinned comment.");
+      toast.success(nextPin ? "કોમેન્ટ પિન થઈ ગઈ." : "કોમેન્ટ અનપિન થઈ ગઈ.");
       router.refresh();
     });
   };
@@ -258,9 +258,9 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
           className="overflow-hidden border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent shadow-[0_8px_28px_rgba(250,115,22,0.12)]"
         >
           <CardContent className="p-4">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">Pinned by admin</p>
-            <p className="text-sm font-semibold">{pinnedComment.author_display_name}</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{pinnedComment.body}</p>
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">એડમિન દ્વારા પિન</p>
+            <p className="text-sm font-semibold text-foreground">{pinnedComment.author_display_name}</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{pinnedComment.body}</p>
           </CardContent>
         </Card>
       ) : null}
@@ -273,16 +273,16 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
         <Textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Share your reflection..."
+          placeholder="તમારો વિચાર અહીં લખો..."
           maxLength={2000}
           disabled={pending}
-          className="min-h-[110px] resize-y"
+          className="min-h-[110px] resize-y text-foreground placeholder:text-foreground/50"
         />
         <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">{newComment.length}/2000</p>
+          <p className="text-xs text-foreground/65">{newComment.length}/2000</p>
           <Button className="h-9 rounded-full px-4" onClick={submitNew} disabled={pending || !newComment.trim()}>
             <Send className="mr-1 size-4" aria-hidden />
-            Post
+            પોસ્ટ કરો
           </Button>
         </div>
         </CardContent>
@@ -291,7 +291,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
       <div className="space-y-3">
         {rows.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border/70 px-4 py-6 text-center text-sm text-muted-foreground">
-            No comments yet. Be the first to share.
+            હજી સુધી કોઈ કોમેન્ટ નથી. પ્રથમ તમે લખો.
           </p>
         ) : null}
 
@@ -314,8 +314,8 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                   className="size-10 rounded-full border border-border/60 object-cover"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{comment.author_display_name}</p>
-                  <p className="text-xs text-muted-foreground/90">{formatCommentTime(comment.created_at)}</p>
+                  <p className="truncate text-sm font-semibold text-foreground">{comment.author_display_name}</p>
+                  <p className="text-xs text-foreground/70">{formatCommentTime(comment.created_at)}</p>
                 </div>
               </CardHeader>
 
@@ -357,23 +357,21 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                       disabled={pending}
                       onClick={() => toggleReaction(comment.id)}
                     />
+                    {comment.author_id !== currentUserId ? (
                     <IconActionButton
                         icon={<MessageCircle className="size-[18px]" aria-hidden />}
-                      label={comment.author_id === currentUserId ? "Cannot reply to yourself" : "Reply"}
-                      disabled={pending || comment.author_id === currentUserId}
+                      label="જવાબ આપો"
+                      disabled={pending}
                       onClick={() => {
-                        if (comment.author_id === currentUserId) {
-                          toast.info("You cannot reply to your own comment.");
-                          return;
-                        }
                         setReplyToId(isReplying ? null : comment.id);
                         if (isReplying) setReplyBody("");
                       }}
                     />
+                    ) : null}
                     {isOrganizer ? (
                       <IconActionButton
                         icon={<Pin className="size-[18px]" aria-hidden />}
-                        label={topic.pinned_comment_id === comment.id ? "Unpin" : "Pin"}
+                        label={topic.pinned_comment_id === comment.id ? "અનપિન" : "પિન"}
                         disabled={pending}
                         active={topic.pinned_comment_id === comment.id}
                         onClick={() => togglePin(comment.id)}
@@ -383,13 +381,13 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                       <>
                         <IconActionButton
                           icon={<Pencil className="size-[18px]" aria-hidden />}
-                          label="Edit"
+                          label="ફેરફાર"
                           disabled={pending}
                           onClick={() => startEdit(comment)}
                         />
                         <IconActionButton
                           icon={<Trash2 className="size-[18px]" aria-hidden />}
-                          label="Delete"
+                          label="કાઢી નાખો"
                           disabled={pending}
                           onClick={() => removeComment(comment.id)}
                         />
@@ -400,13 +398,14 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
 
                   {isReplying ? (
                     <div className="mt-0 space-y-2 border-t border-border/60 bg-muted/25 p-3 sm:p-4">
+                      <p className="text-xs font-medium text-primary">↳ {comment.author_display_name} ને જવાબ</p>
                       <Textarea
                         value={replyBody}
                         onChange={(e) => setReplyBody(e.target.value)}
                         maxLength={2000}
                         disabled={pending}
-                        className="min-h-[84px] bg-background"
-                        placeholder={`Reply to ${comment.author_display_name}...`}
+                        className="min-h-[84px] bg-background text-foreground placeholder:text-foreground/50"
+                        placeholder={`${comment.author_display_name} ને જવાબ લખો...`}
                       />
                       <div className="flex justify-end gap-2">
                         <Button
@@ -419,11 +418,11 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                           }}
                         >
                           <X className="mr-1 size-4" aria-hidden />
-                          Cancel
+                          રદ કરો
                         </Button>
                         <Button size="sm" disabled={pending || !replyBody.trim()} onClick={submitReply}>
                           <Send className="mr-1 size-4" aria-hidden />
-                          Reply
+                          જવાબ મોકલો
                         </Button>
                       </div>
                     </div>
@@ -439,9 +438,12 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                             key={reply.id}
                             className="rounded-xl border-border/70 bg-background/95 shadow-[0_4px_18px_rgba(15,23,42,0.04)]"
                           >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
-                              <p className="text-xs font-semibold tracking-tight">{reply.author_display_name}</p>
-                              <p className="text-[11px] text-muted-foreground">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-l-2 border-primary/35 p-3 pb-2">
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-medium text-primary/90">↳ {comment.author_display_name} ને જવાબ</p>
+                                <p className="truncate text-xs font-semibold tracking-tight text-foreground">{reply.author_display_name}</p>
+                              </div>
+                              <p className="text-[11px] text-foreground/70">
                                 {formatCommentTime(reply.created_at)}
                               </p>
                             </CardHeader>
@@ -475,7 +477,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                               </CardContent>
                             ) : (
                               <CardContent className="space-y-3 p-3 pt-0">
-                                <p className="whitespace-pre-wrap text-sm text-foreground/90">{reply.body}</p>
+                                <p className="whitespace-pre-wrap text-sm text-foreground">{reply.body}</p>
                                 <div className="flex flex-wrap items-center justify-start gap-2 border-t border-border/60 pt-2 pb-1">
                                     <HeartLikeButton
                                       reacted={reply.viewer_reacted}
@@ -487,13 +489,13 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                                       <>
                                         <IconActionButton
                                           icon={<Pencil className="size-[18px]" aria-hidden />}
-                                          label="Edit"
+                                          label="ફેરફાર"
                                           disabled={pending}
                                           onClick={() => startEdit(reply)}
                                         />
                                         <IconActionButton
                                           icon={<Trash2 className="size-[18px]" aria-hidden />}
-                                          label="Delete"
+                                          label="કાઢી નાખો"
                                           disabled={pending}
                                           onClick={() => removeComment(reply.id)}
                                         />
