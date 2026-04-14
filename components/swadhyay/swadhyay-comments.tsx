@@ -46,7 +46,7 @@ function IconActionButton({
         "disabled:pointer-events-none disabled:opacity-40",
         active
           ? "border-primary/40 bg-primary/10 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
-          : "border-border/80 bg-background/95 text-foreground/70 hover:-translate-y-0.5 hover:border-primary/35 hover:text-primary",
+          : "border-primary/20 bg-background/95 text-primary/70 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
       )}
     >
       {icon}
@@ -77,8 +77,8 @@ function HeartLikeButton({
         "group inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all duration-200 active:scale-95",
         "disabled:pointer-events-none disabled:opacity-40",
         reacted
-          ? "border-rose-500/35 bg-rose-500/10 text-rose-600 shadow-[0_8px_20px_rgba(244,63,94,0.22)]"
-          : "border-border/80 bg-background/95 text-foreground/70 hover:-translate-y-0.5 hover:border-rose-400/50 hover:text-rose-600",
+          ? "border-primary/45 bg-primary/12 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
+          : "border-primary/20 bg-background/95 text-primary/70 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
       )}
     >
       <Heart
@@ -90,11 +90,7 @@ function HeartLikeButton({
         fill={reacted ? "currentColor" : "none"}
         aria-hidden
       />
-      {count > 0 ? (
-        <span className="min-w-[1ch] rounded-full bg-rose-500/15 px-1.5 py-0.5 tabular-nums leading-none text-rose-600">
-          {count}
-        </span>
-      ) : null}
+      {count > 0 ? <span className="min-w-[1ch] tabular-nums leading-none">{count}</span> : null}
     </button>
   );
 }
@@ -354,9 +350,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                 <>
                   <CardContent className="space-y-4 p-4 pt-1">
                   <p className="whitespace-pre-wrap text-[15px] leading-7 text-foreground">{comment.body}</p>
-                  <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-0 pt-3 pb-0">
-                    <p className="text-[11px] text-muted-foreground">Posted {formatCommentTime(comment.created_at)}</p>
-                    <div className="flex flex-wrap items-center justify-end gap-2">
+                  <CardFooter className="flex flex-wrap items-center justify-end gap-2 border-t border-border/60 px-0 pt-3 pb-0">
                     <HeartLikeButton
                       reacted={comment.viewer_reacted}
                       count={comment.reaction_count}
@@ -401,7 +395,6 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                         />
                       </>
                     ) : null}
-                    </div>
                   </CardFooter>
                   </CardContent>
 
@@ -483,11 +476,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                             ) : (
                               <CardContent className="space-y-3 p-3 pt-0">
                                 <p className="whitespace-pre-wrap text-sm text-foreground/90">{reply.body}</p>
-                                <CardFooter className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 px-0 pt-2 pb-0">
-                                  <p className="text-[11px] text-muted-foreground">
-                                    Posted {formatCommentTime(reply.created_at)}
-                                  </p>
-                                  <div className="flex flex-wrap items-center justify-end gap-2">
+                                <CardFooter className="flex flex-wrap items-center justify-end gap-2 border-t border-border/60 px-0 pt-2 pb-0">
                                     <HeartLikeButton
                                       reacted={reply.viewer_reacted}
                                       count={reply.reaction_count}
@@ -510,7 +499,6 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                                         />
                                       </>
                                     ) : null}
-                                  </div>
                                 </CardFooter>
                               </CardContent>
                             )}
