@@ -6,7 +6,7 @@ import gsap from "gsap";
 import { Heart, MessageCircle, Pencil, Pin, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
   deleteSwadhyayCommentAction,
@@ -348,9 +348,9 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                 </CardContent>
               ) : (
                 <>
-                  <CardContent className="space-y-4 p-4 pt-1">
+                  <CardContent className="space-y-4 p-4 pt-1 sm:p-5 sm:pt-2">
                   <p className="whitespace-pre-wrap text-[15px] leading-7 text-foreground">{comment.body}</p>
-                  <CardFooter className="flex flex-wrap items-center justify-end gap-2 border-t border-border/60 px-0 pt-3 pb-0">
+                  <div className="flex flex-wrap items-center justify-start gap-2 border-t border-border/60 pt-3 pb-1 sm:pb-2">
                     <HeartLikeButton
                       reacted={comment.viewer_reacted}
                       count={comment.reaction_count}
@@ -395,7 +395,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                         />
                       </>
                     ) : null}
-                  </CardFooter>
+                  </div>
                   </CardContent>
 
                   {isReplying ? (
@@ -476,7 +476,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                             ) : (
                               <CardContent className="space-y-3 p-3 pt-0">
                                 <p className="whitespace-pre-wrap text-sm text-foreground/90">{reply.body}</p>
-                                <CardFooter className="flex flex-wrap items-center justify-end gap-2 border-t border-border/60 px-0 pt-2 pb-0">
+                                <div className="flex flex-wrap items-center justify-start gap-2 border-t border-border/60 pt-2 pb-1">
                                     <HeartLikeButton
                                       reacted={reply.viewer_reacted}
                                       count={reply.reaction_count}
@@ -499,7 +499,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                                         />
                                       </>
                                     ) : null}
-                                </CardFooter>
+                                </div>
                               </CardContent>
                             )}
                           </Card>
