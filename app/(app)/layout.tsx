@@ -54,7 +54,7 @@ export default async function AppShellLayout({
           />
         </div>
       </header>
-      <main className="mx-auto flex min-h-0 w-full min-w-0 max-w-5xl flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-4">
+      <main className="page-enter mx-auto flex min-h-0 w-full min-w-0 max-w-5xl flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-4">
         {children}
       </main>
       <AppBottomNav />

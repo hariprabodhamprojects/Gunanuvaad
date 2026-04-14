@@ -7,8 +7,8 @@ import type { ApprovedSlide } from "@/lib/home/approved-slideshow";
 import { cn } from "@/lib/utils";
 
 const INTERVAL_MS = 4000;
-const SLIDE_DURATION = 0.55;
-const SLIDE_EASE = "power2.inOut";
+const SLIDE_DURATION = 0.28;
+const SLIDE_EASE = "power3.out";
 
 /** Square portrait tile — same proportions as roster mosaic tiles. */
 const AVATAR_BOX = "size-[7.25rem] shrink-0 sm:size-32";
@@ -146,7 +146,7 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
       <p className="text-center text-xs font-bold uppercase tracking-[0.15em] text-primary/80 drop-shadow-sm">
         Ghunos for each other
       </p>
-      <div className="glass-card overflow-hidden transition-all duration-300">
+      <div className="glass-card overflow-hidden transition-[transform,box-shadow,border-color] duration-[220ms] ease-[var(--ease-out-standard)]">
         <div className="p-0 relative">
           <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_right,var(--palette-bg-subtle)_0%,transparent_10%,transparent_90%,var(--palette-bg-subtle)_100%)] opacity-30 mix-blend-overlay" />
           <div
@@ -181,7 +181,7 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
               role="tab"
               aria-selected={i === index}
               className={cn(
-                "size-2 rounded-full transition-colors",
+                "size-2 rounded-full transition-[transform,background-color] duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
                 i === index ? "bg-primary" : "bg-muted-foreground/25 hover:bg-muted-foreground/40",
               )}
               onClick={() => setIndex(i)}

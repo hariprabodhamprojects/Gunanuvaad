@@ -25,7 +25,7 @@ function RosterMemberCard({
 }) {
   const canWrite = Boolean(member.recipient_id || member.recipient_email);
   return (
-    <div className="group flex items-stretch w-full text-left outline-none px-2 transition-colors duration-200 hover:bg-muted/30 sm:px-4">
+    <div className="group flex items-stretch w-full text-left outline-none px-2 transition-colors duration-[180ms] ease-[var(--ease-out-standard)] hover:bg-muted/30 sm:px-4">
       {/* Avatar Button */}
       <div className="py-2 pr-3 sm:pr-4 flex items-center justify-center shrink-0 pl-2">
         <button
@@ -35,7 +35,7 @@ function RosterMemberCard({
             if (!canWrite) return;
             onAvatarClick();
           }}
-          className="relative size-12 overflow-hidden rounded-full ring-2 ring-transparent shadow-sm transition-all sm:size-14 group-hover:ring-primary/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+          className="relative size-12 overflow-hidden rounded-full ring-2 ring-transparent shadow-sm transition-[transform,box-shadow,ring-color] duration-[180ms] ease-[var(--ease-out-standard)] sm:size-14 group-hover:ring-primary/20 active:scale-[0.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-60"
           aria-label={`View profile picture of ${member.display_name}`}
           disabled={!canWrite}
         >
@@ -43,7 +43,7 @@ function RosterMemberCard({
           <img
             src={member.avatar_url}
             alt=""
-            className="size-full object-cover transition-transform duration-500 hover:scale-105"
+            className="size-full object-cover transition-transform duration-[220ms] ease-[var(--ease-out-standard)] hover:scale-[1.03] motion-reduce:hover:scale-100"
           />
         </button>
       </div>
@@ -56,7 +56,7 @@ function RosterMemberCard({
           if (!canWrite) return;
           onSelect();
         }}
-        className="min-w-0 flex-1 border-b border-border/40 py-3 pr-2 text-left outline-none transition-opacity active:opacity-70 disabled:cursor-not-allowed disabled:opacity-70"
+        className="min-w-0 flex-1 border-b border-border/40 py-3 pr-2 text-left outline-none transition-[transform,opacity] duration-[140ms] ease-[var(--ease-out-standard)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
         disabled={!canWrite}
       >
         <div className="flex flex-col">
@@ -95,16 +95,21 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
     if (!list) return;
     const items = list.children;
     if (items.length === 0) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      gsap.set(items, { opacity: 1, y: 0 });
+      return;
+    }
     const ctx = gsap.context(() => {
       gsap.fromTo(
         items,
-        { opacity: 0, y: 15 },
+        { opacity: 0, y: 10 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.4,
+          duration: 0.22,
           stagger: { each: 0.02, from: "start" },
-          ease: "power2.out",
+          ease: "power3.out",
           overwrite: "auto",
         },
       );

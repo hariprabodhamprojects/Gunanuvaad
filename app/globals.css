@@ -54,6 +54,15 @@
 }
 
 @layer base {
+  :root {
+    --ease-out-standard: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+    --motion-fast: 140ms;
+    --motion-base: 200ms;
+    --motion-slow: 280ms;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
@@ -82,12 +91,44 @@
     @apply font-sans;
     overscroll-behavior-y: none;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --motion-fast: 80ms;
+      --motion-base: 110ms;
+      --motion-slow: 140ms;
+    }
+  }
 }
 
 /**
  * Premium Minimalistic Utilities
  */
 @layer utilities {
+  .page-enter {
+    animation: page-enter var(--motion-base) var(--ease-out-standard);
+    will-change: transform, opacity;
+  }
+
+  .press-feedback {
+    transition-property: transform, opacity;
+    transition-duration: var(--motion-fast);
+    transition-timing-function: var(--ease-out-standard);
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-enter {
+      animation: page-fade var(--motion-fast) linear;
+      will-change: opacity;
+    }
+
+    .press-feedback {
+      transition-duration: 80ms;
+    }
+  }
+
   .glass {
     background: var(--glass-surface);
     backdrop-filter: blur(var(--glass-blur));
@@ -114,7 +155,10 @@
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+    transition:
+      transform var(--motion-slow) var(--ease-emphasized),
+      box-shadow var(--motion-slow) var(--ease-emphasized),
+      border-color var(--motion-base) ease-out;
   }
   .glass-card:hover {
     box-shadow: var(--glass-shadow-hover);
@@ -138,5 +182,25 @@
       radial-gradient(60% 50% at 0% 100%, var(--palette-mesh-3), transparent 50%),
       var(--palette-bg);
     background-attachment: fixed;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

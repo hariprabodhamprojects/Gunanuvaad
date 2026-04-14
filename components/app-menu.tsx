@@ -57,7 +57,7 @@ export function AppMenu({
         <Dialog.Backdrop
           className={cn(
             "fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]",
-            "transition-opacity duration-200 ease-out",
+            "transition-opacity duration-[220ms] ease-[var(--ease-out-standard)]",
             "data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
           )}
         />
@@ -70,8 +70,8 @@ export function AppMenu({
           <Dialog.Popup
             className={cn(
               "flex h-full w-[min(100vw,22rem)] max-h-[min(100dvh,100svh)] flex-col border-l border-border bg-popover shadow-2xl outline-none",
-              "data-[ending-style]:translate-x-4 data-[ending-style]:opacity-0 data-[starting-style]:translate-x-4 data-[starting-style]:opacity-0",
-              "transition-[transform,opacity] duration-200 ease-out sm:max-h-[calc(100dvh-1.5rem)] sm:rounded-l-xl sm:rounded-r-none",
+              "data-[ending-style]:translate-x-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-x-6 data-[starting-style]:opacity-0",
+              "transition-[transform,opacity] duration-500 ease-[var(--ease-sheet)] motion-reduce:duration-[140ms] motion-reduce:data-[ending-style]:translate-x-0 motion-reduce:data-[starting-style]:translate-x-0 sm:max-h-[calc(100dvh-1.5rem)] sm:rounded-l-xl sm:rounded-r-none",
             )}
           >
             <Dialog.Description className="sr-only">

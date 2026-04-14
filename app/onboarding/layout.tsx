@@ -32,7 +32,7 @@ export default async function OnboardingLayout({
           </div>
         </div>
       </header>
-      <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-3 py-10 sm:px-4">
+      <div className="page-enter flex min-w-0 flex-1 flex-col items-center justify-center px-3 py-10 sm:px-4">
         {children}
       </div>
     </div>

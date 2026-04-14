@@ -27,20 +27,26 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
     const cta = ctaRef.current;
     const quote = quoteRef.current;
     if (!icon || !title || !cta || !quote) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    gsap.set([icon, title, cta, quote], { opacity: 0, y: 15 });
+    if (reduceMotion) {
+      gsap.set([icon, title, cta, quote], { opacity: 1, y: 0, scale: 1 });
+      return;
+    }
 
-    const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-    tl.delay(0.2)
-      .to(icon, { opacity: 1, y: 0, duration: 0.8 })
-      .to(title, { opacity: 1, y: 0, duration: 0.8 }, "-=0.6")
-      .to(cta, { opacity: 1, y: 0, duration: 0.8 }, "-=0.4")
-      .to(quote, { opacity: 1, y: 0, duration: 0.6 }, "-=0.35");
+    gsap.set([icon, title, cta, quote], { opacity: 0, y: 10 });
+
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    tl.delay(0.08)
+      .to(icon, { opacity: 1, y: 0, duration: 0.24 })
+      .to(title, { opacity: 1, y: 0, duration: 0.24 }, "-=0.14")
+      .to(cta, { opacity: 1, y: 0, duration: 0.22 }, "-=0.1")
+      .to(quote, { opacity: 1, y: 0, duration: 0.2 }, "-=0.08");
 
     const pulse = gsap.to(quote, {
       y: -2,
       scale: 1.01,
-      duration: 1.8,
+      duration: 1.9,
       ease: "sine.inOut",
       yoyo: true,
       repeat: -1,
@@ -94,7 +100,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
           <Button
             type="button"
             size="lg"
-            className="h-14 w-full rounded-xl text-lg font-medium shadow-sm transition-transform active:scale-95"
+            className="h-14 w-full rounded-xl text-lg font-medium shadow-sm active:scale-[0.97] motion-reduce:active:scale-100"
             disabled={pending}
             onClick={onGoogle}
           >

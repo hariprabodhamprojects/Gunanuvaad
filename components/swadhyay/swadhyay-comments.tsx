@@ -42,7 +42,7 @@ function IconActionButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "inline-flex size-9 items-center justify-center rounded-full border text-xs font-semibold transition-all duration-200 active:scale-95",
+        "inline-flex size-9 items-center justify-center rounded-full border text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
         "disabled:pointer-events-none disabled:opacity-40",
         active
           ? "border-primary/40 bg-primary/10 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
@@ -74,7 +74,7 @@ function HeartLikeButton({
       aria-label={reacted ? "Remove like" : "Like"}
       aria-pressed={reacted}
       className={cn(
-        "group inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all duration-200 active:scale-95",
+        "group inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
         "disabled:pointer-events-none disabled:opacity-40",
         reacted
           ? "border-primary/45 bg-primary/12 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
@@ -150,6 +150,11 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
   useLayoutEffect(() => {
     const root = listRef.current;
     if (!root) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      gsap.set("[data-comment-card]", { opacity: 1, y: 0 });
+      return;
+    }
     const ctx = gsap.context(() => {
       gsap.fromTo(
         "[data-comment-card]",
@@ -157,9 +162,9 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
         {
           opacity: 1,
           y: 0,
-          duration: 0.42,
-          ease: "power2.out",
-          stagger: 0.06,
+          duration: 0.24,
+          ease: "power3.out",
+          stagger: 0.04,
         },
       );
     }, root);
@@ -304,7 +309,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
             <Card
               key={comment.id}
               data-comment-card
-              className="overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[0_10px_34px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(15,23,42,0.11)]"
+              className="overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[0_10px_34px_rgba(15,23,42,0.07)] transition-[transform,box-shadow] duration-[200ms] ease-[var(--ease-out-standard)] hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(15,23,42,0.11)] motion-reduce:hover:translate-y-0"
             >
               <CardHeader className="mb-1 flex flex-row items-center gap-3 space-y-0 p-4 pb-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -116,16 +116,23 @@ function formatLongDate(dateStr: string): string {
 
 function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
   const innerRef = useRef<HTMLDivElement>(null);
+  const reduceMotionRef = useRef(false);
+
+  useLayoutEffect(() => {
+    reduceMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
 
   const onEnter = () => {
+    if (reduceMotionRef.current) return;
     const el = innerRef.current;
     if (!el) return;
-    gsap.to(el, { scale: 1.008, y: -2, duration: 0.25, ease: "power2.out", overwrite: "auto" });
+    gsap.to(el, { scale: 1.006, y: -2, duration: 0.18, ease: "power3.out", overwrite: "auto" });
   };
   const onLeave = () => {
+    if (reduceMotionRef.current) return;
     const el = innerRef.current;
     if (!el) return;
-    gsap.to(el, { scale: 1, y: 0, duration: 0.32, ease: "power3.out", overwrite: "auto" });
+    gsap.to(el, { scale: 1, y: 0, duration: 0.2, ease: "power3.out", overwrite: "auto" });
   };
 
   const avatarSrc = note.recipient_avatar_url?.trim() || "/globe.svg";
@@ -226,11 +233,16 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
   useLayoutEffect(() => {
     const el = calendarRef.current;
     if (!el) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      gsap.set(el, { opacity: 1, y: 0 });
+      return;
+    }
     const ctx = gsap.context(() => {
       gsap.fromTo(
         el,
-        { opacity: 0.65, y: 8 },
-        { opacity: 1, y: 0, duration: 0.4, ease: "power3.out", overwrite: "auto" },
+        { opacity: 0.7, y: 8 },
+        { opacity: 1, y: 0, duration: 0.24, ease: "power3.out", overwrite: "auto" },
       );
     }, el);
     return () => ctx.revert();
@@ -239,11 +251,16 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
   useLayoutEffect(() => {
     const el = detailRef.current;
     if (!el) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      gsap.set(el, { opacity: 1, y: 0 });
+      return;
+    }
     const ctx = gsap.context(() => {
       gsap.fromTo(
         el,
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", overwrite: "auto" },
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.22, ease: "power3.out", overwrite: "auto" },
       );
     }, el);
     return () => ctx.revert();
@@ -342,7 +359,7 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
                       aria-pressed={isSelected}
                       aria-current={isCampaignToday ? "date" : undefined}
                       className={cn(
-                        "relative flex size-9 items-center justify-center rounded-lg text-[0.8125rem] font-semibold tabular-nums transition-[color,background-color,box-shadow] sm:size-10 sm:text-sm",
+                        "relative flex size-9 items-center justify-center rounded-lg text-[0.8125rem] font-semibold tabular-nums transition-[transform,color,background-color,box-shadow] duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100 sm:size-10 sm:text-sm",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                         !canSelect && "cursor-default text-muted-foreground/30",
                         canSelect && !isSelected && "bg-muted/50 text-foreground hover:bg-muted/80",

@@ -47,29 +47,39 @@ export function AppBottomNav() {
   const panelRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const prevIndexRef = useRef<number>(-1);
+  const reduceMotionRef = useRef(false);
+
+  useEffect(() => {
+    reduceMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
 
   // ── Mount animation: slide up the whole bar ──────────────────────────────
   useLayoutEffect(() => {
     const el = panelRef.current;
     if (!el) return;
+    if (reduceMotionRef.current) {
+      gsap.set(el, { y: 0, opacity: 1 });
+      gsap.set(itemRefs.current, { y: 0, opacity: 1 });
+      return;
+    }
     const ctx = gsap.context(() => {
       gsap.fromTo(
         el,
-        { y: 56, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.75, ease: "expo.out", delay: 0.1 },
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.24, ease: "power3.out", delay: 0.04 },
       );
 
       // Stagger each nav item in after the bar
       gsap.fromTo(
         itemRefs.current,
-        { y: 16, opacity: 0 },
+        { y: 10, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.5,
-          ease: "back.out(1.8)",
-          stagger: 0.08,
-          delay: 0.35,
+          duration: 0.2,
+          ease: "power2.out",
+          stagger: 0.04,
+          delay: 0.12,
         },
       );
     }, el);
@@ -78,6 +88,7 @@ export function AppBottomNav() {
 
   // ── Tab-switch animation ─────────────────────────────────────────────────
   useEffect(() => {
+    if (reduceMotionRef.current) return;
     const activeIndex = items.findIndex(({ match }) => match(pathname));
     if (activeIndex === -1) return;
 
@@ -88,19 +99,21 @@ export function AppBottomNav() {
     if (activeIndex !== prevIndex && itemRefs.current[activeIndex]) {
       gsap.fromTo(
         itemRefs.current[activeIndex],
-        { scale: 0.85 },
-        { scale: 1, duration: 0.45, ease: "back.out(2.5)" },
+        { scale: 0.94 },
+        { scale: 1, duration: 0.2, ease: "power3.out" },
       );
     }
 
     // Subtle press-down on the previously active item
     if (prevIndex !== -1 && prevIndex !== activeIndex && itemRefs.current[prevIndex]) {
-      gsap.to(itemRefs.current[prevIndex], {
-        scale: 0.95,
-        duration: 0.15,
+      gsap.fromTo(itemRefs.current[prevIndex], {
+        scale: 1,
+      }, {
+        scale: 0.97,
+        duration: 0.08,
         yoyo: true,
         repeat: 1,
-        ease: "power1.inOut",
+        ease: "power1.out",
       });
     }
   }, [pathname]);
@@ -128,7 +141,7 @@ export function AppBottomNav() {
               ref={(el) => { itemRefs.current[i] = el; }}
               className={cn(
                 "pointer-events-auto relative flex flex-1 flex-col items-center justify-center gap-0.5",
-                "h-[3.25rem] transition-colors duration-300 active:scale-95",
+                "h-[3.25rem] transition-colors duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >

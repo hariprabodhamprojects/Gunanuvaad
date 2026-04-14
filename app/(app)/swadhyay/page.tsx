@@ -16,7 +16,7 @@ export default async function SwadhyayPage() {
 
   return (
     <div className="space-y-5">
-      <header>
+      <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-[transform,box-shadow] duration-[200ms] ease-[var(--ease-out-standard)] hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Swadhyay</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Daily shared reflection for everyone in the app.

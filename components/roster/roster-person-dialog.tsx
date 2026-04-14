@@ -128,7 +128,7 @@ export function RosterPersonDialog({
         <Dialog.Backdrop
           className={cn(
             "fixed inset-0 z-[160] bg-black/40 backdrop-blur-[2px]",
-            "transition-opacity duration-200 ease-out",
+            "transition-opacity duration-[220ms] ease-[var(--ease-out-standard)]",
             "data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
           )}
         />
@@ -137,7 +137,7 @@ export function RosterPersonDialog({
             className={cn(
               "relative glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border overflow-hidden",
               "data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0",
-              "transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)",
+              "transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out-standard)] motion-reduce:duration-[140ms] motion-reduce:data-[ending-style]:translate-y-0 motion-reduce:data-[starting-style]:translate-y-0",
             )}
           >
             {/* Confirmation Overlay within the Popup */}
