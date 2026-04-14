@@ -85,9 +85,9 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
 
         <h1
           ref={titleRef}
-          className="font-heading text-[2.85rem] font-normal tracking-tight text-primary/80 sm:text-[3.2rem]"
+          className="whitespace-nowrap font-heading text-[2.1rem] font-normal tracking-tight text-primary/80 sm:text-[2.5rem]"
         >
-          Manan Chintan
+          Manan Chintan <span className="text-primary/65">| મનન ચિંતન</span>
         </h1>
 
         <div ref={ctaRef} className="mt-10 w-full">

@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ThumbsUp } from "lucide-react";
+import gsap from "gsap";
+import { Heart, MessageCircle, Pencil, Pin, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
   deleteSwadhyayCommentAction,
@@ -17,7 +19,43 @@ import {
 import type { SwadhyayComment, SwadhyayTopic } from "@/lib/swadhyay/types";
 import { cn } from "@/lib/utils";
 
-function ThumbLikeButton({
+function IconActionButton({
+  icon,
+  label,
+  active,
+  count,
+  disabled,
+  onClick,
+}: {
+  icon: ReactNode;
+  label: string;
+  active?: boolean;
+  count?: number;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      aria-pressed={active}
+      className={cn(
+        "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition-all active:scale-95",
+        "disabled:pointer-events-none disabled:opacity-40",
+        active
+          ? "border-primary/40 bg-primary/10 text-primary shadow-[0_4px_14px_rgba(250,115,22,0.24)]"
+          : "border-border bg-card text-foreground/80 hover:border-primary/40 hover:text-primary",
+      )}
+    >
+      {icon}
+      {count && count > 0 ? <span className="tabular-nums">{count}</span> : null}
+    </button>
+  );
+}
+
+function HeartLikeButton({
   reacted,
   count,
   disabled,
@@ -36,25 +74,23 @@ function ThumbLikeButton({
       aria-label={reacted ? "Remove like" : "Like"}
       aria-pressed={reacted}
       className={cn(
-        "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 text-sm font-medium transition-all active:scale-95",
-        "disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition-all active:scale-95",
+        "disabled:pointer-events-none disabled:opacity-40",
         reacted
-          ? "border-primary/40 bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(250,115,22,0.35)]"
-          : "border-border/70 bg-background/80 text-muted-foreground hover:border-primary/30 hover:bg-primary/5 hover:text-foreground",
+          ? "border-rose-500/35 bg-rose-500/10 text-rose-600 shadow-[0_6px_14px_rgba(244,63,94,0.22)]"
+          : "border-border bg-card text-foreground/80 hover:border-rose-400/50 hover:text-rose-600",
       )}
     >
-      <ThumbsUp
+      <Heart
         className={cn(
-          "size-[1.125rem] shrink-0 transition-[transform,fill]",
+          "size-[1rem] shrink-0 transition-[transform,fill]",
           reacted && "scale-105",
         )}
         strokeWidth={reacted ? 0 : 2}
         fill={reacted ? "currentColor" : "none"}
         aria-hidden
       />
-      {count > 0 ? (
-        <span className="min-w-[1ch] tabular-nums text-xs font-semibold leading-none">{count}</span>
-      ) : null}
+      {count > 0 ? <span className="min-w-[1ch] tabular-nums leading-none">{count}</span> : null}
     </button>
   );
 }
@@ -77,6 +113,7 @@ function canEditOrDeleteComment(comment: SwadhyayComment, currentUserId: string)
 
 export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }: Props) {
   const router = useRouter();
+  const listRef = useRef<HTMLDivElement>(null);
   const [newComment, setNewComment] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingBody, setEditingBody] = useState("");
@@ -100,6 +137,25 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     () => rows.find((c) => c.id === topic.pinned_comment_id) ?? null,
     [rows, topic.pinned_comment_id],
   );
+
+  useLayoutEffect(() => {
+    const root = listRef.current;
+    if (!root) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        "[data-comment-card]",
+        { opacity: 0, y: 18 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.42,
+          ease: "power2.out",
+          stagger: 0.06,
+        },
+      );
+    }, root);
+    return () => ctx.revert();
+  }, [rows.length]);
 
   const submitNew = () => {
     startTransition(async () => {
@@ -186,16 +242,19 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
   };
 
   return (
-    <div className="space-y-4">
+    <div ref={listRef} className="space-y-4">
       {pinnedComment ? (
-        <article className="rounded-xl border border-primary/40 bg-primary/5 p-3 sm:p-4">
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">Pinned by admin</p>
-          <p className="text-sm font-semibold">{pinnedComment.author_display_name}</p>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{pinnedComment.body}</p>
-        </article>
+        <Card data-comment-card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-4">
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">Pinned by admin</p>
+            <p className="text-sm font-semibold">{pinnedComment.author_display_name}</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{pinnedComment.body}</p>
+          </CardContent>
+        </Card>
       ) : null}
 
-      <div className="space-y-2">
+      <Card data-comment-card className="border-border/80 bg-card/80">
+        <CardContent className="space-y-2 p-4">
         <Textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
@@ -204,13 +263,15 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
           disabled={pending}
           className="min-h-[110px] resize-y"
         />
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-1">
           <p className="text-xs text-muted-foreground">{newComment.length}/2000</p>
           <Button onClick={submitNew} disabled={pending || !newComment.trim()}>
-            Post comment
+            <Send className="mr-1 size-4" aria-hidden />
+            Post
           </Button>
         </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-3">
         {rows.length === 0 ? (
@@ -225,8 +286,8 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
           const replies = repliesByParent.get(comment.id) ?? [];
           const isReplying = replyToId === comment.id;
           return (
-            <article key={comment.id} className="rounded-xl border border-border/60 bg-card/30 p-3 sm:p-4">
-              <div className="mb-2 flex items-center gap-2">
+            <Card key={comment.id} data-comment-card className="overflow-hidden border-border/70 bg-card/90 shadow-sm">
+              <CardHeader className="mb-2 flex flex-row items-center gap-2 space-y-0 p-4 pb-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={comment.author_avatar_url}
@@ -235,14 +296,14 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                 />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{comment.author_display_name}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground/90">
                     {new Date(comment.created_at).toLocaleString()}
                   </p>
                 </div>
-              </div>
+              </CardHeader>
 
               {isEditing ? (
-                <div className="space-y-2">
+                <CardContent className="space-y-2 p-4 pt-2">
                   <Textarea
                     value={editingBody}
                     onChange={(e) => setEditingBody(e.target.value)}
@@ -259,59 +320,78 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                       }}
                       disabled={pending}
                     >
+                      <X className="mr-1 size-4" aria-hidden />
                       Cancel
                     </Button>
                     <Button onClick={saveEdit} disabled={pending || !editingBody.trim()}>
+                      <Send className="mr-1 size-4" aria-hidden />
                       Save
                     </Button>
                   </div>
-                </div>
+                </CardContent>
               ) : (
                 <>
-                  <p className="whitespace-pre-wrap text-sm text-foreground/90">{comment.body}</p>
-                  <div className="mt-3 flex flex-wrap justify-end gap-2">
-                    <ThumbLikeButton
+                  <CardContent className="space-y-3 p-4 pt-2">
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-foreground/95">{comment.body}</p>
+                  <CardFooter className="flex flex-wrap justify-between gap-2 border-t border-border/70 px-0 pt-3 pb-0">
+                    <p className="text-[11px] text-muted-foreground">Posted {new Date(comment.created_at).toLocaleString()}</p>
+                    <div className="flex flex-wrap justify-end gap-2">
+                    <HeartLikeButton
                       reacted={comment.viewer_reacted}
                       count={comment.reaction_count}
                       disabled={pending}
                       onClick={() => toggleReaction(comment.id)}
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <IconActionButton
+                      icon={<MessageCircle className="size-4" aria-hidden />}
+                      label={comment.author_id === currentUserId ? "Cannot reply to yourself" : "Reply"}
+                      disabled={pending || comment.author_id === currentUserId}
                       onClick={() => {
+                        if (comment.author_id === currentUserId) {
+                          toast.info("You cannot reply to your own comment.");
+                          return;
+                        }
                         setReplyToId(isReplying ? null : comment.id);
                         if (isReplying) setReplyBody("");
                       }}
-                      disabled={pending}
-                    >
-                      Reply
-                    </Button>
+                    />
                     {isOrganizer ? (
-                      <Button variant="outline" size="sm" onClick={() => togglePin(comment.id)} disabled={pending}>
-                        {topic.pinned_comment_id === comment.id ? "Unpin" : "Pin"}
-                      </Button>
+                      <IconActionButton
+                        icon={<Pin className="size-4" aria-hidden />}
+                        label={topic.pinned_comment_id === comment.id ? "Unpin" : "Pin"}
+                        disabled={pending}
+                        active={topic.pinned_comment_id === comment.id}
+                        onClick={() => togglePin(comment.id)}
+                      />
                     ) : null}
                     {canEdit ? (
                       <>
-                        <Button variant="outline" size="sm" onClick={() => startEdit(comment)} disabled={pending}>
-                          Edit
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => removeComment(comment.id)} disabled={pending}>
-                          Delete
-                        </Button>
+                        <IconActionButton
+                          icon={<Pencil className="size-4" aria-hidden />}
+                          label="Edit"
+                          disabled={pending}
+                          onClick={() => startEdit(comment)}
+                        />
+                        <IconActionButton
+                          icon={<Trash2 className="size-4" aria-hidden />}
+                          label="Delete"
+                          disabled={pending}
+                          onClick={() => removeComment(comment.id)}
+                        />
                       </>
                     ) : null}
-                  </div>
+                    </div>
+                  </CardFooter>
+                  </CardContent>
 
                   {isReplying ? (
-                    <div className="mt-3 space-y-2 rounded-lg border border-border/60 bg-background/60 p-2.5">
+                    <div className="mt-0 space-y-2 border-t border-border/70 bg-muted/25 p-3">
                       <Textarea
                         value={replyBody}
                         onChange={(e) => setReplyBody(e.target.value)}
                         maxLength={2000}
                         disabled={pending}
-                        className="min-h-[84px]"
+                        className="min-h-[84px] bg-background"
                         placeholder={`Reply to ${comment.author_display_name}...`}
                       />
                       <div className="flex justify-end gap-2">
@@ -324,30 +404,32 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                             setReplyBody("");
                           }}
                         >
+                          <X className="mr-1 size-4" aria-hidden />
                           Cancel
                         </Button>
                         <Button size="sm" disabled={pending || !replyBody.trim()} onClick={submitReply}>
-                          Post reply
+                          <Send className="mr-1 size-4" aria-hidden />
+                          Reply
                         </Button>
                       </div>
                     </div>
                   ) : null}
 
                   {replies.length > 0 ? (
-                    <div className="mt-3 space-y-2 border-l-2 border-border/60 pl-3">
+                    <div className="space-y-2 border-t border-border/70 bg-muted/20 p-3">
                       {replies.map((reply) => {
                         const canEditReply = canEditOrDeleteComment(reply, currentUserId);
                         const isReplyEditing = editingId === reply.id;
                         return (
-                          <div key={reply.id} className="rounded-lg border border-border/50 bg-background/50 p-2.5">
-                            <div className="mb-1 flex items-center justify-between gap-2">
+                          <Card key={reply.id} className="border-border/70 bg-background/85 shadow-none">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2">
                               <p className="text-xs font-semibold">{reply.author_display_name}</p>
                               <p className="text-[11px] text-muted-foreground">
                                 {new Date(reply.created_at).toLocaleString()}
                               </p>
-                            </div>
+                            </CardHeader>
                             {isReplyEditing ? (
-                              <div className="space-y-2">
+                              <CardContent className="space-y-2 p-3 pt-0">
                                 <Textarea
                                   value={editingBody}
                                   onChange={(e) => setEditingBody(e.target.value)}
@@ -365,54 +447,57 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                                     }}
                                     disabled={pending}
                                   >
+                                    <X className="mr-1 size-4" aria-hidden />
                                     Cancel
                                   </Button>
                                   <Button size="sm" onClick={saveEdit} disabled={pending || !editingBody.trim()}>
+                                    <Send className="mr-1 size-4" aria-hidden />
                                     Save
                                   </Button>
                                 </div>
-                              </div>
+                              </CardContent>
                             ) : (
-                              <>
+                              <CardContent className="space-y-3 p-3 pt-0">
                                 <p className="whitespace-pre-wrap text-sm text-foreground/90">{reply.body}</p>
-                                <div className="mt-2 flex flex-wrap justify-end gap-2">
-                                  <ThumbLikeButton
-                                    reacted={reply.viewer_reacted}
-                                    count={reply.reaction_count}
-                                    disabled={pending}
-                                    onClick={() => toggleReaction(reply.id)}
-                                  />
-                                  {canEditReply ? (
-                                    <>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => startEdit(reply)}
-                                        disabled={pending}
-                                      >
-                                        Edit
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => removeComment(reply.id)}
-                                        disabled={pending}
-                                      >
-                                        Delete
-                                      </Button>
-                                    </>
-                                  ) : null}
-                                </div>
-                              </>
+                                <CardFooter className="flex flex-wrap justify-between gap-2 border-t border-border/60 px-0 pt-2 pb-0">
+                                  <p className="text-[11px] text-muted-foreground">
+                                    Posted {new Date(reply.created_at).toLocaleString()}
+                                  </p>
+                                  <div className="flex flex-wrap justify-end gap-2">
+                                    <HeartLikeButton
+                                      reacted={reply.viewer_reacted}
+                                      count={reply.reaction_count}
+                                      disabled={pending}
+                                      onClick={() => toggleReaction(reply.id)}
+                                    />
+                                    {canEditReply ? (
+                                      <>
+                                        <IconActionButton
+                                          icon={<Pencil className="size-4" aria-hidden />}
+                                          label="Edit"
+                                          disabled={pending}
+                                          onClick={() => startEdit(reply)}
+                                        />
+                                        <IconActionButton
+                                          icon={<Trash2 className="size-4" aria-hidden />}
+                                          label="Delete"
+                                          disabled={pending}
+                                          onClick={() => removeComment(reply.id)}
+                                        />
+                                      </>
+                                    ) : null}
+                                  </div>
+                                </CardFooter>
+                              </CardContent>
                             )}
-                          </div>
+                          </Card>
                         );
                       })}
                     </div>
                   ) : null}
                 </>
               )}
-            </article>
+            </Card>
           );
         })}
       </div>
