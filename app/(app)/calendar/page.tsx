@@ -17,13 +17,17 @@ export default async function CalendarPage() {
     .join("|");
 
   return (
-    <div className="layout-hybrid space-y-4">
-      <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-          Your Calendar
-        </h1>
-      </header>
-      <NotesCalendarSection key={notesKey} notes={notes} campaignToday={campaignToday} />
+    <div className="space-y-4">
+      <div className="layout-reading">
+        <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+            Your Calendar
+          </h1>
+        </header>
+      </div>
+      <div className="layout-hybrid">
+        <NotesCalendarSection key={notesKey} notes={notes} campaignToday={campaignToday} />
+      </div>
     </div>
   );
 }
