@@ -117,7 +117,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
             aria-label="Daily spiritual line"
           >
             <Sparkles className="size-4 shrink-0" aria-hidden />
-            <span>With You as guide, I am only an instrument.</span>
+            <span>તારે લઈને હું, હું તોહ નિમિત્ત માત્ર!</span>
             <span aria-hidden>✨</span>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { createClient } from "@/lib/supabase/server";
 
@@ -41,6 +42,7 @@ export async function saveTodaySwadhyayTopicAction(formData: FormData): Promise<
 
   revalidatePath("/swadhyay");
   revalidatePath("/admin/swadhyay");
+  redirect("/swadhyay");
 }
 
 export async function postSwadhyayCommentAction(topicId: string, body: string) {
