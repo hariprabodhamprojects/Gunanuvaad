@@ -18,9 +18,6 @@ export default async function SwadhyayPage() {
     <div className="layout-reading space-y-5">
       <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md">
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Swadhyay</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          એપમાં સૌ માટેનું દૈનિક સહિયારું મનન.
-        </p>
       </header>
 
       {!topic ? (

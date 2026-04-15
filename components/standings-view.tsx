@@ -83,37 +83,37 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 px-2">
-        <h1 className="text-3xl font-heading font-extrabold tracking-tight text-foreground">
-          Leaderboard
-        </h1>
-        
-        {/* Custom Segmented Control for Tabs */}
-        <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border shadow-inner">
-          <button
-            onClick={() => setTab("score")}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-semibold transition-all w-1/2 sm:w-auto",
-              tab === "score" 
-                ? "bg-background text-foreground shadow-sm ring-1 ring-border/50" 
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
-            )}
-          >
-            By Points
-          </button>
-          <button
-            onClick={() => setTab("streak")}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-semibold transition-all w-1/2 sm:w-auto",
-              tab === "streak" 
-                ? "bg-background text-foreground shadow-sm ring-1 ring-border/50" 
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
-            )}
-          >
-            By Streak
-          </button>
+      <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Leaderboard</h1>
+
+          {/* Custom segmented control */}
+          <div className="flex items-center rounded-xl border border-border bg-muted/60 p-1 shadow-inner">
+            <button
+              onClick={() => setTab("score")}
+              className={cn(
+                "w-1/2 rounded-lg px-6 py-2 text-sm font-semibold transition-colors sm:w-auto",
+                tab === "score"
+                  ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+                  : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+              )}
+            >
+              By Points
+            </button>
+            <button
+              onClick={() => setTab("streak")}
+              className={cn(
+                "w-1/2 rounded-lg px-6 py-2 text-sm font-semibold transition-colors sm:w-auto",
+                tab === "streak"
+                  ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+                  : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+              )}
+            >
+              By Streak
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
       {rows.length > 0 ? (
         <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both px-2 sm:mt-8">
