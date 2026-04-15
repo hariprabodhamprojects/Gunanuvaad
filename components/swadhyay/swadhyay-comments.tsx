@@ -42,7 +42,7 @@ function IconActionButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "inline-flex size-9 items-center justify-center rounded-full border text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
+        "inline-flex size-8 items-center justify-center rounded-full border text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100 sm:size-9",
         "disabled:pointer-events-none disabled:opacity-40",
         active
           ? "border-primary/40 bg-primary/10 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
@@ -74,7 +74,7 @@ function HeartLikeButton({
       aria-label={reacted ? "Remove like" : "Like"}
       aria-pressed={reacted}
       className={cn(
-        "group inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
+        "group inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100 sm:h-9 sm:px-3",
         "disabled:pointer-events-none disabled:opacity-40",
         reacted
           ? "border-primary/45 bg-primary/12 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
@@ -256,7 +256,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
   };
 
   return (
-    <div ref={listRef} className="space-y-5">
+    <div ref={listRef} className="space-y-3 sm:space-y-5">
       {pinnedComment ? (
         <Card
           data-comment-card
@@ -274,14 +274,14 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
         data-comment-card
         className="overflow-hidden border-border/80 bg-card/95 shadow-[0_8px_30px_rgba(15,23,42,0.06)]"
       >
-        <CardContent className="space-y-3 p-4 sm:p-5">
+        <CardContent className="space-y-2.5 p-3 sm:space-y-3 sm:p-5">
         <Textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write your reflection here..."
           maxLength={2000}
           disabled={pending}
-          className="min-h-[110px] resize-y text-foreground placeholder:text-foreground/50"
+          className="min-h-[90px] resize-y text-foreground placeholder:text-foreground/50 sm:min-h-[110px]"
         />
         <div className="flex items-center justify-between">
           <p className="text-xs text-foreground/65">{newComment.length}/2000</p>
@@ -293,7 +293,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
         </CardContent>
       </Card>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5 sm:space-y-3">
         {rows.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border/70 px-4 py-6 text-center text-sm text-muted-foreground">
             No comments yet. Be the first to write one.
@@ -309,23 +309,23 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
             <Card
               key={comment.id}
               data-comment-card
-              className="overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[0_10px_34px_rgba(15,23,42,0.07)] transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-[0_14px_40px_rgba(15,23,42,0.11)]"
+              className="overflow-hidden rounded-xl border-border/70 bg-card/95 shadow-[0_10px_34px_rgba(15,23,42,0.07)] transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-[0_14px_40px_rgba(15,23,42,0.11)] sm:rounded-2xl"
             >
-              <CardHeader className="mb-1 flex flex-row items-center gap-3 space-y-0 p-4 pb-0">
+              <CardHeader className="mb-0.5 flex flex-row items-center gap-2.5 space-y-0 p-3 pb-0 sm:mb-1 sm:gap-3 sm:p-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={comment.author_avatar_url}
                   alt=""
-                  className="size-10 rounded-full border border-border/60 object-cover"
+                  className="size-8 rounded-full border border-border/60 object-cover sm:size-10"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">{comment.author_display_name}</p>
+                  <p className="truncate text-sm font-semibold leading-tight text-foreground">{comment.author_display_name}</p>
                   <p className="text-xs text-foreground/70">{formatCommentTime(comment.created_at)}</p>
                 </div>
               </CardHeader>
 
               {isEditing ? (
-                <CardContent className="space-y-2 p-4 pt-2">
+                <CardContent className="space-y-2 p-3 pt-1.5 sm:p-4 sm:pt-2">
                   <Textarea
                     value={editingBody}
                     onChange={(e) => setEditingBody(e.target.value)}
@@ -353,9 +353,9 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                 </CardContent>
               ) : (
                 <>
-                  <CardContent className="space-y-4 p-4 pt-1 sm:p-5 sm:pt-2">
-                  <p className="whitespace-pre-wrap text-[15px] leading-7 text-foreground">{comment.body}</p>
-                  <div className="flex flex-wrap items-center justify-start gap-2 border-t border-border/60 pt-3 pb-1 sm:pb-2">
+                  <CardContent className="space-y-2.5 p-3 pt-1 sm:space-y-4 sm:p-5 sm:pt-2">
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-foreground sm:text-[15px] sm:leading-7">{comment.body}</p>
+                  <div className="flex flex-wrap items-center justify-start gap-1.5 border-t border-border/60 pt-2 pb-0.5 sm:gap-2 sm:pt-3 sm:pb-2">
                     <HeartLikeButton
                       reacted={comment.viewer_reacted}
                       count={comment.reaction_count}
@@ -402,14 +402,13 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                   </CardContent>
 
                   {isReplying ? (
-                    <div className="mt-0 space-y-2 border-t border-border/60 bg-muted/25 p-3 sm:p-4">
-                      <p className="text-xs font-medium text-primary">↳ Replying to {comment.author_display_name}</p>
+                    <div className="mt-0 space-y-2 border-t border-border/60 bg-muted/25 p-2.5 sm:p-4">
                       <Textarea
                         value={replyBody}
                         onChange={(e) => setReplyBody(e.target.value)}
                         maxLength={2000}
                         disabled={pending}
-                        className="min-h-[84px] bg-background text-foreground placeholder:text-foreground/50"
+                        className="min-h-[74px] bg-background text-foreground placeholder:text-foreground/50 sm:min-h-[84px]"
                         placeholder={`Write a reply to ${comment.author_display_name}...`}
                       />
                       <div className="flex justify-end gap-2">
@@ -434,18 +433,17 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                   ) : null}
 
                   {replies.length > 0 ? (
-                    <div className="space-y-3 border-t border-border/60 bg-muted/20 p-3 sm:p-4">
+                    <div className="space-y-2 border-t border-border/60 bg-muted/20 p-2.5 sm:space-y-3 sm:p-4">
                       {replies.map((reply) => {
                         const canEditReply = canEditOrDeleteComment(reply, currentUserId);
                         const isReplyEditing = editingId === reply.id;
                         return (
                           <Card
                             key={reply.id}
-                            className="rounded-xl border-border/70 bg-background/95 shadow-[0_4px_18px_rgba(15,23,42,0.04)]"
+                            className="rounded-lg border-border/70 bg-background/95 shadow-[0_4px_18px_rgba(15,23,42,0.04)] sm:rounded-xl"
                           >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-l-2 border-primary/35 p-3 pb-2">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-1.5 sm:p-3 sm:pb-2">
                               <div className="min-w-0">
-                                <p className="text-[11px] font-medium text-primary/90">↳ Reply to {comment.author_display_name}</p>
                                 <p className="truncate text-xs font-semibold tracking-tight text-foreground">{reply.author_display_name}</p>
                               </div>
                               <p className="text-[11px] text-foreground/70">
@@ -453,13 +451,13 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                               </p>
                             </CardHeader>
                             {isReplyEditing ? (
-                              <CardContent className="space-y-2 p-3 pt-0">
+                              <CardContent className="space-y-2 p-2.5 pt-0 sm:p-3 sm:pt-0">
                                 <Textarea
                                   value={editingBody}
                                   onChange={(e) => setEditingBody(e.target.value)}
                                   maxLength={2000}
                                   disabled={pending}
-                                  className="min-h-[84px]"
+                                  className="min-h-[74px] sm:min-h-[84px]"
                                 />
                                 <div className="flex justify-end gap-2">
                                   <Button
@@ -481,9 +479,9 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
                                 </div>
                               </CardContent>
                             ) : (
-                              <CardContent className="space-y-3 p-3 pt-0">
+                              <CardContent className="space-y-2 p-2.5 pt-0 sm:space-y-3 sm:p-3">
                                 <p className="whitespace-pre-wrap text-sm text-foreground">{reply.body}</p>
-                                <div className="flex flex-wrap items-center justify-start gap-2 border-t border-border/60 pt-2 pb-1">
+                                <div className="flex flex-wrap items-center justify-start gap-1.5 border-t border-border/60 pt-1.5 pb-0.5 sm:gap-2 sm:pt-2 sm:pb-1">
                                     <HeartLikeButton
                                       reacted={reply.viewer_reacted}
                                       count={reply.reaction_count}
