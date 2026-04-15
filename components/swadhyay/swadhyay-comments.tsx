@@ -46,7 +46,7 @@ function IconActionButton({
         "disabled:pointer-events-none disabled:opacity-40",
         active
           ? "border-primary/40 bg-primary/10 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
-          : "border-primary/20 bg-background/95 text-primary/70 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
+          : "border-primary/20 bg-background/95 text-primary/70 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
       )}
     >
       {icon}
@@ -78,7 +78,7 @@ function HeartLikeButton({
         "disabled:pointer-events-none disabled:opacity-40",
         reacted
           ? "border-primary/45 bg-primary/12 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
-          : "border-primary/20 bg-background/95 text-primary/70 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
+          : "border-primary/20 bg-background/95 text-primary/70 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
       )}
     >
       <Heart
@@ -309,7 +309,7 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
             <Card
               key={comment.id}
               data-comment-card
-              className="overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[0_10px_34px_rgba(15,23,42,0.07)] transition-[transform,box-shadow] duration-[200ms] ease-[var(--ease-out-standard)] hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(15,23,42,0.11)] motion-reduce:hover:translate-y-0"
+              className="overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[0_10px_34px_rgba(15,23,42,0.07)] transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-[0_14px_40px_rgba(15,23,42,0.11)]"
             >
               <CardHeader className="mb-1 flex flex-row items-center gap-3 space-y-0 p-4 pb-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

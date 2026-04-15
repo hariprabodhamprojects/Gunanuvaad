@@ -18,7 +18,7 @@ export default async function CalendarPage() {
 
   return (
     <div className="space-y-4">
-      <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-[transform,box-shadow] duration-[200ms] ease-[var(--ease-out-standard)] hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0">
+      <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md">
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Your Calendar</h1>
       </header>
       <NotesCalendarSection key={notesKey} notes={notes} campaignToday={campaignToday} />

@@ -43,7 +43,7 @@ function RosterMemberCard({
           <img
             src={member.avatar_url}
             alt=""
-            className="size-full object-cover transition-transform duration-[220ms] ease-[var(--ease-out-standard)] hover:scale-[1.03] motion-reduce:hover:scale-100"
+            className="size-full object-cover"
           />
         </button>
       </div>
