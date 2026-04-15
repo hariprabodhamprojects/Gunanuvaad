@@ -37,7 +37,7 @@ export default async function AppShellLayout({
   return (
     <div className="flex h-[100dvh] min-h-[100dvh] w-full min-w-0 flex-col overflow-hidden">
       <header className="glass-header sticky top-0 z-40 w-full min-w-0 shrink-0">
-        <div className="mx-auto flex w-full max-w-5xl min-w-0 items-center justify-between gap-2 px-3 py-2 sm:h-14 sm:gap-3 sm:px-4 sm:py-0">
+        <div className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-2 sm:h-14 sm:gap-3 sm:px-4 sm:py-0 lg:px-6 xl:px-8 2xl:px-10">
           <Link
             href="/home"
             className="shrink-0 font-heading text-base font-semibold tracking-tight sm:text-lg"
@@ -54,7 +54,7 @@ export default async function AppShellLayout({
           />
         </div>
       </header>
-      <main className="page-enter mx-auto flex min-h-0 w-full min-w-0 max-w-5xl flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-4">
+      <main className="page-enter flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-4 lg:px-6 xl:px-8 2xl:px-10">
         {children}
       </main>
       <AppBottomNav />
