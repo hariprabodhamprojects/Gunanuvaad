@@ -104,7 +104,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
             disabled={pending}
             onClick={onGoogle}
           >
-            {pending ? "પ્રમાણીકરણ ચાલી રહ્યું છે…" : "Google સાથે આગળ વધો"}
+            {pending ? "Authenticating..." : "Continue with Google"}
           </Button>
           <div
             ref={quoteRef}
@@ -117,7 +117,7 @@ export function LandingSplash({ redirectNext, errorMessage }: Props) {
             aria-label="Daily spiritual line"
           >
             <Sparkles className="size-4 shrink-0" aria-hidden />
-            <span>તારે લઈને હું, હું તો નિમિત માત્ર!</span>
+            <span>With You as guide, I am only an instrument.</span>
             <span aria-hidden>✨</span>
           </div>
         </div>

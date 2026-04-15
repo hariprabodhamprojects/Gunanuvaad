@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { saveTodaySwadhyayTopicAction } from "@/lib/swadhyay/actions";
 import { getTodaySwadhyayTopic } from "@/lib/swadhyay/queries";
@@ -15,6 +16,17 @@ export default async function AdminSwadhyayPage() {
     <div className="space-y-6">
       <header>
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Swadhyay</h1>
+        <div className="mt-3 inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/20 p-1">
+          <span className="rounded-md bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-sm">
+            Today
+          </span>
+          <Link
+            href="/swadhyay"
+            className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            Past
+          </Link>
+        </div>
       </header>
 
       <Card className="ring-border/60">
