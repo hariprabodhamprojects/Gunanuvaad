@@ -385,7 +385,7 @@ export function NotesCalendarSection({ notes, campaignToday }: Props) {
         </CardContent>
       </Card>
 
-      <div ref={detailRef} className="min-h-[8rem]">
+      <div ref={detailRef} className="min-h-[8rem] lg:mx-auto lg:w-full lg:max-w-4xl">
         {!hasAnyNotes ? (
           <p className="rounded-2xl border border-dashed border-border/80 bg-muted/15 px-4 py-14 text-center text-sm text-muted-foreground">
             You have not written any notes yet.

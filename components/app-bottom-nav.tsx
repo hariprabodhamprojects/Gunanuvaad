@@ -4,35 +4,8 @@ import { useLayoutEffect, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
-import { BarChart2, BookOpenText, CalendarDays, Home } from "lucide-react";
+import { appNavItems } from "@/lib/navigation/app-nav";
 import { cn } from "@/lib/utils";
-
-const items = [
-  {
-    href: "/home",
-    label: "Home",
-    icon: Home,
-    match: (p: string) => p === "/home" || p === "/" || p === "/pick",
-  },
-  {
-    href: "/standings",
-    label: "Standings",
-    icon: BarChart2,
-    match: (p: string) => p === "/standings" || p.startsWith("/standings/"),
-  },
-  {
-    href: "/swadhyay",
-    label: "Swadhyay",
-    icon: BookOpenText,
-    match: (p: string) => p === "/swadhyay" || p.startsWith("/swadhyay/"),
-  },
-  {
-    href: "/calendar",
-    label: "Calendar",
-    icon: CalendarDays,
-    match: (p: string) => p === "/calendar" || p.startsWith("/calendar/"),
-  },
-] as const;
 
 // ─── IMPORTANT ───────────────────────────────────────────────────────────────
 // Wrap {children} in your root layout to prevent content hiding under the nav:
@@ -89,7 +62,7 @@ export function AppBottomNav() {
   // ── Tab-switch animation ─────────────────────────────────────────────────
   useEffect(() => {
     if (reduceMotionRef.current) return;
-    const activeIndex = items.findIndex(({ match }) => match(pathname));
+    const activeIndex = appNavItems.findIndex(({ match }) => match(pathname));
     if (activeIndex === -1) return;
 
     const prevIndex = prevIndexRef.current;
@@ -121,7 +94,7 @@ export function AppBottomNav() {
   return (
     <nav
       aria-label="Primary navigation"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] lg:hidden"
     >
       <div
         ref={panelRef}
@@ -132,7 +105,7 @@ export function AppBottomNav() {
           "pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
         )}
       >
-        {items.map(({ href, label, icon: Icon, match }, i) => {
+        {appNavItems.map(({ href, label, icon: Icon, match }, i) => {
           const active = match(pathname);
           return (
             <Link

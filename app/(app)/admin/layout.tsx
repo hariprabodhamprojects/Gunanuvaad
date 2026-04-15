@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   ] as const;
 
   return (
-    <div className="space-y-6">
+    <div className="layout-wide space-y-6">
       <nav className="flex flex-wrap gap-2 border-b border-border/60 pb-3">
         {links.map(({ href, label }) => (
           <Link

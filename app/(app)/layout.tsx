@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppBottomNav } from "@/components/app-bottom-nav";
 import { AppHeaderNav } from "@/components/app-header-nav";
+import { AppSidebar } from "@/components/app-sidebar";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { requireCompleteProfile } from "@/lib/auth/require-complete-profile";
@@ -54,9 +55,12 @@ export default async function AppShellLayout({
           />
         </div>
       </header>
-      <main className="page-enter flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-4 lg:px-6 xl:px-8 2xl:px-10">
-        {children}
-      </main>
+      <div className="flex min-h-0 w-full flex-1">
+        <AppSidebar />
+        <main className="page-enter flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-4 lg:px-6 lg:py-7 lg:pb-8 xl:px-8 2xl:px-10">
+          {children}
+        </main>
+      </div>
       <AppBottomNav />
     </div>
   );

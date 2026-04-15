@@ -61,6 +61,10 @@
     --motion-fast: 140ms;
     --motion-base: 200ms;
     --motion-slow: 280ms;
+    --app-sidebar-width: 15rem;
+    --app-content-reading-max: 68rem;
+    --app-content-hybrid-max: 82rem;
+    --app-content-wide-max: 96rem;
   }
 
   * {
@@ -182,6 +186,24 @@
       radial-gradient(60% 50% at 0% 100%, var(--palette-mesh-3), transparent 50%),
       var(--palette-bg);
     background-attachment: fixed;
+  }
+
+  .layout-reading {
+    width: 100%;
+    max-width: var(--app-content-reading-max);
+    margin-inline: auto;
+  }
+
+  .layout-hybrid {
+    width: 100%;
+    max-width: var(--app-content-hybrid-max);
+    margin-inline: auto;
+  }
+
+  .layout-wide {
+    width: 100%;
+    max-width: var(--app-content-wide-max);
+    margin-inline: auto;
   }
 }
 

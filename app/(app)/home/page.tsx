@@ -32,7 +32,7 @@ export default async function HomePage() {
   const dailyCampaignStatus = await getDailyCampaignStatus(user.id);
 
   return (
-    <div className="space-y-5">
+    <div className="layout-reading space-y-5">
       <CampaignDayNotification userId={user.id} status={dailyCampaignStatus} />
       <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">

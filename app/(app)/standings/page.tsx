@@ -14,5 +14,9 @@ export default async function StandingsPage() {
     return <div className="py-16 text-center text-sm text-muted-foreground">Unavailable.</div>;
   }
 
-  return <StandingsView data={data} />;
+  return (
+    <div className="layout-reading">
+      <StandingsView data={data} />
+    </div>
+  );
 }
