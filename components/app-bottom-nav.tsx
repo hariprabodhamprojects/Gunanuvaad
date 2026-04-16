@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 // ─── IMPORTANT ───────────────────────────────────────────────────────────────
 // Wrap {children} in your root layout to prevent content hiding under the nav:
 //
-//   <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+//   <main className="pb-[calc(6.75rem+env(safe-area-inset-bottom))]">
 //     {children}
 //   </main>
 // ─────────────────────────────────────────────────────────────────────────────
@@ -102,7 +102,8 @@ export function AppBottomNav() {
           "pointer-events-none flex w-full items-center justify-around",
           "rounded-t-2xl border border-b-0 border-white/20 dark:border-white/10",
           "bg-white/80 dark:bg-black/80 backdrop-blur-xl",
-          "pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
+          // Extra padding above iPhone home indicator — safe area alone can feel tight
+          "pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]",
         )}
       >
         {appNavItems.map(({ href, label, icon: Icon, match }, i) => {
