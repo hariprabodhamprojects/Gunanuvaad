@@ -12,6 +12,7 @@ export type AdminAllowlistRow = {
 export type AdminNoteForApprovalRow = {
   note_id: string;
   campaign_date: string;
+  /** Full note text from `daily_notes.body` (RPC column name is historical). */
   body_preview: string;
   author_display_name: string;
   recipient_display_name: string;

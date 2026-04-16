@@ -1,6 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GhunosCopyBox } from "@/components/admin/ghunos-copy-box";
-import { fetchGhunosForRecipientExport } from "@/lib/admin/queries";
+import {
+  fetchAllowlistOverview,
+  fetchGhunosForRecipientExport,
+} from "@/lib/admin/queries";
+import type { AdminAllowlistRow } from "@/lib/admin/types";
 
 export const metadata = {
   title: "Ghunos export — Admin",
@@ -19,6 +23,64 @@ function makeReportText(rows: Awaited<ReturnType<typeof fetchGhunosForRecipientE
   return rows.map((r) => r.body.trim()).join("\n\n");
 }
 
+type RecipientOption = {
+  value: string;
+  label: string;
+  email: string;
+};
+
+/**
+ * Build an alphabetised list of recipients and group them by first character
+ * of their display name (or email fallback). Skips rows without any label.
+ */
+function groupRecipientsByFirstLetter(rows: AdminAllowlistRow[]): {
+  letter: string;
+  options: RecipientOption[];
+}[] {
+  const seen = new Set<string>();
+  const options: RecipientOption[] = [];
+
+  for (const row of rows) {
+    const name =
+      row.profile_display_name?.trim() ||
+      row.invite_display_name?.trim() ||
+      row.email.trim();
+    if (!name) continue;
+    // De-duplicate by email so the same person cannot appear twice.
+    const email = row.email.trim().toLowerCase();
+    if (!email || seen.has(email)) continue;
+    seen.add(email);
+    options.push({
+      // Submit the email: the RPC matches name/email via ILIKE, and email is
+      // the most unambiguous identifier we have.
+      value: email,
+      label: name,
+      email,
+    });
+  }
+
+  options.sort((a, b) =>
+    a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
+  );
+
+  const groups = new Map<string, RecipientOption[]>();
+  for (const opt of options) {
+    const first = opt.label.charAt(0).toUpperCase();
+    const letter = /[A-Z]/.test(first) ? first : "#";
+    const bucket = groups.get(letter) ?? [];
+    bucket.push(opt);
+    groups.set(letter, bucket);
+  }
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => {
+      if (a === "#") return 1;
+      if (b === "#") return -1;
+      return a.localeCompare(b);
+    })
+    .map(([letter, options]) => ({ letter, options }));
+}
+
 export default async function AdminGhunosExportPage({
   searchParams,
 }: {
@@ -31,14 +93,19 @@ export default async function AdminGhunosExportPage({
   const limit = Number(sp.limit ?? "1000");
   const lim = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 2000) : 1000;
 
-  const rows = q
-    ? await fetchGhunosForRecipientExport({
-        recipientQuery: q,
-        from: from || undefined,
-        to: to || undefined,
-        limit: lim,
-      })
-    : [];
+  const [rows, allowlist] = await Promise.all([
+    q
+      ? fetchGhunosForRecipientExport({
+          recipientQuery: q,
+          from: from || undefined,
+          to: to || undefined,
+          limit: lim,
+        })
+      : Promise.resolve([] as Awaited<ReturnType<typeof fetchGhunosForRecipientExport>>),
+    fetchAllowlistOverview(),
+  ]);
+
+  const recipientGroups = groupRecipientsByFirstLetter(allowlist);
 
   const reportText = makeReportText(rows);
 
@@ -54,13 +121,23 @@ export default async function AdminGhunosExportPage({
         </CardHeader>
         <CardContent className="pt-4">
           <form method="get" className="grid gap-3 sm:grid-cols-4">
-            <input
-              type="text"
+            <select
               name="q"
               defaultValue={q}
-              placeholder="Recipient name or email"
               className="h-10 rounded-lg border border-border/70 bg-background px-3 text-sm sm:col-span-2"
-            />
+              aria-label="Recipient"
+            >
+              <option value="">Select a recipient…</option>
+              {recipientGroups.map(({ letter, options }) => (
+                <optgroup key={letter} label={letter}>
+                  {options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
             <input
               type="date"
               name="from"
@@ -86,7 +163,7 @@ export default async function AdminGhunosExportPage({
 
       {!q ? (
         <p className="rounded-xl border border-dashed border-border/70 bg-muted/15 px-4 py-10 text-center text-sm text-muted-foreground">
-          Enter a recipient name/email and click Export.
+          Pick a recipient from the list and click Export.
         </p>
       ) : rows.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border/70 bg-muted/15 px-4 py-10 text-center text-sm text-muted-foreground">

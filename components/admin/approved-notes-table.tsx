@@ -26,7 +26,6 @@ export function ApprovedNotesTable({ rows }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterDate, setFilterDate] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
@@ -183,16 +182,13 @@ export function ApprovedNotesTable({ rows }: Props) {
             </thead>
             <tbody className="divide-y divide-border/40">
               {filtered.map((r) => {
-                const isExpanded = expandedId === r.note_id;
                 const isLoading = loadingId === r.note_id;
                 return (
-                  <>
                     <tr
                       key={r.note_id}
                       className={cn(
                         "transition-colors group",
                         r.is_approved ? "bg-muted/10" : "hover:bg-muted/20",
-                        isExpanded && "bg-muted/25"
                       )}
                     >
                       {/* Date */}
@@ -212,14 +208,11 @@ export function ApprovedNotesTable({ rows }: Props) {
                         {r.recipient_display_name}
                       </td>
 
-                      {/* Preview — click to expand */}
-                      <td className="px-4 py-3 hidden md:table-cell max-w-[260px]">
-                        <button
-                          onClick={() => setExpandedId(isExpanded ? null : r.note_id)}
-                          className="text-left text-[13px] text-foreground/70 italic truncate w-full hover:text-foreground transition-colors"
-                        >
-                          "{r.body_preview}"
-                        </button>
+                      {/* Preview — full body from API; wrap for long notes */}
+                      <td className="px-4 py-3 hidden md:table-cell min-w-[12rem] max-w-[min(28rem,40vw)] align-top">
+                        <p className="text-left text-[13px] text-foreground/80 italic whitespace-pre-wrap break-words leading-relaxed">
+                          &ldquo;{r.body_preview}&rdquo;
+                        </p>
                       </td>
 
                       {/* Status badge */}
@@ -266,18 +259,6 @@ export function ApprovedNotesTable({ rows }: Props) {
                         </div>
                       </td>
                     </tr>
-
-                    {/* Expanded full preview row */}
-                    {isExpanded && (
-                      <tr key={`${r.note_id}-expanded`} className="bg-muted/20">
-                        <td colSpan={6} className="px-6 py-3">
-                          <p className="text-[13px] italic text-foreground/80 leading-relaxed whitespace-pre-wrap border-l-2 border-primary/40 pl-3">
-                            "{r.body_preview}"
-                          </p>
-                        </td>
-                      </tr>
-                    )}
-                  </>
                 );
               })}
 
