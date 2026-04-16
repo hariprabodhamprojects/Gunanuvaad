@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
-import { Heart, Pin, Send, X } from "lucide-react";
+import { Heart, Pencil, Pin, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,6 +85,39 @@ function MetaButton({
       )}
     >
       {children}
+    </button>
+  );
+}
+
+/** Small square icon button used in the meta row (edit, delete). */
+function MetaIconButton({
+  icon,
+  label,
+  disabled,
+  onClick,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  disabled?: boolean;
+  onClick: () => void;
+  tone?: "neutral" | "danger";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className={cn(
+        "inline-flex size-6 items-center justify-center rounded-full transition-colors disabled:opacity-40",
+        tone === "danger"
+          ? "text-foreground/55 hover:bg-destructive/10 hover:text-destructive"
+          : "text-foreground/55 hover:bg-muted hover:text-foreground",
+      )}
+    >
+      {icon}
     </button>
   );
 }
@@ -378,17 +411,21 @@ export function SwadhyayComments({
                 </MetaButton>
               ) : null}
               {canEdit ? (
-                <>
-                  <MetaButton disabled={pending} onClick={() => startEdit(comment)}>
-                    Edit
-                  </MetaButton>
-                  <MetaButton
+                <div className="flex items-center gap-0.5">
+                  <MetaIconButton
+                    icon={<Pencil className="size-3.5" aria-hidden />}
+                    label="Edit"
+                    disabled={pending}
+                    onClick={() => startEdit(comment)}
+                  />
+                  <MetaIconButton
+                    icon={<Trash2 className="size-3.5" aria-hidden />}
+                    label="Delete"
+                    tone="danger"
                     disabled={pending}
                     onClick={() => removeComment(comment.id)}
-                  >
-                    Delete
-                  </MetaButton>
-                </>
+                  />
+                </div>
               ) : null}
               {isOrganizer && depth === 0 ? (
                 <MetaButton
