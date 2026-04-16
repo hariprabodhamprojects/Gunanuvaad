@@ -1,12 +1,17 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
-import { Heart, MessageCircle, Pencil, Pin, Send, Trash2, X } from "lucide-react";
+import { Heart, Pin, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
   deleteSwadhyayCommentAction,
@@ -19,82 +24,6 @@ import {
 import type { SwadhyayComment, SwadhyayTopic } from "@/lib/swadhyay/types";
 import { cn } from "@/lib/utils";
 
-function IconActionButton({
-  icon,
-  label,
-  active,
-  count,
-  disabled,
-  onClick,
-}: {
-  icon: ReactNode;
-  label: string;
-  active?: boolean;
-  count?: number;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      aria-pressed={active}
-      className={cn(
-        "inline-flex size-8 items-center justify-center rounded-full border text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100 sm:size-9",
-        "disabled:pointer-events-none disabled:opacity-40",
-        active
-          ? "border-primary/40 bg-primary/10 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
-          : "border-primary/20 bg-background/95 text-primary/70 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
-      )}
-    >
-      {icon}
-      {count && count > 0 ? <span className="sr-only">{count}</span> : null}
-    </button>
-  );
-}
-
-function HeartLikeButton({
-  reacted,
-  count,
-  disabled,
-  onClick,
-}: {
-  reacted: boolean;
-  count: number;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={reacted ? "Remove like" : "Like"}
-      aria-pressed={reacted}
-      className={cn(
-        "group inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition-all duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100 sm:h-9 sm:px-3",
-        "disabled:pointer-events-none disabled:opacity-40",
-        reacted
-          ? "border-primary/45 bg-primary/12 text-primary shadow-[0_8px_20px_rgba(250,115,22,0.22)]"
-          : "border-primary/20 bg-background/95 text-primary/70 hover:border-primary/40 hover:bg-primary/5 hover:text-primary",
-      )}
-    >
-      <Heart
-        className={cn(
-          "size-[1rem] shrink-0 transition-[transform,fill]",
-          reacted && "scale-110",
-        )}
-        strokeWidth={reacted ? 0 : 2}
-        fill={reacted ? "currentColor" : "none"}
-        aria-hidden
-      />
-      {count > 0 ? <span className="min-w-[1ch] tabular-nums leading-none">{count}</span> : null}
-    </button>
-  );
-}
-
 type Props = {
   topic: SwadhyayTopic;
   currentUserId: string;
@@ -104,15 +33,6 @@ type Props = {
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
 
-function formatCommentTime(value: string) {
-  return new Date(value).toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 function canEditOrDeleteComment(comment: SwadhyayComment, currentUserId: string) {
   if (comment.author_id !== currentUserId) return false;
   const created = new Date(comment.created_at).getTime();
@@ -120,7 +40,99 @@ function canEditOrDeleteComment(comment: SwadhyayComment, currentUserId: string)
   return Date.now() - created <= EDIT_WINDOW_MS;
 }
 
-export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }: Props) {
+/** Instagram-style relative time: 1m, 4h, 2d, 1w; older falls back to date. */
+function formatRelativeTime(value: string) {
+  const then = new Date(value).getTime();
+  if (!Number.isFinite(then)) return "";
+  const diff = Math.max(0, Date.now() - then);
+  const m = Math.floor(diff / 60_000);
+  if (m < 1) return "now";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  const w = Math.floor(d / 7);
+  if (w < 5) return `${w}w`;
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/** Small text-only action button used in the meta row below each comment. */
+function MetaButton({
+  children,
+  disabled,
+  onClick,
+  emphasis,
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  onClick: () => void;
+  emphasis?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "text-[11px] font-semibold uppercase tracking-wide transition-colors disabled:opacity-40",
+        emphasis
+          ? "text-primary hover:text-primary/80"
+          : "text-foreground/55 hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Compact heart button shown to the right of each comment body. */
+function HeartButton({
+  reacted,
+  count,
+  disabled,
+  onClick,
+  size = "md",
+}: {
+  reacted: boolean;
+  count: number;
+  disabled: boolean;
+  onClick: () => void;
+  size?: "md" | "sm";
+}) {
+  const iconSize = size === "sm" ? "size-[14px]" : "size-[16px]";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={reacted ? "Remove like" : "Like"}
+      aria-pressed={reacted}
+      className={cn(
+        "group flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-md p-1 text-[10px] font-semibold tabular-nums transition-transform active:scale-90 disabled:opacity-40 motion-reduce:active:scale-100",
+        reacted ? "text-primary" : "text-foreground/55 hover:text-foreground",
+      )}
+    >
+      <Heart
+        className={cn(iconSize, "transition-transform", reacted && "scale-110")}
+        strokeWidth={reacted ? 0 : 2}
+        fill={reacted ? "currentColor" : "none"}
+        aria-hidden
+      />
+      {count > 0 ? <span>{count}</span> : null}
+    </button>
+  );
+}
+
+export function SwadhyayComments({
+  topic,
+  currentUserId,
+  isOrganizer,
+  comments,
+}: Props) {
   const router = useRouter();
   const listRef = useRef<HTMLDivElement>(null);
   const [newComment, setNewComment] = useState("");
@@ -128,23 +140,28 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
   const [editingBody, setEditingBody] = useState("");
   const [replyToId, setReplyToId] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [pending, startTransition] = useTransition();
 
-  const rows = useMemo(() => comments, [comments]);
-  const topLevel = useMemo(() => rows.filter((c) => !c.parent_comment_id), [rows]);
+  const topLevel = useMemo(
+    () => comments.filter((c) => !c.parent_comment_id),
+    [comments],
+  );
   const repliesByParent = useMemo(() => {
     const map = new Map<string, SwadhyayComment[]>();
-    for (const c of rows) {
+    for (const c of comments) {
       if (!c.parent_comment_id) continue;
       const arr = map.get(c.parent_comment_id) ?? [];
       arr.push(c);
       map.set(c.parent_comment_id, arr);
     }
     return map;
-  }, [rows]);
+  }, [comments]);
   const pinnedComment = useMemo(
-    () => rows.find((c) => c.id === topic.pinned_comment_id) ?? null,
-    [rows, topic.pinned_comment_id],
+    () => comments.find((c) => c.id === topic.pinned_comment_id) ?? null,
+    [comments, topic.pinned_comment_id],
   );
 
   useLayoutEffect(() => {
@@ -152,24 +169,24 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     if (!root) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) {
-      gsap.set("[data-comment-card]", { opacity: 1, y: 0 });
+      gsap.set("[data-comment-row]", { opacity: 1, y: 0 });
       return;
     }
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        "[data-comment-card]",
-        { opacity: 0, y: 18 },
+        "[data-comment-row]",
+        { opacity: 0, y: 10 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.24,
+          duration: 0.22,
           ease: "power3.out",
-          stagger: 0.04,
+          stagger: 0.025,
         },
       );
     }, root);
     return () => ctx.revert();
-  }, [rows.length]);
+  }, [comments.length]);
 
   const submitNew = () => {
     startTransition(async () => {
@@ -194,6 +211,11 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
       }
       setReplyBody("");
       setReplyToId(null);
+      setExpandedReplies((prev) => {
+        const next = new Set(prev);
+        next.add(replyToId);
+        return next;
+      });
       toast.success("Reply posted.");
       router.refresh();
     });
@@ -255,269 +277,277 @@ export function SwadhyayComments({ topic, currentUserId, isOrganizer, comments }
     });
   };
 
-  return (
-    <div ref={listRef} className="space-y-3 sm:space-y-5">
-      {pinnedComment ? (
-        <Card
-          data-comment-card
-          className="overflow-hidden border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent shadow-[0_8px_28px_rgba(250,115,22,0.12)]"
-        >
-          <CardContent className="p-4">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">Pinned by admin</p>
-            <p className="text-sm font-semibold text-foreground">{pinnedComment.author_display_name}</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{pinnedComment.body}</p>
-          </CardContent>
-        </Card>
-      ) : null}
+  const toggleRepliesExpanded = (parentId: string) => {
+    setExpandedReplies((prev) => {
+      const next = new Set(prev);
+      if (next.has(parentId)) next.delete(parentId);
+      else next.add(parentId);
+      return next;
+    });
+  };
 
-      <Card
-        data-comment-card
-        className="overflow-hidden border-border/80 bg-card/95 shadow-[0_8px_30px_rgba(15,23,42,0.06)]"
-      >
-        <CardContent className="space-y-2.5 p-3 sm:space-y-3 sm:p-5">
+  // ── Renderers ───────────────────────────────────────────────────────────
+
+  const renderInlineEditor = (size: "md" | "sm") => (
+    <div className="mt-1 space-y-1.5" data-comment-edit>
+      <Textarea
+        value={editingBody}
+        onChange={(e) => setEditingBody(e.target.value)}
+        maxLength={2000}
+        disabled={pending}
+        className={cn(
+          size === "sm" ? "min-h-[58px] text-sm" : "min-h-[64px]",
+          "rounded-lg",
+        )}
+      />
+      <div className="flex items-center justify-end gap-1.5">
+        <button
+          type="button"
+          onClick={() => {
+            setEditingId(null);
+            setEditingBody("");
+          }}
+          disabled={pending}
+          className="inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold text-foreground/60 hover:text-foreground disabled:opacity-40"
+        >
+          <X className="size-3.5" aria-hidden />
+          Cancel
+        </button>
+        <Button
+          size="sm"
+          onClick={saveEdit}
+          disabled={pending || !editingBody.trim()}
+          className="h-7 rounded-full px-3 text-[11px]"
+        >
+          Save
+        </Button>
+      </div>
+    </div>
+  );
+
+  /** Single comment (top-level or reply). Tight flex row, Instagram-style. */
+  const renderCommentRow = (comment: SwadhyayComment, depth: 0 | 1) => {
+    const canEdit = canEditOrDeleteComment(comment, currentUserId);
+    const isEditing = editingId === comment.id;
+    const isReplying = replyToId === comment.id;
+    const isPinned = topic.pinned_comment_id === comment.id;
+    const avatarSize = depth === 0 ? "size-8" : "size-7";
+    return (
+      <div className="flex items-start gap-2.5 sm:gap-3" data-comment-row>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={comment.author_avatar_url}
+          alt=""
+          className={cn(
+            "shrink-0 rounded-full border border-border/60 object-cover",
+            avatarSize,
+          )}
+        />
+        <div className="min-w-0 flex-1">
+          {isEditing ? (
+            renderInlineEditor(depth === 0 ? "md" : "sm")
+          ) : (
+            <p className="whitespace-pre-wrap break-words text-[13.5px] leading-5 text-foreground sm:text-sm sm:leading-6">
+              <span className="mr-1.5 font-semibold">
+                {comment.author_display_name}
+              </span>
+              <span>{comment.body}</span>
+            </p>
+          )}
+          {!isEditing ? (
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="text-[11px] text-foreground/50">
+                {formatRelativeTime(comment.created_at)}
+              </span>
+              {comment.reaction_count > 0 ? (
+                <span className="text-[11px] font-semibold text-foreground/65">
+                  {comment.reaction_count}{" "}
+                  {comment.reaction_count === 1 ? "like" : "likes"}
+                </span>
+              ) : null}
+              {/* Replies only originate from top-level comments */}
+              {depth === 0 && comment.author_id !== currentUserId ? (
+                <MetaButton
+                  disabled={pending}
+                  onClick={() => {
+                    setReplyToId(isReplying ? null : comment.id);
+                    if (isReplying) setReplyBody("");
+                  }}
+                >
+                  {isReplying ? "Cancel" : "Reply"}
+                </MetaButton>
+              ) : null}
+              {canEdit ? (
+                <>
+                  <MetaButton disabled={pending} onClick={() => startEdit(comment)}>
+                    Edit
+                  </MetaButton>
+                  <MetaButton
+                    disabled={pending}
+                    onClick={() => removeComment(comment.id)}
+                  >
+                    Delete
+                  </MetaButton>
+                </>
+              ) : null}
+              {isOrganizer && depth === 0 ? (
+                <MetaButton
+                  disabled={pending}
+                  onClick={() => togglePin(comment.id)}
+                  emphasis={isPinned}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <Pin
+                      className="size-3"
+                      strokeWidth={isPinned ? 2.5 : 2}
+                      aria-hidden
+                    />
+                    {isPinned ? "Unpin" : "Pin"}
+                  </span>
+                </MetaButton>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+        {!isEditing ? (
+          <HeartButton
+            reacted={comment.viewer_reacted}
+            count={comment.reaction_count}
+            disabled={pending}
+            onClick={() => toggleReaction(comment.id)}
+            size={depth === 0 ? "md" : "sm"}
+          />
+        ) : null}
+      </div>
+    );
+  };
+
+  return (
+    <div ref={listRef} className="divide-y divide-border/40">
+      {/* Composer */}
+      <div className="pb-3">
         <Textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Write your reflection here..."
+          placeholder="Add a comment…"
           maxLength={2000}
           disabled={pending}
-          className="min-h-[90px] resize-y text-foreground placeholder:text-foreground/50 sm:min-h-[110px]"
+          className="min-h-[44px] resize-none border-border/60 bg-background/80 text-sm placeholder:text-foreground/45"
         />
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-foreground/65">{newComment.length}/2000</p>
-          <Button className="h-9 rounded-full px-4" onClick={submitNew} disabled={pending || !newComment.trim()}>
-            <Send className="mr-1 size-4" aria-hidden />
+        <div className="mt-1.5 flex items-center justify-between">
+          <span className="text-[10px] text-foreground/45 tabular-nums">
+            {newComment.length}/2000
+          </span>
+          <Button
+            size="sm"
+            className="h-7 rounded-full px-3 text-[11px]"
+            onClick={submitNew}
+            disabled={pending || !newComment.trim()}
+          >
+            <Send className="mr-1 size-3.5" aria-hidden />
             Post
           </Button>
         </div>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-2.5 sm:space-y-3">
-        {rows.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border/70 px-4 py-6 text-center text-sm text-muted-foreground">
-            No comments yet. Be the first to write one.
-          </p>
-        ) : null}
-
-        {topLevel.map((comment) => {
-          const canEdit = canEditOrDeleteComment(comment, currentUserId);
-          const isEditing = editingId === comment.id;
-          const replies = repliesByParent.get(comment.id) ?? [];
-          const isReplying = replyToId === comment.id;
-          return (
-            <Card
-              key={comment.id}
-              data-comment-card
-              className="overflow-hidden rounded-xl border-border/70 bg-card/95 shadow-[0_10px_34px_rgba(15,23,42,0.07)] transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-[0_14px_40px_rgba(15,23,42,0.11)] sm:rounded-2xl"
-            >
-              <CardHeader className="mb-0.5 flex flex-row items-center gap-2.5 space-y-0 p-3 pb-0 sm:mb-1 sm:gap-3 sm:p-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={comment.author_avatar_url}
-                  alt=""
-                  className="size-8 rounded-full border border-border/60 object-cover sm:size-10"
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold leading-tight text-foreground">{comment.author_display_name}</p>
-                  <p className="text-xs text-foreground/70">{formatCommentTime(comment.created_at)}</p>
-                </div>
-              </CardHeader>
-
-              {isEditing ? (
-                <CardContent className="space-y-2 p-3 pt-1.5 sm:p-4 sm:pt-2">
-                  <Textarea
-                    value={editingBody}
-                    onChange={(e) => setEditingBody(e.target.value)}
-                    maxLength={2000}
-                    disabled={pending}
-                    className="min-h-[90px]"
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditingBody("");
-                      }}
-                      disabled={pending}
-                    >
-                      <X className="mr-1 size-4" aria-hidden />
-                      Cancel
-                    </Button>
-                    <Button onClick={saveEdit} disabled={pending || !editingBody.trim()}>
-                      <Send className="mr-1 size-4" aria-hidden />
-                      Save
-                    </Button>
-                  </div>
-                </CardContent>
-              ) : (
-                <>
-                  <CardContent className="space-y-2.5 p-3 pt-1 sm:space-y-4 sm:p-5 sm:pt-2">
-                  <p className="whitespace-pre-wrap text-sm leading-6 text-foreground sm:text-[15px] sm:leading-7">{comment.body}</p>
-                  <div className="flex flex-wrap items-center justify-start gap-1.5 border-t border-border/60 pt-2 pb-0.5 sm:gap-2 sm:pt-3 sm:pb-2">
-                    <HeartLikeButton
-                      reacted={comment.viewer_reacted}
-                      count={comment.reaction_count}
-                      disabled={pending}
-                      onClick={() => toggleReaction(comment.id)}
-                    />
-                    {comment.author_id !== currentUserId ? (
-                    <IconActionButton
-                        icon={<MessageCircle className="size-[18px]" aria-hidden />}
-                      label="Reply"
-                      disabled={pending}
-                      onClick={() => {
-                        setReplyToId(isReplying ? null : comment.id);
-                        if (isReplying) setReplyBody("");
-                      }}
-                    />
-                    ) : null}
-                    {isOrganizer ? (
-                      <IconActionButton
-                        icon={<Pin className="size-[18px]" aria-hidden />}
-                        label={topic.pinned_comment_id === comment.id ? "Unpin" : "Pin"}
-                        disabled={pending}
-                        active={topic.pinned_comment_id === comment.id}
-                        onClick={() => togglePin(comment.id)}
-                      />
-                    ) : null}
-                    {canEdit ? (
-                      <>
-                        <IconActionButton
-                          icon={<Pencil className="size-[18px]" aria-hidden />}
-                          label="Edit"
-                          disabled={pending}
-                          onClick={() => startEdit(comment)}
-                        />
-                        <IconActionButton
-                          icon={<Trash2 className="size-[18px]" aria-hidden />}
-                          label="Delete"
-                          disabled={pending}
-                          onClick={() => removeComment(comment.id)}
-                        />
-                      </>
-                    ) : null}
-                  </div>
-                  </CardContent>
-
-                  {isReplying ? (
-                    <div className="mt-0 space-y-2 border-t border-border/60 bg-muted/25 p-2.5 sm:p-4">
-                      <Textarea
-                        value={replyBody}
-                        onChange={(e) => setReplyBody(e.target.value)}
-                        maxLength={2000}
-                        disabled={pending}
-                        className="min-h-[74px] bg-background text-foreground placeholder:text-foreground/50 sm:min-h-[84px]"
-                        placeholder={`Write a reply to ${comment.author_display_name}...`}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={pending}
-                          onClick={() => {
-                            setReplyToId(null);
-                            setReplyBody("");
-                          }}
-                        >
-                          <X className="mr-1 size-4" aria-hidden />
-                          Cancel
-                        </Button>
-                        <Button size="sm" disabled={pending || !replyBody.trim()} onClick={submitReply}>
-                          <Send className="mr-1 size-4" aria-hidden />
-                          Send reply
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {replies.length > 0 ? (
-                    <div className="space-y-2 border-t border-border/60 bg-muted/20 p-2.5 sm:space-y-3 sm:p-4">
-                      {replies.map((reply) => {
-                        const canEditReply = canEditOrDeleteComment(reply, currentUserId);
-                        const isReplyEditing = editingId === reply.id;
-                        return (
-                          <Card
-                            key={reply.id}
-                            className="rounded-lg border-border/70 bg-background/95 shadow-[0_4px_18px_rgba(15,23,42,0.04)] sm:rounded-xl"
-                          >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2.5 pb-1.5 sm:p-3 sm:pb-2">
-                              <div className="min-w-0">
-                                <p className="truncate text-xs font-semibold tracking-tight text-foreground">{reply.author_display_name}</p>
-                              </div>
-                              <p className="text-[11px] text-foreground/70">
-                                {formatCommentTime(reply.created_at)}
-                              </p>
-                            </CardHeader>
-                            {isReplyEditing ? (
-                              <CardContent className="space-y-2 p-2.5 pt-0 sm:p-3 sm:pt-0">
-                                <Textarea
-                                  value={editingBody}
-                                  onChange={(e) => setEditingBody(e.target.value)}
-                                  maxLength={2000}
-                                  disabled={pending}
-                                  className="min-h-[74px] sm:min-h-[84px]"
-                                />
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditingId(null);
-                                      setEditingBody("");
-                                    }}
-                                    disabled={pending}
-                                  >
-                                    <X className="mr-1 size-4" aria-hidden />
-                                    Cancel
-                                  </Button>
-                                  <Button size="sm" onClick={saveEdit} disabled={pending || !editingBody.trim()}>
-                                    <Send className="mr-1 size-4" aria-hidden />
-                                    Save
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            ) : (
-                              <CardContent className="space-y-2 p-2.5 pt-0 sm:space-y-3 sm:p-3">
-                                <p className="whitespace-pre-wrap text-sm text-foreground">{reply.body}</p>
-                                <div className="flex flex-wrap items-center justify-start gap-1.5 border-t border-border/60 pt-1.5 pb-0.5 sm:gap-2 sm:pt-2 sm:pb-1">
-                                    <HeartLikeButton
-                                      reacted={reply.viewer_reacted}
-                                      count={reply.reaction_count}
-                                      disabled={pending}
-                                      onClick={() => toggleReaction(reply.id)}
-                                    />
-                                    {canEditReply ? (
-                                      <>
-                                        <IconActionButton
-                                          icon={<Pencil className="size-[18px]" aria-hidden />}
-                                          label="Edit"
-                                          disabled={pending}
-                                          onClick={() => startEdit(reply)}
-                                        />
-                                        <IconActionButton
-                                          icon={<Trash2 className="size-[18px]" aria-hidden />}
-                                          label="Delete"
-                                          disabled={pending}
-                                          onClick={() => removeComment(reply.id)}
-                                        />
-                                      </>
-                                    ) : null}
-                                </div>
-                              </CardContent>
-                            )}
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  ) : null}
-                </>
-              )}
-            </Card>
-          );
-        })}
       </div>
+
+      {/* Pinned (Instagram doesn't use a full card; keep it subtle) */}
+      {pinnedComment ? (
+        <div className="rounded-md bg-primary/5 px-2 py-2.5">
+          <p className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            <Pin className="size-3" aria-hidden /> Pinned
+          </p>
+          {renderCommentRow(pinnedComment, 0)}
+        </div>
+      ) : null}
+
+      {/* Feed */}
+      {topLevel.length === 0 ? (
+        <p className="py-8 text-center text-xs text-muted-foreground">
+          No comments yet. Be the first to write one.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border/30">
+          {topLevel.map((comment) => {
+            const replies = repliesByParent.get(comment.id) ?? [];
+            const isExpanded = expandedReplies.has(comment.id);
+            const isReplying = replyToId === comment.id;
+            return (
+              <li key={comment.id} className="py-3">
+                {renderCommentRow(comment, 0)}
+
+                {/* Reply composer */}
+                {isReplying ? (
+                  <div
+                    className="mt-2 ml-10 rounded-lg border border-border/50 bg-muted/25 p-2 sm:ml-11"
+                    data-comment-edit
+                  >
+                    <Textarea
+                      value={replyBody}
+                      onChange={(e) => setReplyBody(e.target.value)}
+                      maxLength={2000}
+                      disabled={pending}
+                      className="min-h-[52px] resize-none border-0 bg-transparent p-1 text-[13.5px] shadow-none focus-visible:ring-0 sm:text-sm"
+                      placeholder={`Reply to ${comment.author_display_name}…`}
+                      autoFocus
+                    />
+                    <div className="mt-1 flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReplyToId(null);
+                          setReplyBody("");
+                        }}
+                        disabled={pending}
+                        className="inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold text-foreground/60 hover:text-foreground disabled:opacity-40"
+                      >
+                        Cancel
+                      </button>
+                      <Button
+                        size="sm"
+                        disabled={pending || !replyBody.trim()}
+                        onClick={submitReply}
+                        className="h-7 rounded-full px-3 text-[11px]"
+                      >
+                        <Send className="mr-1 size-3.5" aria-hidden />
+                        Send
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Replies collapsed toggle */}
+                {replies.length > 0 ? (
+                  <div className="ml-10 mt-2 sm:ml-11">
+                    <button
+                      type="button"
+                      onClick={() => toggleRepliesExpanded(comment.id)}
+                      className="flex items-center gap-2 text-[11px] font-semibold text-foreground/55 transition-colors hover:text-foreground"
+                    >
+                      <span
+                        className="inline-block h-px w-6 bg-border"
+                        aria-hidden
+                      />
+                      {isExpanded
+                        ? "Hide replies"
+                        : `View ${replies.length} ${replies.length === 1 ? "reply" : "replies"}`}
+                    </button>
+
+                    {isExpanded ? (
+                      <ul className="mt-2 space-y-3">
+                        {replies.map((reply) => (
+                          <li key={reply.id}>
+                            {renderCommentRow(reply, 1)}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
