@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -21,6 +22,7 @@ import {
   replySwadhyayCommentAction,
   toggleSwadhyayCommentReactionAction,
 } from "@/lib/swadhyay/actions";
+import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { SwadhyayComment, SwadhyayTopic } from "@/lib/swadhyay/types";
 import { cn } from "@/lib/utils";
 
@@ -220,6 +222,64 @@ export function SwadhyayComments({
     }, root);
     return () => ctx.revert();
   }, [comments.length]);
+
+  // ── Live updates ─────────────────────────────────────────────────────────
+  // Subscribe to changes on this topic's comments, reactions, and pin state.
+  // Any change re-fetches the SSR-rendered `comments` prop by calling
+  // `router.refresh()`, which is debounced below so bursts collapse into
+  // a single refresh.
+  useEffect(() => {
+    if (!topic.id) return;
+    const supabase = createSupabaseBrowserClient();
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (refreshTimer) return;
+      refreshTimer = setTimeout(() => {
+        refreshTimer = null;
+        router.refresh();
+      }, 150);
+    };
+
+    const channel = supabase
+      .channel(`swadhyay-topic-${topic.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "swadhyay_comments",
+          filter: `topic_id=eq.${topic.id}`,
+        },
+        scheduleRefresh,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "swadhyay_topics",
+          filter: `id=eq.${topic.id}`,
+        },
+        scheduleRefresh,
+      )
+      // Reactions don't carry topic_id, so we listen broadly and let the server
+      // fetch decide what's relevant. Volume is low in practice.
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "swadhyay_comment_reactions",
+        },
+        scheduleRefresh,
+      )
+      .subscribe();
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [topic.id, router]);
 
   const submitNew = () => {
     startTransition(async () => {
