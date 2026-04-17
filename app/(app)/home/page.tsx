@@ -32,7 +32,7 @@ export default async function HomePage() {
   const dailyCampaignStatus = await getDailyCampaignStatus(user.id);
 
   return (
-    <div className="layout-reading space-y-5">
+    <div className="layout-reading space-y-6">
       <CampaignDayNotification userId={user.id} status={dailyCampaignStatus} />
       <h1 className="px-1 font-heading text-2xl font-semibold tracking-tight">
         Jay Swaminarayan

@@ -41,7 +41,7 @@ export default async function AppShellLayout({
         <div className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-2 sm:h-14 sm:gap-3 sm:px-4 sm:py-0 lg:px-6 xl:px-8 2xl:px-10">
           <Link
             href="/home"
-            className="shrink-0 font-heading text-base font-semibold tracking-tight text-primary/85 sm:text-lg"
+            className="shrink-0 font-heading text-lg font-semibold tracking-tight text-primary/85 sm:text-xl"
           >
             MananChintan
           </Link>
