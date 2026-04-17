@@ -15,7 +15,7 @@ export default async function AdminSwadhyayPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Swadhyay</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-3xl">Swadhyay</h1>
         <div className="mt-3 inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/20 p-1">
           <span className="rounded-md bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-sm">
             Today

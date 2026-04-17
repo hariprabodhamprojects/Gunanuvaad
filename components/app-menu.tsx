@@ -110,11 +110,11 @@ export function AppMenu({
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-2">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Score</p>
-                    <p className="font-heading text-lg font-semibold">{totalScore}</p>
+                    <p className="font-heading text-lg font-semibold tabular-nums text-primary">{totalScore}</p>
                   </div>
                   <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-2">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Streak</p>
-                    <p className="font-heading text-lg font-semibold">{totalStreak}</p>
+                    <p className="font-heading text-lg font-semibold tabular-nums text-primary">{totalStreak}</p>
                   </div>
                 </div>
                 <Link

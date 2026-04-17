@@ -19,7 +19,7 @@ export default async function AdminInvitesPage() {
     <div className="space-y-6">
       <AdminInvitesRealtime />
       <header>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Invite list</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-3xl">Invite list</h1>
       </header>
 
       <div className="grid grid-cols-3 gap-3 sm:max-w-xl">
@@ -28,7 +28,7 @@ export default async function AdminInvitesPage() {
             <CardTitle className="text-xs font-medium text-muted-foreground">Invited</CardTitle>
           </CardHeader>
           <CardContent className="pb-3 pt-0">
-            <p className="font-heading text-2xl font-semibold tabular-nums">{total}</p>
+            <p className="font-heading text-2xl font-semibold tabular-nums text-primary">{total}</p>
           </CardContent>
         </Card>
         <Card className="ring-border/50">
@@ -36,7 +36,7 @@ export default async function AdminInvitesPage() {
             <CardTitle className="text-xs font-medium text-muted-foreground">Signed up</CardTitle>
           </CardHeader>
           <CardContent className="pb-3 pt-0">
-            <p className="font-heading text-2xl font-semibold tabular-nums">{signedUp}</p>
+            <p className="font-heading text-2xl font-semibold tabular-nums text-primary">{signedUp}</p>
           </CardContent>
         </Card>
         <Card className="ring-border/50">
@@ -44,7 +44,7 @@ export default async function AdminInvitesPage() {
             <CardTitle className="text-xs font-medium text-muted-foreground">Roster-ready</CardTitle>
           </CardHeader>
           <CardContent className="pb-3 pt-0">
-            <p className="font-heading text-2xl font-semibold tabular-nums">{rosterReady}</p>
+            <p className="font-heading text-2xl font-semibold tabular-nums text-primary">{rosterReady}</p>
           </CardContent>
         </Card>
       </div>

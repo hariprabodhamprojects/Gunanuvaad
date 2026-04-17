@@ -17,7 +17,7 @@ export default async function OnboardingLayout({
         <div className="mx-auto flex w-full max-w-lg min-w-0 items-center justify-between gap-2 px-3 py-2 sm:h-14 sm:px-4 sm:py-0">
           <Link
             href="/home"
-            className="shrink-0 font-heading text-base font-semibold tracking-tight sm:text-lg"
+            className="shrink-0 font-heading text-base font-semibold tracking-tight text-primary/85 sm:text-lg"
           >
             MananChintan
           </Link>
