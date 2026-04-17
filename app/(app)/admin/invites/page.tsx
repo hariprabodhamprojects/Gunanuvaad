@@ -1,3 +1,4 @@
+import { AdminInvitesRealtime } from "@/components/admin/admin-invites-realtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchAllowlistOverview } from "@/lib/admin/queries";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ export default async function AdminInvitesPage() {
 
   return (
     <div className="space-y-6">
+      <AdminInvitesRealtime />
       <header>
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">Invite list</h1>
       </header>

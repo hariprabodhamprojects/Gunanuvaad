@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { User } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ApprovedSlide } from "@/lib/home/approved-slideshow";
+import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
 
 const INTERVAL_MS = 4000;
@@ -74,11 +75,22 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const firstSyncRef = useRef(true);
   const indexRef = useRef(0);
-  indexRef.current = index;
+
+  // Live-update the carousel when admins approve or revoke notes.
+  useRealtimeRefresh({
+    channel: "home-approved-slideshow",
+    subscriptions: [{ table: "approved_daily_notes" }],
+  });
 
   useLayoutEffect(() => {
     setIndex((i) => (slides.length === 0 ? 0 : Math.min(i, slides.length - 1)));
   }, [slides.length]);
+
+  // Keep a ref in sync with `index` so non-render code (ResizeObserver below)
+  // can read the current slide without re-subscribing each time.
+  useLayoutEffect(() => {
+    indexRef.current = index;
+  }, [index]);
 
   useLayoutEffect(() => {
     if (slides.length <= 1) return;

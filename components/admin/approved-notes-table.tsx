@@ -5,6 +5,7 @@ import { useTransition, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { approveDailyNoteAction, disapproveDailyNoteAction } from "@/lib/admin/actions";
 import type { AdminNoteForApprovalRow } from "@/lib/admin/types";
+import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
 import {
   AlertCircle,
@@ -22,9 +23,38 @@ type Props = {
 type SortKey = "date" | "author" | "recipient" | "status";
 type FilterStatus = "all" | "pending" | "approved";
 
+function SortIcon({
+  k,
+  sortKey,
+  sortAsc,
+}: {
+  k: SortKey;
+  sortKey: SortKey;
+  sortAsc: boolean;
+}) {
+  if (sortKey !== k) {
+    return <ChevronDown className="size-3 ml-0.5 inline opacity-30" />;
+  }
+  return sortAsc ? (
+    <ChevronUp className="size-3 ml-0.5 inline" />
+  ) : (
+    <ChevronDown className="size-3 ml-0.5 inline" />
+  );
+}
+
 export function ApprovedNotesTable({ rows }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  // Live-update the moderation queue when members submit new notes or when
+  // another organizer approves/rejects in a different tab.
+  useRealtimeRefresh({
+    channel: "admin-approved-queue",
+    subscriptions: [
+      { table: "daily_notes", event: "INSERT" },
+      { table: "approved_daily_notes" },
+    ],
+  });
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterDate, setFilterDate] = useState<string>("all");
@@ -72,13 +102,6 @@ export function ApprovedNotesTable({ rows }: Props) {
     if (sortKey === key) setSortAsc((v) => !v);
     else { setSortKey(key); setSortAsc(true); }
   };
-
-  const SortIcon = ({ k }: { k: SortKey }) =>
-    sortKey === k ? (
-      sortAsc ? <ChevronUp className="size-3 ml-0.5 inline" /> : <ChevronDown className="size-3 ml-0.5 inline" />
-    ) : (
-      <ChevronDown className="size-3 ml-0.5 inline opacity-30" />
-    );
 
   if (rows.length === 0) {
     return (
@@ -156,26 +179,26 @@ export function ApprovedNotesTable({ rows }: Props) {
                   className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
                   onClick={() => toggleSort("date")}
                 >
-                  Date <SortIcon k="date" />
+                  Date <SortIcon k="date" sortKey={sortKey} sortAsc={sortAsc} />
                 </th>
                 <th
                   className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
                   onClick={() => toggleSort("author")}
                 >
-                  From <SortIcon k="author" />
+                  From <SortIcon k="author" sortKey={sortKey} sortAsc={sortAsc} />
                 </th>
                 <th
                   className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
                   onClick={() => toggleSort("recipient")}
                 >
-                  To <SortIcon k="recipient" />
+                  To <SortIcon k="recipient" sortKey={sortKey} sortAsc={sortAsc} />
                 </th>
                 <th className="px-4 py-3 hidden md:table-cell">Preview</th>
                 <th
                   className="px-4 py-3 cursor-pointer hover:text-foreground select-none whitespace-nowrap"
                   onClick={() => toggleSort("status")}
                 >
-                  Status <SortIcon k="status" />
+                  Status <SortIcon k="status" sortKey={sortKey} sortAsc={sortAsc} />
                 </th>
                 <th className="px-4 py-3 text-right whitespace-nowrap">Actions</th>
               </tr>

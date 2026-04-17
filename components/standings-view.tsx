@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
+import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
 
 function ListEntry({ 
@@ -65,6 +66,17 @@ function ListEntry({
 
 export function StandingsView({ data }: { data: StandingsPayload }) {
   const [tab, setTab] = useState<"score" | "streak">("score");
+
+  // Live-update points/streaks when anyone in the allowlist submits a note.
+  // Notes are only inserted (never updated for point-bearing fields), so we
+  // can restrict to INSERT to minimize noise.
+  useRealtimeRefresh({
+    channel: "standings-daily-notes",
+    subscriptions: [{ table: "daily_notes", event: "INSERT" }],
+    // Leaderboard churn is low; wait a bit longer so a burst of submissions
+    // coalesces into a single re-fetch instead of one per row.
+    debounceMs: 500,
+  });
 
   const rows = tab === "score" ? data.points : data.streaks;
 

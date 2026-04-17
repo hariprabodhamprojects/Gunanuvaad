@@ -90,6 +90,10 @@ export async function submitDailyNote(target: RecipientTarget, body: string): Pr
 
   if (parsed.ok) {
     revalidatePath("/home");
+    // The calendar reads from the same `daily_notes` rows this RPC inserts;
+    // without this the author's own new note would only show up after a
+    // manual reload of /calendar.
+    revalidatePath("/calendar");
   }
 
   return parsed;

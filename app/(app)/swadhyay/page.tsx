@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SwadhyayComments } from "@/components/swadhyay/swadhyay-comments";
+import { SwadhyayTopicRealtime } from "@/components/swadhyay/swadhyay-topic-realtime";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
+import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { getTodaySwadhyayTopic, getTopicComments } from "@/lib/swadhyay/queries";
 
 export const metadata = { title: "Swadhyay — MananChintan" };
@@ -23,9 +25,12 @@ export default async function SwadhyayPage() {
       </header>
 
       {!topic ? (
-        <p className="rounded-xl border border-dashed border-border/70 bg-muted/15 px-4 py-12 text-center text-sm text-muted-foreground">
-          Today&apos;s Swadhyay topic is not published yet.
-        </p>
+        <>
+          <SwadhyayTopicRealtime campaignDate={getCampaignDateTodayISO()} />
+          <p className="rounded-xl border border-dashed border-border/70 bg-muted/15 px-4 py-12 text-center text-sm text-muted-foreground">
+            Today&apos;s Swadhyay topic is not published yet.
+          </p>
+        </>
       ) : (
         <>
           <Card className="ring-border/60">
