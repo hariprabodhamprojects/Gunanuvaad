@@ -188,6 +188,60 @@
     background-attachment: fixed;
   }
 
+  /**
+   * Page-hero surface.
+   *
+   * A warm, brand-tinted mesh backdrop plus a top hairline highlight. Used on
+   * top-level page headers (Swadhyay, Standings, Calendar) so the three pages
+   * share a single elegant language. Stays subtle so it doesn't fight the
+   * content below; the hairline lives inside the card and uses color-mix to
+   * respect the current brand token in either light or dark mode.
+   */
+  .page-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .page-hero::before,
+  .page-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .page-hero::before {
+    opacity: 0.85;
+    background:
+      radial-gradient(
+        120% 90% at 0% 0%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
+        transparent 55%
+      ),
+      radial-gradient(
+        90% 70% at 100% 0%,
+        color-mix(in oklch, var(--primary) 10%, transparent),
+        transparent 55%
+      ),
+      radial-gradient(
+        70% 60% at 100% 100%,
+        color-mix(in oklch, var(--primary) 7%, transparent),
+        transparent 50%
+      );
+  }
+  .page-hero::after {
+    top: 0;
+    inset-inline: 1.5rem;
+    bottom: auto;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklch, var(--primary) 50%, transparent),
+      transparent
+    );
+  }
+
   .layout-reading {
     width: 100%;
     max-width: var(--app-content-reading-max);

@@ -55,11 +55,11 @@ export default async function SwadhyayPage() {
       {!topic ? (
         <>
           <SwadhyayTopicRealtime campaignDate={today} />
-          <header className="rounded-3xl border border-border/60 bg-card/60 px-5 py-4 shadow-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/75">
+          <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
               Swadhyay
             </p>
-            <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-[28px]">
+            <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
               Weekly reflections
             </h1>
           </header>
@@ -77,25 +77,13 @@ export default async function SwadhyayPage() {
       ) : (
         <>
           {/* Hero — merges the page title, weekly-theme pill, and topic title into
-              one richer surface with a subtle mesh gradient backdrop. */}
+              one richer surface with a subtle mesh gradient backdrop. The
+              `.page-hero` utility (see globals.css) layers the warm primary
+              mesh and the top hairline highlight. */}
           <section
             aria-labelledby="swadhyay-topic-title"
-            className="swadhyay-hero relative overflow-hidden rounded-3xl border border-border/60 bg-card/70 px-5 py-6 shadow-sm sm:px-7 sm:py-7"
+            className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-6 shadow-sm sm:px-7 sm:py-7"
           >
-            {/* Decorative layers */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 -z-10 opacity-[0.85]"
-              style={{
-                background:
-                  "radial-gradient(120% 90% at 0% 0%, color-mix(in oklch, var(--primary) 18%, transparent), transparent 55%), radial-gradient(90% 70% at 100% 0%, color-mix(in oklch, var(--primary) 10%, transparent), transparent 55%), radial-gradient(70% 60% at 100% 100%, color-mix(in oklch, var(--primary) 7%, transparent), transparent 50%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-6 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"
-            />
-
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
               <span>Swadhyay</span>
               <span aria-hidden className="size-1 rounded-full bg-primary/50" />
@@ -107,7 +95,7 @@ export default async function SwadhyayPage() {
             <div className="mt-2 flex items-end justify-between gap-4">
               <h1
                 id="swadhyay-topic-title"
-                className="font-heading text-[28px] font-semibold leading-tight tracking-tight text-foreground sm:text-[34px]"
+                className="font-heading text-[28px] font-semibold leading-tight tracking-tight text-primary sm:text-[34px]"
               >
                 {topic.title}
               </h1>

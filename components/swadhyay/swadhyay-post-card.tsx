@@ -105,36 +105,6 @@ function HeartButton({
   );
 }
 
-function MetaButton({
-  children,
-  disabled,
-  onClick,
-  tone,
-}: {
-  children: React.ReactNode;
-  disabled?: boolean;
-  onClick: () => void;
-  tone?: "neutral" | "danger" | "accent";
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        "text-[11px] font-semibold uppercase tracking-wide transition-colors disabled:opacity-40",
-        tone === "danger"
-          ? "text-foreground/55 hover:text-destructive"
-          : tone === "accent"
-            ? "text-primary hover:text-primary/80"
-            : "text-foreground/55 hover:text-foreground",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
 /** Compact round icon button for action rows (reply / edit / delete). */
 function IconButton({
   icon,
@@ -501,12 +471,45 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             ) : null}
           </p>
         </div>
-        {post.is_revoked ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-destructive">
-            <ShieldAlert className="size-3" aria-hidden />
-            Revoked
-          </span>
-        ) : null}
+        {/* Right side of header — the "owner/moderator" corner.
+            Revoked pill + organizer Revoke/Restore both live here so the
+            moderation action is visually attached to the post author, not to
+            the reply area below. */}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {post.is_revoked ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-destructive">
+              <ShieldAlert className="size-3" aria-hidden />
+              Revoked
+            </span>
+          ) : null}
+          {isOrganizer ? (
+            post.is_revoked ? (
+              <button
+                type="button"
+                onClick={restore}
+                disabled={pending}
+                title="Restore post"
+                aria-label="Restore post"
+                className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
+              >
+                <ShieldOff className="size-3" aria-hidden />
+                Restore
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setRevokeOpen((v) => !v)}
+                disabled={pending}
+                title="Revoke post"
+                aria-label="Revoke post"
+                className="inline-flex items-center gap-1 rounded-full border border-destructive/25 bg-destructive/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-40"
+              >
+                <ShieldAlert className="size-3" aria-hidden />
+                Revoke
+              </button>
+            )
+          ) : null}
+        </div>
       </header>
 
       {/* Body */}
@@ -564,10 +567,12 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             disabled={pending}
             onClick={togglePostReaction}
           />
-          {/* Only render Reply for other people's posts — you don't reply to yourself. */}
+          {/* Reply only shows on other people's posts. Given users reported it
+              being hard to find, it gets a softly tinted hover target so it
+              reads as a clear tap target rather than a bare icon. */}
           {post.author_id !== currentUserId ? (
             <IconButton
-              icon={<MessageCircle className="size-[15px]" aria-hidden />}
+              icon={<MessageCircle className="size-4" aria-hidden />}
               label="Reply"
               disabled={pending}
               onClick={openReplyToPost}
@@ -592,29 +597,6 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
                 onClick={removePost}
               />
             </>
-          ) : null}
-          {isOrganizer ? (
-            <div className="ml-auto">
-              {post.is_revoked ? (
-                <MetaButton tone="accent" disabled={pending} onClick={restore}>
-                  <span className="inline-flex items-center gap-1">
-                    <ShieldOff className="size-3" aria-hidden />
-                    Restore
-                  </span>
-                </MetaButton>
-              ) : (
-                <MetaButton
-                  tone="danger"
-                  disabled={pending}
-                  onClick={() => setRevokeOpen((v) => !v)}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    <ShieldAlert className="size-3" aria-hidden />
-                    Revoke
-                  </span>
-                </MetaButton>
-              )}
-            </div>
           ) : null}
         </div>
       ) : null}

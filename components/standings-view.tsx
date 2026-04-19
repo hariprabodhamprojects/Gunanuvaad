@@ -95,11 +95,16 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24">
-      <header className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md">
+      <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:shadow-md sm:px-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-            Leaderboard
-          </h1>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
+              Standings
+            </p>
+            <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
+              Leaderboard
+            </h1>
+          </div>
 
           {/* Custom segmented control */}
           <div className="flex items-center rounded-xl border border-border bg-muted/60 p-1 shadow-inner">
