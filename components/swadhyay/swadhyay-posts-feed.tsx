@@ -90,7 +90,7 @@ export function SwadhyayPostsFeed({
   return (
     <div ref={listRef} className="space-y-4">
       {/* Composer */}
-      <div className="rounded-2xl border border-border/60 bg-card/60 p-3 shadow-sm">
+      <div className="rounded-2xl border border-border/60 bg-card/60 p-2.5 shadow-sm">
         <Textarea
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
@@ -101,15 +101,16 @@ export function SwadhyayPostsFeed({
           }
           maxLength={POST_MAX_LEN}
           disabled={pending || !canPost}
-          className="min-h-[96px] resize-none border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
+          rows={2}
+          className="min-h-[44px] resize-none border-0 bg-transparent p-1 text-sm shadow-none focus-visible:ring-0"
         />
-        <div className="mt-1.5 flex items-center justify-between">
+        <div className="mt-1 flex items-center justify-between">
           <span className="text-[10px] text-foreground/45 tabular-nums">
             {newPost.length}/{POST_MAX_LEN}
           </span>
           <Button
             size="sm"
-            className="h-8 rounded-full px-4 text-xs"
+            className="h-7 rounded-full px-3 text-[11px]"
             onClick={submit}
             disabled={pending || !canPost || !newPost.trim()}
           >

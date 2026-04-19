@@ -2,7 +2,16 @@
 
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Pencil, Send, ShieldAlert, ShieldOff, Trash2, X } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Pencil,
+  Send,
+  ShieldAlert,
+  ShieldOff,
+  Trash2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -122,6 +131,43 @@ function MetaButton({
       )}
     >
       {children}
+    </button>
+  );
+}
+
+/** Compact round icon button for action rows (reply / edit / delete). */
+function IconButton({
+  icon,
+  label,
+  disabled,
+  onClick,
+  tone,
+  size = "md",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  disabled?: boolean;
+  onClick: () => void;
+  tone?: "neutral" | "danger";
+  size?: "md" | "sm";
+}) {
+  const dims = size === "sm" ? "size-6" : "size-7";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40",
+        dims,
+        tone === "danger"
+          ? "text-foreground/55 hover:bg-destructive/10 hover:text-destructive"
+          : "text-foreground/55 hover:bg-muted hover:text-foreground",
+      )}
+    >
+      {icon}
     </button>
   );
 }
@@ -372,7 +418,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             </p>
           )}
           {!isEditingThisReply ? (
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-[11px] text-foreground/50">
                 {formatRelativeTime(reply.created_at)}
               </span>
@@ -382,34 +428,34 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
                 </span>
               ) : null}
               {reply.author_id !== currentUserId ? (
-                <MetaButton disabled={pending} onClick={() => openReplyToReply(reply)}>
-                  Reply
-                </MetaButton>
+                <IconButton
+                  icon={<MessageCircle className="size-[13px]" aria-hidden />}
+                  label="Reply"
+                  size="sm"
+                  disabled={pending}
+                  onClick={() => openReplyToReply(reply)}
+                />
               ) : null}
               {canEdit ? (
                 <>
-                  <MetaButton
+                  <IconButton
+                    icon={<Pencil className="size-[12px]" aria-hidden />}
+                    label="Edit"
+                    size="sm"
                     disabled={pending}
                     onClick={() => {
                       setEditingReplyId(reply.id);
                       setEditingReplyBody(reply.body);
                     }}
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <Pencil className="size-3" aria-hidden />
-                      Edit
-                    </span>
-                  </MetaButton>
-                  <MetaButton
+                  />
+                  <IconButton
+                    icon={<Trash2 className="size-[12px]" aria-hidden />}
+                    label="Delete"
+                    size="sm"
                     tone="danger"
                     disabled={pending}
                     onClick={() => removeReply(reply.id)}
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <Trash2 className="size-3" aria-hidden />
-                      Delete
-                    </span>
-                  </MetaButton>
+                  />
                 </>
               ) : null}
             </div>
@@ -511,36 +557,40 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
 
       {/* Actions */}
       {!editingPost ? (
-        <div className="mt-3 flex items-center gap-3 border-t border-border/50 pt-2">
+        <div className="mt-3 flex items-center gap-1 border-t border-border/50 pt-2">
           <HeartButton
             reacted={post.viewer_reacted}
             count={post.reaction_count}
             disabled={pending}
             onClick={togglePostReaction}
           />
-          <MetaButton disabled={pending} onClick={openReplyToPost}>
-            Reply
-          </MetaButton>
+          {/* Only render Reply for other people's posts — you don't reply to yourself. */}
+          {post.author_id !== currentUserId ? (
+            <IconButton
+              icon={<MessageCircle className="size-[15px]" aria-hidden />}
+              label="Reply"
+              disabled={pending}
+              onClick={openReplyToPost}
+            />
+          ) : null}
           {canEditPost ? (
             <>
-              <MetaButton
+              <IconButton
+                icon={<Pencil className="size-[14px]" aria-hidden />}
+                label="Edit"
                 disabled={pending}
                 onClick={() => {
                   setEditingPost(true);
                   setEditBody(post.body);
                 }}
-              >
-                <span className="inline-flex items-center gap-1">
-                  <Pencil className="size-3" aria-hidden />
-                  Edit
-                </span>
-              </MetaButton>
-              <MetaButton tone="danger" disabled={pending} onClick={removePost}>
-                <span className="inline-flex items-center gap-1">
-                  <Trash2 className="size-3" aria-hidden />
-                  Delete
-                </span>
-              </MetaButton>
+              />
+              <IconButton
+                icon={<Trash2 className="size-[14px]" aria-hidden />}
+                label="Delete"
+                tone="danger"
+                disabled={pending}
+                onClick={removePost}
+              />
             </>
           ) : null}
           {isOrganizer ? (
