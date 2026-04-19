@@ -8,24 +8,18 @@ type Props = {
 };
 
 /**
- * Invisible client helper mounted on `/swadhyay` while the organizer has not
- * yet published today's topic. When a new row for today is inserted (or its
- * `is_published` flips), the server tree is re-fetched so the page replaces
- * the empty state with the real topic and comments UI — no manual refresh
- * required.
- *
- * Once the topic is on the page, `SwadhyayComments` owns the subscription
- * lifecycle and this component is unmounted.
+ * Invisible helper mounted on `/swadhyay` while there is no active weekly
+ * topic covering today. Weekly topics are now stored with start/end date
+ * ranges (see 20260418120000_swadhyay_weekly_redesign.sql), so we listen for
+ * any change on `swadhyay_topics` and let the server re-run
+ * `active_swadhyay_topic_for(today)` on refresh. Once a topic is on the page,
+ * `SwadhyayPostsFeed` owns the richer subscription set and this component
+ * unmounts.
  */
 export function SwadhyayTopicRealtime({ campaignDate }: Props) {
   useRealtimeRefresh({
     channel: `swadhyay-topic-wait-${campaignDate}`,
-    subscriptions: [
-      {
-        table: "swadhyay_topics",
-        filter: `campaign_date=eq.${campaignDate}`,
-      },
-    ],
+    subscriptions: [{ table: "swadhyay_topics" }],
   });
   return null;
 }

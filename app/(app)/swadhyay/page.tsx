@@ -1,20 +1,39 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SwadhyayComments } from "@/components/swadhyay/swadhyay-comments";
+import { SwadhyayPostsFeed } from "@/components/swadhyay/swadhyay-posts-feed";
 import { SwadhyayTopicRealtime } from "@/components/swadhyay/swadhyay-topic-realtime";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
-import { getTodaySwadhyayTopic, getTopicComments } from "@/lib/swadhyay/queries";
+import { getActiveSwadhyayTopic, getTopicPosts } from "@/lib/swadhyay/queries";
 
 export const metadata = { title: "Swadhyay — MananChintan" };
 
 export const dynamic = "force-dynamic";
 
+function formatRange(startISO: string, endISO: string): string {
+  const start = new Date(`${startISO}T00:00:00`);
+  const end = new Date(`${endISO}T00:00:00`);
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const monthFmt: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  const endFmt: Intl.DateTimeFormatOptions = sameMonth
+    ? { day: "numeric" }
+    : { month: "short", day: "numeric" };
+  return `${start.toLocaleDateString(undefined, monthFmt)} – ${end.toLocaleDateString(undefined, endFmt)}`;
+}
+
 export default async function SwadhyayPage() {
   const { user } = await requireAllowlistedUser();
   const isOrganizer = await getIsOrganizerSession();
-  const topic = await getTodaySwadhyayTopic();
-  const comments = topic ? await getTopicComments(topic.id) : [];
+  const today = getCampaignDateTodayISO();
+  const topic = await getActiveSwadhyayTopic();
+  const posts = topic ? await getTopicPosts(topic.id) : [];
+
+  const canPost = Boolean(
+    topic &&
+      topic.is_published &&
+      today >= topic.start_date &&
+      today <= topic.end_date,
+  );
 
   return (
     <div className="layout-reading space-y-5">
@@ -26,38 +45,43 @@ export default async function SwadhyayPage() {
 
       {!topic ? (
         <>
-          <SwadhyayTopicRealtime campaignDate={getCampaignDateTodayISO()} />
-          <p className="rounded-xl border border-dashed border-border/70 bg-muted/15 px-4 py-12 text-center text-sm text-muted-foreground">
-            Today&apos;s Swadhyay topic is not published yet.
-          </p>
+          <SwadhyayTopicRealtime campaignDate={today} />
+          <Card className="ring-border/60">
+            <CardContent className="px-4 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                No active Swadhyay theme right now.
+              </p>
+              <p className="mt-1 text-xs text-foreground/55">
+                The organizer will set one soon — check back shortly.
+              </p>
+            </CardContent>
+          </Card>
         </>
       ) : (
         <>
           <Card className="ring-border/60">
             <CardHeader className="border-b border-border/60 pb-3">
-              <CardTitle className="text-lg">{topic.title}</CardTitle>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-primary/80">
+                {formatRange(topic.start_date, topic.end_date)} · Weekly theme
+              </p>
+              <CardTitle className="mt-1 text-xl">{topic.title}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 pt-4">
-              <p className="whitespace-pre-wrap text-sm leading-6 text-foreground/90">{topic.body}</p>
-              {topic.scripture_ref ? (
-                <p className="text-xs font-medium text-primary/90">Reference: {topic.scripture_ref}</p>
-              ) : null}
-            </CardContent>
+            {topic.description.trim() ? (
+              <CardContent className="pt-4">
+                <p className="whitespace-pre-wrap text-sm leading-6 text-foreground/90">
+                  {topic.description}
+                </p>
+              </CardContent>
+            ) : null}
           </Card>
 
-          <Card className="ring-border/60">
-            <CardHeader className="border-b border-border/60 pb-3">
-              <CardTitle className="text-base">Discussion ({comments.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <SwadhyayComments
-                topic={topic}
-                currentUserId={user.id}
-                isOrganizer={isOrganizer}
-                comments={comments}
-              />
-            </CardContent>
-          </Card>
+          <SwadhyayPostsFeed
+            topic={topic}
+            currentUserId={user.id}
+            isOrganizer={isOrganizer}
+            canPost={canPost}
+            posts={posts}
+          />
         </>
       )}
     </div>

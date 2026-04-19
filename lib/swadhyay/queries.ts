@@ -1,50 +1,69 @@
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { createClient } from "@/lib/supabase/server";
-import type { SwadhyayComment, SwadhyayTopic } from "@/lib/swadhyay/types";
+import type { SwadhyayPost, SwadhyayReply, SwadhyayTopic } from "@/lib/swadhyay/types";
 
-export async function getTodaySwadhyayTopic(): Promise<SwadhyayTopic | null> {
+/**
+ * Return the currently active topic (published, covers today's Toronto
+ * campaign date) or null. Uses the SECURITY DEFINER RPC so the author can be
+ * identified without profile RLS leakage.
+ */
+export async function getActiveSwadhyayTopic(): Promise<SwadhyayTopic | null> {
   const supabase = await createClient();
   const today = getCampaignDateTodayISO();
   const { data, error } = await supabase
-    .from("swadhyay_topics")
-    .select("*")
-    .eq("campaign_date", today)
+    .rpc("active_swadhyay_topic_for", { p_day: today })
     .maybeSingle();
 
   if (error) {
-    console.error("[swadhyay] getTodaySwadhyayTopic", error.message);
+    console.error("[swadhyay] getActiveSwadhyayTopic", error.message);
     return null;
   }
 
   return (data as SwadhyayTopic | null) ?? null;
 }
 
-export async function getRecentSwadhyayTopics(limit = 14): Promise<SwadhyayTopic[]> {
+/**
+ * Full topic list for the admin dashboard — past, active, upcoming.
+ * Organizers can see unpublished drafts thanks to the RLS policy.
+ */
+export async function getAllSwadhyayTopics(limit = 60): Promise<SwadhyayTopic[]> {
   const supabase = await createClient();
-  const lim = Math.max(1, Math.min(limit, 60));
+  const lim = Math.max(1, Math.min(limit, 200));
   const { data, error } = await supabase
     .from("swadhyay_topics")
     .select("*")
-    .order("campaign_date", { ascending: false })
+    .order("start_date", { ascending: false })
     .limit(lim);
 
   if (error) {
-    console.error("[swadhyay] getRecentSwadhyayTopics", error.message);
+    console.error("[swadhyay] getAllSwadhyayTopics", error.message);
     return [];
   }
-
   return ((data ?? []) as SwadhyayTopic[]).filter((t) => Boolean(t.id));
 }
 
-export async function getTopicComments(topicId: string): Promise<SwadhyayComment[]> {
+export async function getTopicPosts(topicId: string): Promise<SwadhyayPost[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("swadhyay_comments_for_topic", {
+  const { data, error } = await supabase.rpc("swadhyay_posts_for_topic", {
     p_topic_id: topicId,
   });
 
   if (error) {
-    console.error("[swadhyay] getTopicComments", error.message);
+    console.error("[swadhyay] getTopicPosts", error.message);
     return [];
   }
-  return (data ?? []) as SwadhyayComment[];
+  return (data ?? []) as SwadhyayPost[];
+}
+
+export async function getPostReplies(postId: string): Promise<SwadhyayReply[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("swadhyay_replies_for_post", {
+    p_post_id: postId,
+  });
+
+  if (error) {
+    console.error("[swadhyay] getPostReplies", error.message);
+    return [];
+  }
+  return (data ?? []) as SwadhyayReply[];
 }
