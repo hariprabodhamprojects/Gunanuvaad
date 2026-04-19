@@ -36,7 +36,10 @@ export default async function AppShellLayout({
   const isOrganizer = await getIsOrganizerSession();
 
   return (
-    <div className="flex h-[100dvh] min-h-[100dvh] w-full min-w-0 flex-col overflow-hidden">
+    // `bg-app-gradient` gives the entire shell a warm primary mesh canvas so
+    // any empty space (e.g. below short pages, behind the bottom nav's rounded
+    // corners) still reads as "part of the app" instead of raw body colour.
+    <div className="bg-app-gradient flex h-[100dvh] min-h-[100dvh] w-full min-w-0 flex-col overflow-hidden">
       <header className="glass-header sticky top-0 z-40 w-full min-w-0 shrink-0">
         <div className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-2 sm:h-14 sm:gap-3 sm:px-4 sm:py-0 lg:px-6 xl:px-8 2xl:px-10">
           <Link
@@ -57,7 +60,10 @@ export default async function AppShellLayout({
       </header>
       <div className="flex min-h-0 w-full flex-1">
         <AppSidebar />
-        <main className="page-enter flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(6.75rem+env(safe-area-inset-bottom))] sm:px-4 lg:px-6 lg:py-7 lg:pb-8 xl:px-8 2xl:px-10">
+        {/* Bottom padding is deliberately just a touch above the bottom nav's
+            visible height (~4rem on non-iOS, +safe-area on iOS) so we don't
+            leave a visible blank band between the last card and the nav. */}
+        <main className="page-enter flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto overscroll-y-none px-3 py-6 pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:px-4 lg:px-6 lg:py-7 lg:pb-8 xl:px-8 2xl:px-10">
           {children}
         </main>
       </div>

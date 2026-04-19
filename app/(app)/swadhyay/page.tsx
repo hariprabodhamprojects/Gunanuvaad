@@ -10,18 +10,6 @@ export const metadata = { title: "Swadhyay — MananChintan" };
 
 export const dynamic = "force-dynamic";
 
-function formatRange(startISO: string, endISO: string): string {
-  const start = new Date(`${startISO}T00:00:00`);
-  const end = new Date(`${endISO}T00:00:00`);
-  const sameMonth =
-    start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-  const monthFmt: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-  const endFmt: Intl.DateTimeFormatOptions = sameMonth
-    ? { day: "numeric" }
-    : { month: "short", day: "numeric" };
-  return `${start.toLocaleDateString(undefined, monthFmt)} – ${end.toLocaleDateString(undefined, endFmt)}`;
-}
-
 /** Inclusive day index (1-based) and total week length in days. */
 function weekProgress(startISO: string, endISO: string, todayISO: string) {
   const start = new Date(`${startISO}T00:00:00`).getTime();
@@ -56,11 +44,8 @@ export default async function SwadhyayPage() {
         <>
           <SwadhyayTopicRealtime campaignDate={today} />
           <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
+            <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
               Swadhyay
-            </p>
-            <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
-              Weekly reflections
             </h1>
           </header>
           <Card className="ring-border/60">
@@ -76,23 +61,14 @@ export default async function SwadhyayPage() {
         </>
       ) : (
         <>
-          {/* Hero — merges the page title, weekly-theme pill, and topic title into
-              one richer surface with a subtle mesh gradient backdrop. The
-              `.page-hero` utility (see globals.css) layers the warm primary
-              mesh and the top hairline highlight. */}
+          {/* Hero — just the topic title and a small meta row (date range +
+              live day indicator). The `.page-hero` utility (see globals.css)
+              layers the warm primary mesh and the top hairline highlight. */}
           <section
             aria-labelledby="swadhyay-topic-title"
             className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-6 shadow-sm sm:px-7 sm:py-7"
           >
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
-              <span>Swadhyay</span>
-              <span aria-hidden className="size-1 rounded-full bg-primary/50" />
-              <span>Weekly theme</span>
-              <span aria-hidden className="size-1 rounded-full bg-primary/50" />
-              <span className="text-foreground/55">{formatRange(topic.start_date, topic.end_date)}</span>
-            </div>
-
-            <div className="mt-2 flex items-end justify-between gap-4">
+            <div className="flex items-end justify-between gap-4">
               <h1
                 id="swadhyay-topic-title"
                 className="font-heading text-[28px] font-semibold leading-tight tracking-tight text-primary sm:text-[34px]"

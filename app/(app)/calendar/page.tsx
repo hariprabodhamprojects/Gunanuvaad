@@ -20,10 +20,7 @@ export default async function CalendarPage() {
     <div className="space-y-4">
       <div className="layout-reading">
         <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:shadow-md sm:px-7">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
-            Calendar
-          </p>
-          <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
             Your Calendar
           </h1>
         </header>

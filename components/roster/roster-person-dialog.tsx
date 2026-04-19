@@ -26,6 +26,80 @@ type Props = {
   dailyCampaignStatus: DailyCampaignStatus;
 };
 
+/**
+ * Circular progress toward the minimum character count.
+ *
+ * Same visual DNA as the Swadhyay composer ring (see
+ * `components/swadhyay/swadhyay-posts-feed.tsx`) so the two composers feel
+ * like siblings. Fills 0 → 100% as the trimmed body length approaches
+ * `minLen`; after the floor is met, the ring stays full and the hint switches
+ * to "Ready to send".
+ */
+function MinLengthRing({
+  trimmedLen,
+  minLen,
+}: {
+  trimmedLen: number;
+  minLen: number;
+}) {
+  // Circle geometry — r = 7 gives a compact 18px svg while still leaving
+  // room for the stroke to read cleanly at the small size.
+  const r = 7;
+  const circumference = 2 * Math.PI * r;
+  const pct = Math.min(1, trimmedLen / Math.max(1, minLen));
+  const dashOffset = circumference * (1 - pct);
+  const met = trimmedLen >= minLen;
+  const remaining = Math.max(0, minLen - trimmedLen);
+
+  return (
+    <p
+      className={cn(
+        "inline-flex items-center gap-1.5 transition-colors",
+        met ? "text-primary" : "text-primary/85",
+      )}
+      aria-live="polite"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 18 18"
+        aria-hidden
+        className="shrink-0 -rotate-90"
+      >
+        <circle
+          cx="9"
+          cy="9"
+          r={r}
+          className="stroke-primary/15"
+          strokeWidth="1.5"
+          fill="none"
+        />
+        <circle
+          cx="9"
+          cy="9"
+          r={r}
+          className="stroke-primary transition-[stroke-dashoffset] duration-[var(--motion-base)] ease-[var(--ease-out-standard)]"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+        />
+      </svg>
+      <span>
+        {met ? (
+          "Ready to send"
+        ) : (
+          <>
+            {remaining} more{" "}
+            {remaining === 1 ? "character" : "characters"} to go
+          </>
+        )}
+      </span>
+    </p>
+  );
+}
+
 function eligibilityHint(elig: WriteEligibility | null): string | null {
   if (!elig || elig.ok) return null;
   switch (elig.code) {
@@ -260,25 +334,10 @@ export function RosterPersonDialog({
                             id="daily-note-counter"
                             className="flex items-center justify-between gap-2 px-1 text-xs font-medium"
                           >
-                            {trimmedLen < NOTE_BODY_MIN_LEN ? (
-                              <p className="inline-flex items-center gap-1.5 text-primary/90">
-                                <span
-                                  aria-hidden
-                                  className="inline-block size-1.5 rounded-full bg-primary/80"
-                                />
-                                {NOTE_BODY_MIN_LEN - trimmedLen} more{" "}
-                                {NOTE_BODY_MIN_LEN - trimmedLen === 1 ? "character" : "characters"}{" "}
-                                to go
-                              </p>
-                            ) : (
-                              <p className="inline-flex items-center gap-1.5 text-primary/90">
-                                <span
-                                  aria-hidden
-                                  className="inline-block size-1.5 rounded-full bg-primary"
-                                />
-                                Looks good
-                              </p>
-                            )}
+                            <MinLengthRing
+                              trimmedLen={trimmedLen}
+                              minLen={NOTE_BODY_MIN_LEN}
+                            />
                             <p className="tabular-nums text-muted-foreground/80">
                               {body.length}
                               <span className="text-muted-foreground/55">
