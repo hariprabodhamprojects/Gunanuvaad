@@ -10,6 +10,19 @@ export const metadata = { title: "Swadhyay — MananChintan" };
 
 export const dynamic = "force-dynamic";
 
+/** Short human week range, e.g. "Apr 17 – 24" (same month) or "Apr 30 – May 6". */
+function formatRange(startISO: string, endISO: string): string {
+  const start = new Date(`${startISO}T00:00:00`);
+  const end = new Date(`${endISO}T00:00:00`);
+  const sameMonth =
+    start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const monthFmt: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  const endFmt: Intl.DateTimeFormatOptions = sameMonth
+    ? { day: "numeric" }
+    : { month: "short", day: "numeric" };
+  return `${start.toLocaleDateString(undefined, monthFmt)} – ${end.toLocaleDateString(undefined, endFmt)}`;
+}
+
 /** Inclusive day index (1-based) and total week length in days. */
 function weekProgress(startISO: string, endISO: string, todayISO: string) {
   const start = new Date(`${startISO}T00:00:00`).getTime();
@@ -61,23 +74,30 @@ export default async function SwadhyayPage() {
         </>
       ) : (
         <>
-          {/* Hero — just the topic title and a small meta row (date range +
-              live day indicator). The `.page-hero` utility (see globals.css)
-              layers the warm primary mesh and the top hairline highlight. */}
+          {/* Hero — typography and padding match the other tab heroes
+              (Home / Calendar / Standings) for a uniform rhythm across the app.
+              The topic title lives on the left with a muted week-range
+              subtitle; the live Day N/N pill sits on the right; a thin
+              week-progress bar closes the bottom. */}
           <section
             aria-labelledby="swadhyay-topic-title"
-            className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-6 shadow-sm sm:px-7 sm:py-7"
+            className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm sm:px-7"
           >
-            <div className="flex items-end justify-between gap-4">
-              <h1
-                id="swadhyay-topic-title"
-                className="font-heading text-[28px] font-semibold leading-tight tracking-tight text-primary sm:text-[34px]"
-              >
-                {topic.title}
-              </h1>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h1
+                  id="swadhyay-topic-title"
+                  className="truncate font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]"
+                >
+                  {topic.title}
+                </h1>
+                <p className="mt-1 text-xs text-muted-foreground sm:text-[13px]">
+                  Week of {formatRange(topic.start_date, topic.end_date)}
+                </p>
+              </div>
               {progress ? (
                 <span
-                  className="mb-1 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary shadow-sm backdrop-blur-sm"
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary shadow-sm backdrop-blur-sm"
                   title={`Day ${progress.current} of ${progress.total}`}
                 >
                   <span
@@ -93,7 +113,7 @@ export default async function SwadhyayPage() {
 
             {progress ? (
               <div
-                className="mt-4 h-[3px] w-full overflow-hidden rounded-full bg-primary/10"
+                className="mt-3 h-[2px] w-full overflow-hidden rounded-full bg-primary/10"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={progress.total}
