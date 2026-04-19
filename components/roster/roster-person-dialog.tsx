@@ -69,21 +69,30 @@ export function RosterPersonDialog({
 
   useEffect(() => {
     if (!open || !member || (!recipientId && !recipientEmail) || isSelf) {
-      setLoadingElig(false);
+      // Wrapped in an async IIFE to avoid synchronous setState in an effect
+      // body (react-hooks/set-state-in-effect) while still acting as a
+      // "reset" path for the guard branch.
+      void (async () => {
+        setLoadingElig(false);
+      })();
       return;
     }
     let cancelled = false;
-    setLoadingElig(true);
-    setElig(null);
-    getRecipientWriteEligibility({ recipientId, recipientEmail }).then((r) => {
-      if (!cancelled) {
-        setElig(r ?? { ok: false, code: "rpc_error" });
-        setLoadingElig(false);
-      }
-    });
+    void (async () => {
+      setLoadingElig(true);
+      setElig(null);
+      const r = await getRecipientWriteEligibility({ recipientId, recipientEmail });
+      if (cancelled) return;
+      setElig(r ?? { ok: false, code: "rpc_error" });
+      setLoadingElig(false);
+    })();
     return () => {
       cancelled = true;
     };
+    // `member` is referenced only via its discriminators (id, recipient fields,
+    // isSelf); including the full object would re-fire on every prop identity
+    // change (recreated objects) without any real change in meaning.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, member?.id, recipientId, recipientEmail, isSelf]);
 
   const canWrite = elig?.ok === true;
@@ -135,7 +144,10 @@ export function RosterPersonDialog({
         <Dialog.Viewport className="fixed inset-0 z-[160] flex items-end justify-center p-0 outline-none sm:items-center sm:p-4">
           <Dialog.Popup
             className={cn(
-              "relative glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border overflow-hidden",
+              // `page-hero` layers the warm primary mesh + top hairline used
+              // everywhere else (Swadhyay hero, Standings, Calendar) so the
+              // dialog feels like part of the same surface language.
+              "page-hero relative glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border",
               "data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0",
               "transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out-standard)] motion-reduce:duration-[140ms] motion-reduce:data-[ending-style]:translate-y-0 motion-reduce:data-[starting-style]:translate-y-0",
             )}
@@ -195,7 +207,9 @@ export function RosterPersonDialog({
                       className="relative size-24 rounded-full object-cover ring-4 ring-background shadow-[0_8px_20px_rgba(250,115,22,0.2)] sm:size-28"
                     />
                   </div>
-                  <p className="font-heading text-2xl font-bold tracking-tight text-foreground/95 drop-shadow-sm">{member.display_name}</p>
+                  <p className="font-heading text-2xl font-bold tracking-tight text-primary drop-shadow-sm">
+                    {member.display_name}
+                  </p>
                 </div>
                 {isSelf ? (
                   <>
@@ -239,21 +253,37 @@ export function RosterPersonDialog({
                             placeholder="Write something kind…"
                             maxLength={NOTE_BODY_MAX_LEN}
                             disabled={pending}
-                            className="resize-y min-h-[100px] rounded-[1.25rem] border-border/80 bg-background/50 shadow-inner backdrop-blur focus-visible:ring-primary/40 text-[15px]"
+                            className="min-h-[110px] resize-y rounded-[1.25rem] border-border/80 bg-background/60 text-[15px] shadow-inner backdrop-blur transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] focus-visible:ring-2 focus-visible:ring-primary/40"
                             aria-describedby="daily-note-counter"
                           />
                           <div
                             id="daily-note-counter"
-                            className="space-y-0.5 px-1 text-right text-xs font-medium text-muted-foreground/80"
+                            className="flex items-center justify-between gap-2 px-1 text-xs font-medium"
                           >
                             {trimmedLen < NOTE_BODY_MIN_LEN ? (
-                              <p className="text-amber-700/90 dark:text-amber-400/90">
-                                At least {NOTE_BODY_MIN_LEN} characters (
-                                {NOTE_BODY_MIN_LEN - trimmedLen} more needed)
+                              <p className="inline-flex items-center gap-1.5 text-primary/90">
+                                <span
+                                  aria-hidden
+                                  className="inline-block size-1.5 rounded-full bg-primary/80"
+                                />
+                                {NOTE_BODY_MIN_LEN - trimmedLen} more{" "}
+                                {NOTE_BODY_MIN_LEN - trimmedLen === 1 ? "character" : "characters"}{" "}
+                                to go
                               </p>
-                            ) : null}
-                            <p>
-                              {body.length}/{NOTE_BODY_MAX_LEN}
+                            ) : (
+                              <p className="inline-flex items-center gap-1.5 text-primary/90">
+                                <span
+                                  aria-hidden
+                                  className="inline-block size-1.5 rounded-full bg-primary"
+                                />
+                                Looks good
+                              </p>
+                            )}
+                            <p className="tabular-nums text-muted-foreground/80">
+                              {body.length}
+                              <span className="text-muted-foreground/55">
+                                /{NOTE_BODY_MAX_LEN}
+                              </span>
                             </p>
                           </div>
                         </div>

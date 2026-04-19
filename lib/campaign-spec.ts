@@ -17,7 +17,7 @@ export const CAMPAIGN_TIMEZONE_SHORT_LABEL = "Toronto time";
 export const RECIPIENT_LOCK_K = 50; // TODO: clamp to roster_size - 2 in SQL + UI
 
 /** Enforced in `submit_daily_note` RPC and server actions. */
-export const NOTE_BODY_MIN_LEN = 100;
+export const NOTE_BODY_MIN_LEN = 30;
 export const NOTE_BODY_MAX_LEN = 4000;
 
 /** Tie-break when streaks tie — UI order uses name; SQL uses display_name. */

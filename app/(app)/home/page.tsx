@@ -34,17 +34,21 @@ export default async function HomePage() {
   return (
     <div className="layout-reading space-y-6">
       <CampaignDayNotification userId={user.id} status={dailyCampaignStatus} />
-      <h1 className="px-1 font-heading text-2xl font-semibold tracking-tight">
-        Jay Swaminarayan
-        {displayName ? (
-          <>
-            {" "}
-            <span className="text-primary">{displayName}</span>
-          </>
-        ) : null}
-        {" "}
-        !
-      </h1>
+      <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:shadow-md sm:px-7">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
+          Home
+        </p>
+        <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">
+          Jay Swaminarayan
+          {displayName ? (
+            <>
+              {" "}
+              <span className="text-primary">{displayName}</span>
+            </>
+          ) : null}{" "}
+          !
+        </h1>
+      </header>
       <ApprovedNotesSlideshow slides={approvedSlides} />
       <RosterPickExperience
         members={members}
