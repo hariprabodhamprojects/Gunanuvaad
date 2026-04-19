@@ -478,7 +478,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
     <article
       data-post-card
       className={cn(
-        "rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm transition-shadow duration-[200ms] ease-[var(--ease-out-standard)] hover:shadow-md",
+        "group/post relative rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm transition-[transform,box-shadow,border-color] duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:-translate-y-[1px] hover:border-border hover:shadow-md motion-reduce:hover:translate-y-0",
         post.is_revoked && "opacity-[0.92]",
       )}
     >
@@ -488,7 +488,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
         <img
           src={post.author_avatar_url}
           alt=""
-          className="size-10 shrink-0 rounded-full border border-border/60 object-cover"
+          className="size-10 shrink-0 rounded-full border border-border/60 object-cover ring-2 ring-primary/0 transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] group-hover/post:ring-primary/20"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">
