@@ -26,9 +26,16 @@ type Options = {
   channel: string;
   subscriptions: RealtimeSubscription[];
   /**
-   * Milliseconds to wait before calling router.refresh() after the latest
-   * event; events that arrive inside this window collapse into one refresh.
+   * Milliseconds to wait before calling router.refresh() after an event.
    * Default 150 ms — responsive without hammering the server on bursts.
+   *
+   * Scheduling is leading-edge + trailing-edge coalescing: the first event
+   * in a quiet period schedules a refresh at T+debounceMs, and any events
+   * that arrive inside that window are guaranteed to trigger exactly one
+   * additional refresh on the trailing edge — so we never miss the "final"
+   * state of a burst even if the last write lands microseconds before the
+   * leading-edge timer fires (which, historically, was the cause of the
+   * flaky "standings didn't update after revoke" bug).
    */
   debounceMs?: number;
   /** Set to `false` to pause the subscription. Defaults to `true`. */
@@ -88,14 +95,38 @@ export function useRealtimeRefresh({
     const supabase = createClient();
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     let fallbackTimer: ReturnType<typeof setInterval> | null = null;
-    const scheduleRefresh = (payload?: unknown) => {
-      log("event received → scheduling refresh", payload);
-      if (refreshTimer) return;
+    // Leading-edge + trailing-edge coalescing debounce.
+    //   - First event in a quiet period → schedule refresh at T+debounceMs.
+    //   - Events arriving while the timer is running → set `trailingPending`.
+    //   - When timer fires: refresh. If trailing was pending, start another
+    //     window so we always capture the "final" state of a burst.
+    // This replaces an earlier leading-edge-only throttle that dropped every
+    // event after the first, occasionally missing the trailing event if it
+    // landed just before the timer fired (see P0 bug "standings didn't
+    // update after revoke").
+    let trailingPending = false;
+    const fireRefresh = () => {
+      log("calling router.refresh()");
+      router.refresh();
+    };
+    const runTimer = () => {
       refreshTimer = setTimeout(() => {
         refreshTimer = null;
-        log("calling router.refresh()");
-        router.refresh();
+        fireRefresh();
+        if (trailingPending) {
+          trailingPending = false;
+          log("trailing event pending → scheduling coalesced refresh");
+          runTimer();
+        }
       }, debounceMs);
+    };
+    const scheduleRefresh = (payload?: unknown) => {
+      log("event received → scheduling refresh", payload);
+      if (refreshTimer) {
+        trailingPending = true;
+        return;
+      }
+      runTimer();
     };
 
     // Supabase's typed `.on("postgres_changes", ...)` signature uses a
