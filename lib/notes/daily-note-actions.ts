@@ -12,9 +12,37 @@ export type WriteEligibility =
   | { ok: false; code: string; need_more?: number };
 
 export type RecipientTarget = {
+  rosterRowId?: string | null;
   recipientId?: string | null;
   recipientEmail?: string | null;
 };
+
+async function resolveTargetFromRosterRow(
+  rowId: string | null,
+): Promise<{ recipientId: string | null; recipientEmail: string | null } | null> {
+  const normalized = rowId?.trim() || null;
+  if (!normalized) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("roster_for_picker");
+  if (error) {
+    console.error("[daily-note] roster_for_picker", error.message);
+    return null;
+  }
+
+  const rows = (data ?? []) as {
+    row_id: string;
+    recipient_id: string | null;
+    recipient_email: string | null;
+  }[];
+  const match = rows.find((r) => r.row_id === normalized);
+  if (!match) return null;
+
+  return {
+    recipientId: match.recipient_id ?? null,
+    recipientEmail: match.recipient_email?.trim().toLowerCase() || null,
+  };
+}
 
 function parseEligibility(raw: unknown): WriteEligibility | null {
   if (!raw || typeof raw !== "object") return null;
@@ -27,8 +55,15 @@ function parseEligibility(raw: unknown): WriteEligibility | null {
 }
 
 export async function getRecipientWriteEligibility(target: RecipientTarget): Promise<WriteEligibility | null> {
-  const recipientId = target.recipientId?.trim() || null;
-  const recipientEmail = target.recipientEmail?.trim().toLowerCase() || null;
+  let recipientId = target.recipientId?.trim() || null;
+  let recipientEmail = target.recipientEmail?.trim().toLowerCase() || null;
+  if (!recipientId && !recipientEmail) {
+    const resolved = await resolveTargetFromRosterRow(target.rosterRowId?.trim() || null);
+    if (resolved) {
+      recipientId = resolved.recipientId;
+      recipientEmail = resolved.recipientEmail;
+    }
+  }
   if (!recipientId && !recipientEmail) return null;
   if (recipientId && !UUID_RE.test(recipientId)) return null;
   const supabase = await createClient();
@@ -62,8 +97,15 @@ function parseSubmitResult(raw: unknown): SubmitDailyNoteResult | null {
 }
 
 export async function submitDailyNote(target: RecipientTarget, body: string): Promise<SubmitDailyNoteResult> {
-  const recipientId = target.recipientId?.trim() || null;
-  const recipientEmail = target.recipientEmail?.trim().toLowerCase() || null;
+  let recipientId = target.recipientId?.trim() || null;
+  let recipientEmail = target.recipientEmail?.trim().toLowerCase() || null;
+  if (!recipientId && !recipientEmail) {
+    const resolved = await resolveTargetFromRosterRow(target.rosterRowId?.trim() || null);
+    if (resolved) {
+      recipientId = resolved.recipientId;
+      recipientEmail = resolved.recipientEmail;
+    }
+  }
   if (!recipientId && !recipientEmail) {
     return { ok: false, code: "invalid_recipient" };
   }

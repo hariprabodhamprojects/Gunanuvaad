@@ -21,7 +21,7 @@ export async function getRosterMembers(): Promise<RosterMember[]> {
   return rows.map((r) => ({
     id: r.row_id,
     recipient_id: r.recipient_id,
-    recipient_email: r.recipient_email,
+    can_write: Boolean(r.recipient_id || r.recipient_email),
     display_name: r.display_name,
     avatar_url: r.avatar_url?.trim() || "/logo.png",
     has_signed_up: r.has_signed_up === true,

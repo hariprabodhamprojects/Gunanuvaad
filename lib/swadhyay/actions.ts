@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireOrganizer } from "@/lib/auth/require-organizer";
 import { createClient } from "@/lib/supabase/server";
 
 const POST_MAX_LEN = 4000;
@@ -22,6 +23,7 @@ function invalidatePaths() {
 
 /** Create a new weekly topic. Redirects back to /admin/swadhyay on success. */
 export async function createWeeklyTopicAction(formData: FormData): Promise<void> {
+  await requireOrganizer();
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const startDate = String(formData.get("start_date") ?? "").trim();
@@ -67,6 +69,7 @@ export async function createWeeklyTopicAction(formData: FormData): Promise<void>
 
 /** Update one topic in place. */
 export async function updateWeeklyTopicAction(formData: FormData): Promise<void> {
+  await requireOrganizer();
   const id = String(formData.get("id") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -107,6 +110,7 @@ export async function updateWeeklyTopicAction(formData: FormData): Promise<void>
 }
 
 export async function deleteWeeklyTopicAction(formData: FormData): Promise<void> {
+  await requireOrganizer();
   const id = String(formData.get("id") ?? "").trim();
   if (!id) redirect("/admin/swadhyay?error=missing-fields");
 
@@ -127,6 +131,7 @@ export async function revokePostAction(
   postId: string,
   reason: string,
 ): Promise<ActionResult> {
+  await requireOrganizer();
   if (!postId) return { ok: false, error: "Missing post id." };
   const trimmedReason = reason.trim().slice(0, REVOKE_REASON_MAX);
 
@@ -156,6 +161,7 @@ export async function revokePostAction(
 }
 
 export async function restorePostAction(postId: string): Promise<ActionResult> {
+  await requireOrganizer();
   if (!postId) return { ok: false, error: "Missing post id." };
 
   const supabase = await createClient();

@@ -23,7 +23,7 @@ function RosterMemberCard({
   onSelect: () => void;
   onAvatarClick: () => void;
 }) {
-  const canWrite = Boolean(member.recipient_id || member.recipient_email);
+  const canWrite = member.can_write;
   return (
     <div className="group flex items-stretch w-full text-left outline-none px-2 transition-colors duration-[180ms] ease-[var(--ease-out-standard)] hover:bg-muted/30 sm:px-4">
       {/* Avatar Button */}
@@ -117,32 +117,20 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
     return () => ctx.revert();
   }, [filtered]);
 
-  // Build the list with dictionary headers
-  let currentLetter = "";
-  const listItems = filtered.map((m) => {
-    const firstLetter = m.display_name.charAt(0).toUpperCase();
-    const showHeader = firstLetter !== currentLetter;
-    if (showHeader) {
-      currentLetter = firstLetter;
-    }
-
-    return (
-      <Fragment key={m.id}>
-        {showHeader && (
-          <div className="pt-6 pb-2 px-6 sm:px-8 w-full shrink-0">
-            <span className="text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
-              {firstLetter}
-            </span>
-          </div>
-        )}
-        <RosterMemberCard 
-          member={m} 
-          onSelect={() => setSelected(m)}
-          onAvatarClick={() => setZoomedAvatar(m.avatar_url)} 
-        />
-      </Fragment>
-    );
-  });
+  // Build list rows with deterministic dictionary headers.
+  const listRows = useMemo(
+    () =>
+      filtered.map((member, idx) => {
+        const previousMember = idx > 0 ? filtered[idx - 1] : null;
+        const previousLetter = previousMember
+          ? previousMember.display_name.charAt(0).toUpperCase()
+          : null;
+        const firstLetter = member.display_name.charAt(0).toUpperCase();
+        const showHeader = firstLetter !== previousLetter;
+        return { member, firstLetter, showHeader };
+      }),
+    [filtered],
+  );
 
   return (
     <>
@@ -172,7 +160,22 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
             ref={listRef}
             className="flex flex-col pb-24 w-full bg-card/30 rounded-3xl overflow-hidden border border-border/50 shadow-sm"
           >
-            {listItems}
+            {listRows.map(({ member, firstLetter, showHeader }) => (
+              <Fragment key={member.id}>
+                {showHeader && (
+                  <div className="pt-6 pb-2 px-6 sm:px-8 w-full shrink-0">
+                    <span className="text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
+                      {firstLetter}
+                    </span>
+                  </div>
+                )}
+                <RosterMemberCard
+                  member={member}
+                  onSelect={() => setSelected(member)}
+                  onAvatarClick={() => setZoomedAvatar(member.avatar_url)}
+                />
+              </Fragment>
+            ))}
           </div>
         )}
       </div>

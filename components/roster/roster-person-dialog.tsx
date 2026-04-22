@@ -124,8 +124,9 @@ export function RosterPersonDialog({
   dailyCampaignStatus,
 }: Props) {
   const router = useRouter();
+  const rosterRowId = member?.id ?? null;
   const recipientId = member?.recipient_id ?? null;
-  const recipientEmail = member?.recipient_email ?? null;
+  const canWriteFromRoster = member?.can_write ?? false;
   const isSelf = recipientId === currentUserId;
   const [elig, setElig] = useState<WriteEligibility | null>(null);
   const [loadingElig, setLoadingElig] = useState(false);
@@ -142,7 +143,7 @@ export function RosterPersonDialog({
   }, [open]);
 
   useEffect(() => {
-    if (!open || !member || (!recipientId && !recipientEmail) || isSelf) {
+    if (!open || !member || !canWriteFromRoster || isSelf) {
       // Wrapped in an async IIFE to avoid synchronous setState in an effect
       // body (react-hooks/set-state-in-effect) while still acting as a
       // "reset" path for the guard branch.
@@ -155,7 +156,10 @@ export function RosterPersonDialog({
     void (async () => {
       setLoadingElig(true);
       setElig(null);
-      const r = await getRecipientWriteEligibility({ recipientId, recipientEmail });
+      const r = await getRecipientWriteEligibility({
+        rosterRowId,
+        recipientId,
+      });
       if (cancelled) return;
       setElig(r ?? { ok: false, code: "rpc_error" });
       setLoadingElig(false);
@@ -167,7 +171,7 @@ export function RosterPersonDialog({
     // isSelf); including the full object would re-fire on every prop identity
     // change (recreated objects) without any real change in meaning.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, member?.id, recipientId, recipientEmail, isSelf]);
+  }, [open, member?.id, rosterRowId, recipientId, canWriteFromRoster, isSelf]);
 
   const canWrite = elig?.ok === true;
   const blockHint = eligibilityHint(elig);
@@ -176,9 +180,15 @@ export function RosterPersonDialog({
     trimmedLen >= NOTE_BODY_MIN_LEN && trimmedLen <= NOTE_BODY_MAX_LEN;
 
   const onSubmit = () => {
-    if (!member || (!recipientId && !recipientEmail) || isSelf || !canWrite || !lengthOk) return;
+    if (!member || !canWriteFromRoster || isSelf || !canWrite || !lengthOk) return;
     startTransition(async () => {
-      const r = await submitDailyNote({ recipientId, recipientEmail }, body);
+      const r = await submitDailyNote(
+        {
+          rosterRowId,
+          recipientId,
+        },
+        body,
+      );
       if (r.ok) {
         toast.success("Your note is sent.");
         setBody("");

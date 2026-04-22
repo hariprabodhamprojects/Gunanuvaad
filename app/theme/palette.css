@@ -2,7 +2,7 @@
  * =============================================================================
  * GUNANUVAD — ELEGANT MODERN PALETTE
  * =============================================================================
- * Minimalist, elegant, high-end testtestdesign
+ * Minimalist, elegant, high-end design language.
  * =============================================================================
  */
 
@@ -29,7 +29,7 @@
   --palette-border: oklch(0.92 0 0);
   --palette-input: oklch(0.92 0 0);
 
-  /* Accent: soft peach tint for hovers, selection testtestestt*test/
+  /* Accent: soft peach tint used for hover, selection, and active surfaces. */
   --palette-accent: oklch(0.96 0.03 42);
   --palette-accent-fg: oklch(0.3 0.06 42);
 
