@@ -67,12 +67,32 @@ function ListEntry({
 export function StandingsView({ data }: { data: StandingsPayload }) {
   const [tab, setTab] = useState<"score" | "streak">("score");
 
-  // Live-update points/streaks when anyone in the allowlist submits a note.
-  // Notes are only inserted (never updated for point-bearing fields), so we
-  // can restrict to INSERT to minimize noise.
+  // Live-update points/streaks whenever anything that feeds the scoring
+  // formula changes. The current `standings_leaderboards()` RPC (see
+  // `supabase/migrations/20260418120000_swadhyay_weekly_redesign.sql`) reads
+  // from three sources:
+  //   1. `daily_notes`          — one row = +2 points (INSERT only; notes
+  //                                are append-only for members).
+  //   2. `swadhyay_posts`       — non-revoked post on an active published
+  //                                topic = +2 points per unique campaign
+  //                                date. Revoke flips `is_revoked` via
+  //                                UPDATE, so we need UPDATE *and* INSERT
+  //                                *and* DELETE here (DELETE is admin-only
+  //                                today, but covering it is free).
+  //   3. `swadhyay_topics`      — `is_published` toggle retroactively
+  //                                includes/excludes every post inside the
+  //                                window. UPDATE is the only event that
+  //                                matters for scoring.
+  // All three tables must be in the `supabase_realtime` publication — see
+  // `20260420130000_swadhyay_redesign_realtime.sql` for the redesign-era
+  // repair that makes this subscription meaningful.
   useRealtimeRefresh({
-    channel: "standings-daily-notes",
-    subscriptions: [{ table: "daily_notes", event: "INSERT" }],
+    channel: "standings-live",
+    subscriptions: [
+      { table: "daily_notes", event: "INSERT" },
+      { table: "swadhyay_posts" },
+      { table: "swadhyay_topics", event: "UPDATE" },
+    ],
     // Leaderboard churn is low; wait a bit longer so a burst of submissions
     // coalesces into a single re-fetch instead of one per row.
     debounceMs: 500,
