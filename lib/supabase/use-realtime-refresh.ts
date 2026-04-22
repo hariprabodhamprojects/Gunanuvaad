@@ -80,7 +80,7 @@ export function useRealtimeRefresh({
     // dropped UPDATE events without surfacing any error).
     const DEBUG = true;
     const log = (...args: unknown[]) => {
-      if (DEBUG) console.debug(`[realtime:${channel}]`, ...args);
+      if (DEBUG) console.log(`[realtime:${channel}]`, ...args);
     };
 
     const supabase = createClient();

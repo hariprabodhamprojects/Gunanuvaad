@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
@@ -66,6 +66,9 @@ function ListEntry({
 
 export function StandingsView({ data }: { data: StandingsPayload }) {
   const [tab, setTab] = useState<"score" | "streak">("score");
+  useEffect(() => {
+    console.log("[standings] view mounted");
+  }, []);
 
   // Live-update points/streaks whenever anything that feeds the scoring
   // formula changes. The current `standings_leaderboards()` RPC (see
