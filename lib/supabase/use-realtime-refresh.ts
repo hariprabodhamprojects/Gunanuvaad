@@ -47,6 +47,14 @@ type Options = {
  *    (see `supabase/migrations/*_realtime*.sql`).
  * 2. RLS must let the current user `SELECT` the affected row, otherwise
  *    Supabase filters the event out before delivery.
+ * 3. For `UPDATE` events on tables with RLS: the table must be set to
+ *    `REPLICA IDENTITY FULL`. Postgres's default replica identity only
+ *    logs the primary key of the *old* row, which isn't enough for
+ *    Supabase Realtime to evaluate the SELECT policy against the
+ *    pre-image. Without FULL, UPDATE events are silently dropped and
+ *    subscribers never refresh. See
+ *    `supabase/migrations/20260420130000_swadhyay_redesign_realtime.sql`
+ *    for the pattern.
  */
 export function useRealtimeRefresh({
   channel,
