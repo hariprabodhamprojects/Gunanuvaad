@@ -381,6 +381,17 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
                 </Button>
               </div>
             </div>
+          ) : reply.is_deleted && !isOrganizer ? (
+            // Soft-deleted replies have their body redacted on the server
+            // (see migration `20260420120000_swadhyay_visibility_hardening.sql`).
+            // Keep the author name so the thread remains legible, replace
+            // the content with a muted placeholder.
+            <p className="whitespace-pre-wrap break-words text-[13px] italic leading-5 text-foreground/55">
+              <span className="mr-1.5 font-semibold not-italic text-foreground/70">
+                {reply.author_display_name}
+              </span>
+              <span>This reply was removed.</span>
+            </p>
           ) : (
             <p className="whitespace-pre-wrap break-words text-[13px] leading-5 text-foreground">
               <span className="mr-1.5 font-semibold">{reply.author_display_name}</span>
@@ -397,7 +408,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
                   {reply.reaction_count} {reply.reaction_count === 1 ? "like" : "likes"}
                 </span>
               ) : null}
-              {reply.author_id !== currentUserId ? (
+              {reply.author_id !== currentUserId && !post.is_revoked ? (
                 <IconButton
                   icon={<MessageCircle className="size-[13px]" aria-hidden />}
                   label="Reply"
@@ -546,6 +557,14 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
               </Button>
             </div>
           </div>
+        ) : post.is_revoked && !isOrganizer ? (
+          // Body is redacted on the server for revoked posts (see migration
+          // `20260420120000_swadhyay_visibility_hardening.sql`). We render a
+          // soft placeholder instead of the empty string so the card still
+          // reads as a coherent card rather than a broken layout.
+          <p className="whitespace-pre-wrap break-words text-sm italic leading-6 text-foreground/55">
+            This reflection was removed by an organizer.
+          </p>
         ) : (
           <p className="whitespace-pre-wrap break-words text-sm leading-6 text-foreground/90">
             {post.body}
@@ -567,10 +586,11 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             disabled={pending}
             onClick={togglePostReaction}
           />
-          {/* Reply only shows on other people's posts. Given users reported it
-              being hard to find, it gets a softly tinted hover target so it
-              reads as a clear tap target rather than a bare icon. */}
-          {post.author_id !== currentUserId ? (
+          {/* Reply only shows on other people's posts AND only while the
+              post is still live. Replying to a revoked post is blocked at
+              the DB (trigger) and at the action layer — hiding the button
+              just keeps the UI honest. */}
+          {post.author_id !== currentUserId && !post.is_revoked ? (
             <IconButton
               icon={<MessageCircle className="size-4" aria-hidden />}
               label="Reply"

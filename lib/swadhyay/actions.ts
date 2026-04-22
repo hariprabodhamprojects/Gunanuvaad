@@ -314,6 +314,26 @@ export async function replyToPostAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Not signed in." };
 
+  // Pre-check: refuse to insert if the target post is revoked. The database
+  // also has a BEFORE INSERT trigger (see migration
+  // `20260420120000_swadhyay_visibility_hardening.sql`) that enforces this
+  // — belt-and-suspenders. The server-side check is just nicer UX: it lets
+  // us return a human-readable error instead of the raw Postgres code.
+  const { data: targetPost, error: lookupErr } = await supabase
+    .from("swadhyay_posts")
+    .select("is_revoked")
+    .eq("id", postId)
+    .maybeSingle();
+
+  if (lookupErr) {
+    console.error("[swadhyay] replyToPostAction lookup", lookupErr.message);
+    return { ok: false, error: lookupErr.message };
+  }
+  if (!targetPost) return { ok: false, error: "Post not found." };
+  if (targetPost.is_revoked) {
+    return { ok: false, error: "This post was revoked — replies are closed." };
+  }
+
   const { error } = await supabase.from("swadhyay_post_replies").insert({
     post_id: postId,
     author_id: user.id,
@@ -323,6 +343,12 @@ export async function replyToPostAction(
 
   if (error) {
     console.error("[swadhyay] replyToPostAction", error.message);
+    // The trigger surfaces as an errcode P0001 with a useful message; if a
+    // revoke slips in between our pre-check and the insert, fall back to
+    // the same friendly copy.
+    if (/post is revoked/i.test(error.message)) {
+      return { ok: false, error: "This post was revoked — replies are closed." };
+    }
     return { ok: false, error: error.message };
   }
 
