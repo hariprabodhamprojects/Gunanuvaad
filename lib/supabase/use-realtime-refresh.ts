@@ -33,6 +33,12 @@ type Options = {
   debounceMs?: number;
   /** Set to `false` to pause the subscription. Defaults to `true`. */
   enabled?: boolean;
+  /**
+   * Optional periodic refresh fallback (ms). Useful when websocket delivery
+   * is flaky in specific environments — keeps server-rendered pages fresh
+   * without requiring manual reloads.
+   */
+  fallbackIntervalMs?: number;
 };
 
 /**
@@ -61,6 +67,7 @@ export function useRealtimeRefresh({
   subscriptions,
   debounceMs = 150,
   enabled = true,
+  fallbackIntervalMs,
 }: Options) {
   const router = useRouter();
   // Re-subscribe only when the logical shape of the subscription list changes.
@@ -73,18 +80,14 @@ export function useRealtimeRefresh({
   useEffect(() => {
     if (!enabled || subscriptions.length === 0) return;
 
-    // Temporary diagnostic logging. Flip this flag off once realtime
-    // subscriptions are confirmed stable across the app — it's noisy but
-    // invaluable when events silently disappear (see the Apr 2026 standings
-    // realtime incident: publication gap + REPLICA IDENTITY default both
-    // dropped UPDATE events without surfacing any error).
-    const DEBUG = true;
+    const DEBUG = false;
     const log = (...args: unknown[]) => {
-      if (DEBUG) console.log(`[realtime:${channel}]`, ...args);
+      if (DEBUG) console.debug(`[realtime:${channel}]`, ...args);
     };
 
     const supabase = createClient();
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    let fallbackTimer: ReturnType<typeof setInterval> | null = null;
     const scheduleRefresh = (payload?: unknown) => {
       log("event received → scheduling refresh", payload);
       if (refreshTimer) return;
@@ -128,12 +131,21 @@ export function useRealtimeRefresh({
       log("channel status →", status, err ?? "");
     });
 
+    if (fallbackIntervalMs && fallbackIntervalMs > 0) {
+      log(`fallback polling enabled: ${fallbackIntervalMs}ms`);
+      fallbackTimer = setInterval(() => {
+        log("fallback tick → scheduling refresh");
+        scheduleRefresh();
+      }, fallbackIntervalMs);
+    }
+
     return () => {
       if (refreshTimer) clearTimeout(refreshTimer);
+      if (fallbackTimer) clearInterval(fallbackTimer);
       supabase.removeChannel(ch);
       log("channel torn down");
     };
     // `key` captures every meaningful change in the subscription list.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel, key, debounceMs, enabled, router]);
+  }, [channel, key, debounceMs, enabled, fallbackIntervalMs, router]);
 }

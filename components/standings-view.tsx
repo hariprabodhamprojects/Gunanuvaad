@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
@@ -66,9 +66,6 @@ function ListEntry({
 
 export function StandingsView({ data }: { data: StandingsPayload }) {
   const [tab, setTab] = useState<"score" | "streak">("score");
-  useEffect(() => {
-    console.log("[standings] view mounted");
-  }, []);
 
   // Live-update points/streaks whenever anything that feeds the scoring
   // formula changes. The current `standings_leaderboards()` RPC (see
@@ -99,6 +96,9 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
     // Leaderboard churn is low; wait a bit longer so a burst of submissions
     // coalesces into a single re-fetch instead of one per row.
     debounceMs: 500,
+    // Safety net: if websocket events are dropped in a given browser/runtime,
+    // standings still self-heal without manual refresh.
+    fallbackIntervalMs: 4000,
   });
 
   const rows = tab === "score" ? data.points : data.streaks;
