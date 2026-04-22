@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition, useState, useMemo } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { approveDailyNoteAction, disapproveDailyNoteAction } from "@/lib/admin/actions";
 import type { AdminNoteForApprovalRow } from "@/lib/admin/types";
@@ -61,12 +62,38 @@ export function ApprovedNotesTable({ rows }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortAsc, setSortAsc] = useState(false);
 
-  const run = (noteId: string, fn: () => Promise<{ ok: boolean }>) => {
+  /**
+   * Shared runner for row-level actions (approve / disapprove / revoke).
+   * Shape is intentionally generic so future phases (bulk-approve, undo,
+   * audit-trail) can plug in without forking this component.
+   *
+   * On failure we surface the action's own error code so organizers get a
+   * real signal instead of a silent no-op — the previous implementation
+   * swallowed errors, which is how the "Revoke button does nothing" bug
+   * shipped in the first place (see QA report P0-1).
+   */
+  const run = (
+    noteId: string,
+    label: string,
+    fn: () => Promise<{ ok: boolean; error?: string }>,
+  ) => {
     setLoadingId(noteId);
     startTransition(async () => {
-      const r = await fn();
-      if (r.ok) router.refresh();
-      setLoadingId(null);
+      try {
+        const r = await fn();
+        if (r.ok) {
+          router.refresh();
+        } else {
+          toast.error(`${label} failed`, {
+            description: r.error ?? "Please try again.",
+          });
+        }
+      } catch (err) {
+        console.error("[admin] approved-notes-table action", err);
+        toast.error(`${label} failed`, { description: "Unexpected error." });
+      } finally {
+        setLoadingId(null);
+      }
     });
   };
 
@@ -253,32 +280,54 @@ export function ApprovedNotesTable({ rows }: Props) {
                         </span>
                       </td>
 
-                      {/* Actions */}
+                      {/* Actions — state-aware. Approved rows get a single
+                          "Revoke approval" button (the previous layout had a
+                          confusing "Revoke" label that silently called the
+                          approve action, see QA P0-1). Pending rows keep the
+                          two-button approve / reject layout. */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={r.is_approved ? "outline" : "default"}
-                            disabled={pending || isLoading}
-                            onClick={() => run(r.note_id, () => approveDailyNoteAction(r.note_id))}
-                            className={cn(
-                              "h-7 rounded-lg px-3 text-[12px] font-bold",
-                              !r.is_approved && "bg-gradient-to-b from-primary to-primary/80 shadow-sm hover:brightness-110"
-                            )}
-                          >
-                            {isLoading ? "…" : r.is_approved ? "Revoke" : "Approve"}
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            disabled={pending || isLoading}
-                            onClick={() => run(r.note_id, () => disapproveDailyNoteAction(r.note_id))}
-                            className="h-7 rounded-lg px-3 text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                          >
-                            Reject
-                          </Button>
+                          {r.is_approved ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={pending || isLoading}
+                              onClick={() =>
+                                run(r.note_id, "Revoke", () => disapproveDailyNoteAction(r.note_id))
+                              }
+                              className="h-7 rounded-lg px-3 text-[12px] font-bold"
+                            >
+                              {isLoading ? "…" : "Revoke approval"}
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="default"
+                                disabled={pending || isLoading}
+                                onClick={() =>
+                                  run(r.note_id, "Approve", () => approveDailyNoteAction(r.note_id))
+                                }
+                                className="h-7 rounded-lg px-3 text-[12px] font-bold bg-gradient-to-b from-primary to-primary/80 shadow-sm hover:brightness-110"
+                              >
+                                {isLoading ? "…" : "Approve"}
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                disabled={pending || isLoading}
+                                onClick={() =>
+                                  run(r.note_id, "Reject", () => disapproveDailyNoteAction(r.note_id))
+                                }
+                                className="h-7 rounded-lg px-3 text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
