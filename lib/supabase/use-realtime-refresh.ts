@@ -73,12 +73,24 @@ export function useRealtimeRefresh({
   useEffect(() => {
     if (!enabled || subscriptions.length === 0) return;
 
+    // Temporary diagnostic logging. Flip this flag off once realtime
+    // subscriptions are confirmed stable across the app — it's noisy but
+    // invaluable when events silently disappear (see the Apr 2026 standings
+    // realtime incident: publication gap + REPLICA IDENTITY default both
+    // dropped UPDATE events without surfacing any error).
+    const DEBUG = true;
+    const log = (...args: unknown[]) => {
+      if (DEBUG) console.debug(`[realtime:${channel}]`, ...args);
+    };
+
     const supabase = createClient();
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-    const scheduleRefresh = () => {
+    const scheduleRefresh = (payload?: unknown) => {
+      log("event received → scheduling refresh", payload);
       if (refreshTimer) return;
       refreshTimer = setTimeout(() => {
         refreshTimer = null;
+        log("calling router.refresh()");
         router.refresh();
       }, debounceMs);
     };
@@ -96,10 +108,11 @@ export function useRealtimeRefresh({
         table: string;
         filter?: string;
       },
-      callback: () => void,
+      callback: (payload: unknown) => void,
     ) => typeof ch;
 
     for (const sub of subscriptions) {
+      log("registering subscription", sub);
       onAny(
         "postgres_changes",
         {
@@ -111,11 +124,14 @@ export function useRealtimeRefresh({
         scheduleRefresh,
       );
     }
-    ch.subscribe();
+    ch.subscribe((status, err) => {
+      log("channel status →", status, err ?? "");
+    });
 
     return () => {
       if (refreshTimer) clearTimeout(refreshTimer);
       supabase.removeChannel(ch);
+      log("channel torn down");
     };
     // `key` captures every meaningful change in the subscription list.
     // eslint-disable-next-line react-hooks/exhaustive-deps
