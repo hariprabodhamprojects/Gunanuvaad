@@ -3,7 +3,7 @@
 import gsap from "gsap";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { useCampaignCountdown, formatCountdown } from "@/hooks/use-campaign-countdown";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,15 @@ function dismissStorageKey(userId: string): string {
 
 function noticeFingerprint(status: DailyCampaignStatus): string {
   return `${status.campaignTodayISO}|${status.sentToday ? "1" : "0"}`;
+}
+
+function isDismissedForFingerprint(storageKey: string, fp: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(storageKey) === fp;
+  } catch {
+    return false;
+  }
 }
 
 function useRefreshWhenCountdownEnds(nextResetAtIso: string) {
@@ -43,23 +52,12 @@ export function CampaignDayNotification({
   const { sentToday, nextResetAt } = status;
   const remMs = useRefreshWhenCountdownEnds(nextResetAt);
   const countdown = formatCountdown(remMs);
-  const fp = useMemo(
-    () => noticeFingerprint(status),
-    [status.campaignTodayISO, status.sentToday],
-  );
+  const fp = noticeFingerprint(status);
 
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
   const storageKey = dismissStorageKey(userId);
   const noticeRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      if (typeof window === "undefined") return;
-      setDismissed(window.localStorage.getItem(storageKey) === fp);
-    } catch {
-      setDismissed(false);
-    }
-  }, [fp, storageKey]);
+  const dismissed = dismissedFor === fp || isDismissedForFingerprint(storageKey, fp);
 
   const onDismiss = () => {
     const el = noticeRef.current;
@@ -74,11 +72,11 @@ export function CampaignDayNotification({
         y: -8,
         duration: 0.2,
         ease: "power2.in",
-        onComplete: () => setDismissed(true),
+        onComplete: () => setDismissedFor(fp),
       });
       return;
     }
-    setDismissed(true);
+    setDismissedFor(fp);
   };
 
   useLayoutEffect(() => {

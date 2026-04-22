@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTheme } from "next-themes";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Label } from "@/components/ui/label";
@@ -18,16 +18,8 @@ type Props = {
 
 export function SettingsPanel({ email, showEmail = true }: Props) {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [notifications, setNotifications] = useState(true);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setNotifications(readNotificationsPreference());
-  }, []);
+  const mounted = theme !== undefined;
+  const [notifications, setNotifications] = useState(() => readNotificationsPreference());
 
   const darkEnabled = theme === "dark";
 

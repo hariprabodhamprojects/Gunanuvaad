@@ -21,9 +21,6 @@
  */
 export const CAMPAIGN_TIMEZONE = "America/Toronto";
 
-/** Short label for UI copy ("Resets at midnight …"). */
-export const CAMPAIGN_TIMEZONE_SHORT_LABEL = "Toronto time";
-
 /**
  * Enforced in three places (all must agree):
  *   1. Client composer (`components/roster/roster-person-dialog.tsx`) — soft UI block.
@@ -38,41 +35,3 @@ export const CAMPAIGN_TIMEZONE_SHORT_LABEL = "Toronto time";
  */
 export const NOTE_BODY_MIN_LEN = 30;
 export const NOTE_BODY_MAX_LEN = 4000;
-
-/**
- * Standings scoring (as of migration `20260416150000_standings_flat_two_per_note.sql`,
- * then carried forward unchanged through `20260418120000_swadhyay_weekly_redesign.sql`):
- *
- *   Daily notes: every note = 2 points. Repeats to the same recipient are
- *                rewarded equally — no first/second weighting.
- *   Swadhyay:    every distinct campaign_date on which the author made at
- *                least one non-revoked post on a published topic whose window
- *                contains that date = 2 points.
- *
- *   Total points = note_points + swadhyay_points.
- *
- *   Ranks use DENSE_RANK() (ties share a rank, next tier is next integer).
- *
- * This replaces the earlier per-recipient 2/1 formula documented in
- * `20250331130000_standings_points_formula.sql` — retained only for history.
- *
- * Authoritative copy: `standings_leaderboards()` inside
- * `supabase/migrations/20260418120000_swadhyay_weekly_redesign.sql`.
- *
- * Change policy: scoring changes MUST ship as a new migration that redefines
- * `standings_leaderboards()`. This comment block is not authoritative.
- */
-export const POINTS_PER_DAILY_NOTE = 2;
-export const POINTS_PER_SWADHYAY_DAY = 2;
-
-/**
- * Streak ranking:
- *   - A streak is the length of the current run of consecutive `campaign_date`
- *     values on which the author sent a daily note (timezone-aligned to
- *     `CAMPAIGN_TIMEZONE`).
- *   - Ties are broken by DENSE_RANK() then alphabetical `display_name`.
- *
- * Authoritative copy: `_streak_days_for_author` in
- * `supabase/migrations/20250331120000_phase5_standings.sql` and the streak
- * CTE in `standings_leaderboards()` (see above).
- */

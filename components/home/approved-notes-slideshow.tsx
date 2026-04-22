@@ -82,15 +82,13 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
     subscriptions: [{ table: "approved_daily_notes" }],
   });
 
-  useLayoutEffect(() => {
-    setIndex((i) => (slides.length === 0 ? 0 : Math.min(i, slides.length - 1)));
-  }, [slides.length]);
+  const safeIndex = slides.length === 0 ? 0 : Math.min(index, slides.length - 1);
 
   // Keep a ref in sync with `index` so non-render code (ResizeObserver below)
   // can read the current slide without re-subscribing each time.
   useLayoutEffect(() => {
-    indexRef.current = index;
-  }, [index]);
+    indexRef.current = safeIndex;
+  }, [safeIndex]);
 
   useLayoutEffect(() => {
     if (slides.length <= 1) return;
@@ -109,7 +107,7 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
     const w = vp.offsetWidth;
     if (w === 0) return;
 
-    const x = -index * w;
+    const x = -safeIndex * w;
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -126,7 +124,7 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
       ease: SLIDE_EASE,
       overwrite: "auto",
     });
-  }, [index, slides]);
+  }, [safeIndex, slides]);
 
   /** Keep alignment when the viewport width changes (rotation, resize). */
   useLayoutEffect(() => {
@@ -146,7 +144,7 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
 
   if (slides.length === 0) return null;
 
-  const current = slides[index] ?? slides[0];
+  const current = slides[safeIndex] ?? slides[0];
 
   return (
     <section
@@ -191,10 +189,10 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
               key={s.note_id}
               type="button"
               role="tab"
-              aria-selected={i === index}
+              aria-selected={i === safeIndex}
               className={cn(
                 "size-2 rounded-full transition-[transform,background-color] duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
-                i === index ? "bg-primary" : "bg-muted-foreground/25 hover:bg-muted-foreground/40",
+                i === safeIndex ? "bg-primary" : "bg-muted-foreground/25 hover:bg-muted-foreground/40",
               )}
               onClick={() => setIndex(i)}
             />

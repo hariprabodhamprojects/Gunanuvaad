@@ -6,6 +6,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
+import { buildRosterListRows } from "@/lib/roster/build-list-rows";
 import type { RosterMember } from "@/lib/roster/types";
 
 type Props = {
@@ -118,19 +119,7 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
   }, [filtered]);
 
   // Build list rows with deterministic dictionary headers.
-  const listRows = useMemo(
-    () =>
-      filtered.map((member, idx) => {
-        const previousMember = idx > 0 ? filtered[idx - 1] : null;
-        const previousLetter = previousMember
-          ? previousMember.display_name.charAt(0).toUpperCase()
-          : null;
-        const firstLetter = member.display_name.charAt(0).toUpperCase();
-        const showHeader = firstLetter !== previousLetter;
-        return { member, firstLetter, showHeader };
-      }),
-    [filtered],
-  );
+  const listRows = useMemo(() => buildRosterListRows(filtered), [filtered]);
 
   return (
     <>
