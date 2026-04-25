@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MotionPageHero } from "@/components/motion-page-hero";
 import { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
@@ -118,7 +119,7 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24">
-      <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:shadow-md sm:px-7">
+      <MotionPageHero>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
             Leaderboard
@@ -150,7 +151,7 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
             </button>
           </div>
         </div>
-      </header>
+      </MotionPageHero>
 
       {rows.length > 0 ? (
         <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-both px-2 sm:mt-8">

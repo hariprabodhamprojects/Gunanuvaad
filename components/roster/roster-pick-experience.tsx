@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
-import gsap from "gsap";
+import { Fragment, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
+import { createRosterStagger } from "@/lib/motion-variants";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { buildRosterListRows } from "@/lib/roster/build-list-rows";
 import type { RosterMember } from "@/lib/roster/types";
@@ -79,7 +80,8 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<RosterMember | null>(null);
   const [zoomedAvatar, setZoomedAvatar] = useState<string | null>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion() ?? false;
+  const stagger = useMemo(() => createRosterStagger(reduceMotion), [reduceMotion]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -91,35 +93,12 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
     );
   }, [members, q]);
 
-  useLayoutEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const items = list.children;
-    if (items.length === 0) return;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) {
-      gsap.set(items, { opacity: 1, y: 0 });
-      return;
-    }
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        items,
-        { opacity: 0, y: 10 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.22,
-          stagger: { each: 0.02, from: "start" },
-          ease: "power3.out",
-          overwrite: "auto",
-        },
-      );
-    }, list);
-    return () => ctx.revert();
-  }, [filtered]);
-
   // Build list rows with deterministic dictionary headers.
   const listRows = useMemo(() => buildRosterListRows(filtered), [filtered]);
+  const listStaggerKey = useMemo(
+    () => filtered.map((m) => m.id).join(","),
+    [filtered],
+  );
 
   return (
     <>
@@ -145,27 +124,35 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
               : "No matches for your search."}
           </p>
         ) : (
-          <div
-            ref={listRef}
+          <motion.div
+            key={listStaggerKey}
             className="flex flex-col pb-24 w-full bg-card/30 rounded-3xl overflow-hidden border border-border/50 shadow-sm"
+            variants={stagger.container}
+            initial="hidden"
+            animate="show"
           >
             {listRows.map(({ member, firstLetter, showHeader }) => (
               <Fragment key={member.id}>
                 {showHeader && (
-                  <div className="pt-6 pb-2 px-6 sm:px-8 w-full shrink-0">
+                  <motion.div
+                    className="pt-6 pb-2 px-6 sm:px-8 w-full shrink-0"
+                    variants={stagger.item}
+                  >
                     <span className="text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
                       {firstLetter}
                     </span>
-                  </div>
+                  </motion.div>
                 )}
-                <RosterMemberCard
-                  member={member}
-                  onSelect={() => setSelected(member)}
-                  onAvatarClick={() => setZoomedAvatar(member.avatar_url)}
-                />
+                <motion.div className="w-full" variants={stagger.item}>
+                  <RosterMemberCard
+                    member={member}
+                    onSelect={() => setSelected(member)}
+                    onAvatarClick={() => setZoomedAvatar(member.avatar_url)}
+                  />
+                </motion.div>
               </Fragment>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
 

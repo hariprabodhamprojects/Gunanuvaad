@@ -1,3 +1,4 @@
+import { MotionPageHero } from "@/components/motion-page-hero";
 import { NotesCalendarSection } from "@/components/notes/notes-calendar-section";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { getAuthoredDailyNotes } from "@/lib/notes/get-authored-notes";
@@ -19,11 +20,11 @@ export default async function CalendarPage() {
   return (
     <div className="space-y-4">
       <div className="layout-reading">
-        <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:shadow-md sm:px-7">
+        <MotionPageHero>
           <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
             Your Calendar
           </h1>
-        </header>
+        </MotionPageHero>
       </div>
       <div className="layout-hybrid">
         <NotesCalendarSection key={notesKey} notes={notes} campaignToday={campaignToday} />

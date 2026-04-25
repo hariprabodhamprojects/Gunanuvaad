@@ -1,4 +1,5 @@
 import { ApprovedNotesSlideshow } from "@/components/home/approved-notes-slideshow";
+import { MotionPageHero } from "@/components/motion-page-hero";
 import { CampaignDayNotification } from "@/components/notes/campaign-day-ux";
 import { RosterPickExperience } from "@/components/roster/roster-pick-experience";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
@@ -34,7 +35,7 @@ export default async function HomePage() {
   return (
     <div className="layout-reading space-y-6">
       <CampaignDayNotification userId={user.id} status={dailyCampaignStatus} />
-      <header className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:shadow-md sm:px-7">
+      <MotionPageHero>
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-[28px]">
           Jay Swaminarayan
           {displayName ? (
@@ -45,7 +46,7 @@ export default async function HomePage() {
           ) : null}{" "}
           !
         </h1>
-      </header>
+      </MotionPageHero>
       <ApprovedNotesSlideshow slides={approvedSlides} />
       <RosterPickExperience
         members={members}
