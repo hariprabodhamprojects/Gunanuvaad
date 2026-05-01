@@ -45,28 +45,57 @@ export async function disapproveDailyNoteAction(noteId: string): Promise<{ ok: b
 }
 
 export async function deleteAllowlistUserAction(formData: FormData): Promise<void> {
-  const { email: actorEmail } = await requireOrganizer();
+  await requireOrganizer();
   const raw = formData.get("email");
   const email = typeof raw === "string" ? raw.trim().toLowerCase() : "";
 
   if (!email) {
     return;
   }
-  if (email === actorEmail) {
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_delete_allowlist_user", {
+    p_email: email,
+  });
+
+  if (error) {
+    console.error("[admin] admin_delete_allowlist_user", error.message);
     return;
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("allowed_emails")
-    .delete()
-    .eq("email", email);
-
-  if (error) {
-    console.error("[admin] delete allowed_email", error.message);
+  const row = data as { ok?: boolean; code?: string } | null;
+  if (!row?.ok) {
+    console.error("[admin] admin_delete_allowlist_user failed", row?.code ?? "failed");
     return;
   }
 
   revalidatePath("/admin/invites");
   revalidatePath("/admin");
+}
+
+export async function deleteAllowlistUserByEmailAction(
+  emailInput: string,
+): Promise<{ ok: boolean; code: string }> {
+  await requireOrganizer();
+  const email = emailInput.trim().toLowerCase();
+  if (!email) return { ok: false, code: "invalid_email" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_delete_allowlist_user", {
+    p_email: email,
+  });
+
+  if (error) {
+    console.error("[admin] admin_delete_allowlist_user", error.message);
+    return { ok: false, code: "rpc_error" };
+  }
+
+  const row = data as { ok?: boolean; code?: string } | null;
+  if (!row?.ok) {
+    return { ok: false, code: row?.code ?? "failed" };
+  }
+
+  revalidatePath("/admin/invites");
+  revalidatePath("/admin");
+  return { ok: true, code: "deleted" };
 }

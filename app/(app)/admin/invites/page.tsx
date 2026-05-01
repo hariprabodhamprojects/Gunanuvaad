@@ -1,6 +1,6 @@
+import { AdminInviteDeleteButton } from "@/components/admin/admin-invite-delete-button";
 import { AdminInvitesRealtime } from "@/components/admin/admin-invites-realtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { deleteAllowlistUserAction } from "@/lib/admin/actions";
 import { fetchAllowlistOverview } from "@/lib/admin/queries";
 import { cn } from "@/lib/utils";
 
@@ -113,19 +113,7 @@ export default async function AdminInvitesPage() {
                         )}
                       </td>
                       <td className="px-3 py-2.5 sm:px-4">
-                        {r.is_organizer ? (
-                          <span className="text-xs text-muted-foreground">Protected</span>
-                        ) : (
-                          <form action={deleteAllowlistUserAction}>
-                            <input type="hidden" name="email" value={r.email} />
-                            <button
-                              type="submit"
-                              className="inline-flex items-center rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/15"
-                            >
-                              Delete
-                            </button>
-                          </form>
-                        )}
+                        <AdminInviteDeleteButton email={r.email} isOrganizer={r.is_organizer} />
                       </td>
                     </tr>
                   ))
