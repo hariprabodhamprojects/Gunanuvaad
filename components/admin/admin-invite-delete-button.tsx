@@ -31,6 +31,7 @@ function codeToMessage(code: string): string {
 export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
   const [pending, startTransition] = useTransition();
   const [deleted, setDeleted] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   if (isOrganizer) {
     return <span className="text-xs text-muted-foreground">Protected</span>;
@@ -40,26 +41,48 @@ export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
   }
 
   return (
-    <button
-      type="button"
-      disabled={pending}
-      className="inline-flex items-center rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/15 disabled:cursor-not-allowed disabled:opacity-60"
-      onClick={() => {
-        const ok = window.confirm(`Are you sure you want to delete ${email} from app access?`);
-        if (!ok) return;
-
-        startTransition(async () => {
-          const result = await deleteAllowlistUserByEmailAction(email);
-          if (result.ok) {
-            setDeleted(true);
-            toast.success("User deleted from app access.");
-            return;
-          }
-          toast.error(codeToMessage(result.code));
-        });
-      }}
-    >
-      {pending ? "Deleting..." : "Delete"}
-    </button>
+    <div className="flex items-center gap-2">
+      {confirming ? (
+        <>
+          <span className="text-xs text-muted-foreground">Are you sure?</span>
+          <button
+            type="button"
+            disabled={pending}
+            className="inline-flex items-center rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/15 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => {
+              startTransition(async () => {
+                const result = await deleteAllowlistUserByEmailAction(email);
+                if (result.ok) {
+                  setDeleted(true);
+                  toast.success("User deleted from app access.");
+                  return;
+                }
+                toast.error(codeToMessage(result.code));
+                setConfirming(false);
+              });
+            }}
+          >
+            {pending ? "Deleting..." : "OK"}
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            className="inline-flex items-center rounded-md border border-border/60 bg-background px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => setConfirming(false)}
+          >
+            Cancel
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          disabled={pending}
+          className="inline-flex items-center rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/15 disabled:cursor-not-allowed disabled:opacity-60"
+          onClick={() => setConfirming(true)}
+        >
+          Delete
+        </button>
+      )}
+    </div>
   );
 }

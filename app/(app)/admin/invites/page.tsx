@@ -12,6 +12,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminInvitesPage() {
   const rows = await fetchAllowlistOverview();
+  const sortedRows = [...rows].sort((a, b) => {
+    const an = a.invite_display_name?.trim() || a.profile_display_name?.trim() || a.email;
+    const bn = b.invite_display_name?.trim() || b.profile_display_name?.trim() || b.email;
+    return an.localeCompare(bn, undefined, { sensitivity: "base" });
+  });
   const total = rows.length;
   const signedUp = rows.filter((r) => r.has_signed_up).length;
   const rosterReady = rows.filter((r) => r.roster_ready).length;
@@ -75,7 +80,7 @@ export default async function AdminInvitesPage() {
                     </td>
                   </tr>
                 ) : (
-                  rows.map((r) => (
+                  sortedRows.map((r) => (
                     <tr key={r.email} className="border-b border-border/40 last:border-0">
                       <td className="px-3 py-2.5 font-mono text-xs sm:px-4 sm:text-sm">{r.email}</td>
                       <td className="max-w-[10rem] truncate px-3 py-2.5 text-muted-foreground sm:px-4">
