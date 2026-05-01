@@ -1,5 +1,6 @@
 import { AdminInvitesRealtime } from "@/components/admin/admin-invites-realtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { deleteAllowlistUserAction } from "@/lib/admin/actions";
 import { fetchAllowlistOverview } from "@/lib/admin/queries";
 import { cn } from "@/lib/utils";
 
@@ -63,12 +64,13 @@ export default async function AdminInvitesPage() {
                   <th className="px-3 py-2.5 font-medium sm:px-4">Status</th>
                   <th className="px-3 py-2.5 font-medium sm:px-4">Profile</th>
                   <th className="px-3 py-2.5 font-medium sm:px-4">Org</th>
+                  <th className="px-3 py-2.5 font-medium sm:px-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+                    <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
                       No rows returned. Run the new admin migration and ensure you are an organizer.
                     </td>
                   </tr>
@@ -108,6 +110,21 @@ export default async function AdminInvitesPage() {
                           <span className="text-xs font-medium text-primary">Yes</span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 sm:px-4">
+                        {r.is_organizer ? (
+                          <span className="text-xs text-muted-foreground">Protected</span>
+                        ) : (
+                          <form action={deleteAllowlistUserAction}>
+                            <input type="hidden" name="email" value={r.email} />
+                            <button
+                              type="submit"
+                              className="inline-flex items-center rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/15"
+                            >
+                              Delete
+                            </button>
+                          </form>
                         )}
                       </td>
                     </tr>

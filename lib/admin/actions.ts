@@ -43,3 +43,31 @@ export async function disapproveDailyNoteAction(noteId: string): Promise<{ ok: b
   revalidatePath("/home");
   return { ok: true };
 }
+
+export async function deleteAllowlistUserAction(formData: FormData): Promise<{ ok: boolean; error?: string }> {
+  const { email: actorEmail } = await requireOrganizer();
+  const raw = formData.get("email");
+  const email = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+
+  if (!email) {
+    return { ok: false, error: "missing_email" };
+  }
+  if (email === actorEmail) {
+    return { ok: false, error: "cannot_delete_self" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("allowed_emails")
+    .delete()
+    .eq("email", email);
+
+  if (error) {
+    console.error("[admin] delete allowed_email", error.message);
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/admin/invites");
+  revalidatePath("/admin");
+  return { ok: true };
+}
