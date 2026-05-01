@@ -64,7 +64,7 @@ export async function createWeeklyTopicAction(formData: FormData): Promise<void>
   }
 
   invalidatePaths();
-  redirect("/admin/swadhyay?ok=created");
+  redirect("/swadhyay");
 }
 
 /** Update one topic in place. */

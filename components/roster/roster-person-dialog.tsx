@@ -104,7 +104,7 @@ function eligibilityHint(elig: WriteEligibility | null): string | null {
   if (!elig || elig.ok) return null;
   switch (elig.code) {
     case "already_today":
-      return "You already sent today’s note. Come back tomorrow.";
+      return "Today’s points are already counted, but you can still send notes.";
     case "invalid_recipient":
     case "self":
       return "You can’t send a note to this person from here.";
@@ -205,8 +205,7 @@ export function RosterPersonDialog({
         return;
       }
       if (r.code === "already_today") {
-        toast.error("You already sent today’s note.");
-        setElig({ ok: false, code: "already_today" });
+        toast.message("Today’s points already counted. You can still send notes.");
         setShowConfirm(false);
         return;
       }
