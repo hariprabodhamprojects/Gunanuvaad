@@ -1,8 +1,8 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Search, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
 import { createRosterStagger } from "@/lib/motion-variants";
@@ -20,10 +20,12 @@ function RosterMemberCard({
   member,
   onSelect,
   onAvatarClick,
+  isOpening,
 }: {
   member: RosterMember;
   onSelect: () => void;
   onAvatarClick: () => void;
+  isOpening: boolean;
 }) {
   const canWrite = member.can_write;
   return (
@@ -39,7 +41,7 @@ function RosterMemberCard({
           }}
           className="relative size-12 overflow-hidden rounded-full ring-2 ring-transparent shadow-sm transition-[transform,box-shadow,ring-color] duration-[180ms] ease-[var(--ease-out-standard)] sm:size-14 group-hover:ring-primary/20 active:scale-[0.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-60"
           aria-label={`View profile picture of ${member.display_name}`}
-          disabled={!canWrite}
+          disabled={!canWrite || isOpening}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -58,19 +60,26 @@ function RosterMemberCard({
           if (!canWrite) return;
           onSelect();
         }}
-        className="min-w-0 flex-1 border-b border-border/40 py-3 pr-2 text-left outline-none transition-[transform,opacity] duration-[140ms] ease-[var(--ease-out-standard)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={!canWrite}
+        className="relative min-w-0 flex-1 border-b border-border/40 py-3 pr-2 text-left outline-none transition-[transform,opacity] duration-[140ms] ease-[var(--ease-out-standard)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+        disabled={!canWrite || isOpening}
       >
         <div className="flex flex-col">
           <p className="truncate text-[16px] sm:text-[17px] font-semibold text-foreground tracking-tight">
             {member.display_name}
           </p>
           <p className="text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 line-clamp-1">
-            {canWrite
+            {isOpening
+              ? "Opening..."
+              : canWrite
               ? "Tap to write a meaningful ghun."
               : "Invited - not joined yet."}
           </p>
         </div>
+        {isOpening ? (
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-primary">
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          </div>
+        ) : null}
       </button>
     </div>
   );
@@ -79,6 +88,7 @@ function RosterMemberCard({
 export function RosterPickExperience({ members, currentUserId, dailyCampaignStatus }: Props) {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<RosterMember | null>(null);
+  const [openingMemberId, setOpeningMemberId] = useState<string | null>(null);
   const [zoomedAvatar, setZoomedAvatar] = useState<string | null>(null);
   const reduceMotion = useReducedMotion() ?? false;
   const stagger = useMemo(() => createRosterStagger(reduceMotion), [reduceMotion]);
@@ -99,6 +109,15 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
     () => filtered.map((m) => m.id).join(","),
     [filtered],
   );
+
+  // Keep a short inline loading state so taps always show immediate feedback.
+  useEffect(() => {
+    if (!openingMemberId) return null;
+    const timeout = window.setTimeout(() => {
+      setOpeningMemberId((current) => (current === openingMemberId ? null : current));
+    }, 900);
+    return () => window.clearTimeout(timeout);
+  }, [openingMemberId]);
 
   return (
     <>
@@ -146,7 +165,12 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
                 <motion.div className="w-full" variants={stagger.item}>
                   <RosterMemberCard
                     member={member}
-                    onSelect={() => setSelected(member)}
+                    isOpening={openingMemberId === member.id}
+                    onSelect={() => {
+                      if (openingMemberId) return;
+                      setOpeningMemberId(member.id);
+                      setSelected(member);
+                    }}
                     onAvatarClick={() => setZoomedAvatar(member.avatar_url)}
                   />
                 </motion.div>
@@ -161,7 +185,10 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
         member={selected}
         open={selected !== null}
         onOpenChange={(open) => {
-          if (!open) setSelected(null);
+          if (!open) {
+            setSelected(null);
+            setOpeningMemberId(null);
+          }
         }}
         currentUserId={currentUserId}
         dailyCampaignStatus={dailyCampaignStatus}
