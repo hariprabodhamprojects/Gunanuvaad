@@ -48,7 +48,7 @@ export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
           <button
             type="button"
             disabled={pending}
-            className="inline-flex items-center rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/15 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-10 min-w-[2.75rem] touch-manipulation items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15 active:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-60"
             onClick={() => {
               startTransition(async () => {
                 const result = await deleteAllowlistUserByEmailAction(email);
@@ -67,7 +67,7 @@ export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
           <button
             type="button"
             disabled={pending}
-            className="inline-flex items-center rounded-md border border-border/60 bg-background px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-10 min-w-[2.75rem] touch-manipulation items-center justify-center rounded-lg border border-border/60 bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted active:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-60"
             onClick={() => setConfirming(false)}
           >
             Cancel
@@ -77,7 +77,7 @@ export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
         <button
           type="button"
           disabled={pending}
-          className="inline-flex items-center rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/15 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-10 touch-manipulation items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15 active:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-60"
           onClick={() => setConfirming(true)}
         >
           Delete

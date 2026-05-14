@@ -16,18 +16,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="layout-wide space-y-6">
       <nav
         className={cn(
-          "flex items-center gap-1.5 border-b border-border/60 pb-3",
-          // Keep all tabs on one line; allow horizontal scroll on narrow screens.
-          "overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "flex flex-wrap items-center gap-2 border-b border-border/60 pb-3",
+          // On phones, horizontal `overflow-x-auto` often eats the first touch
+          // as a scroll gesture — wrap tabs instead so each tap is a real tap.
+          "sm:flex-nowrap sm:gap-1.5 sm:overflow-x-auto sm:[-ms-overflow-style:none] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden",
         )}
       >
         {links.map(({ href, label }) => (
           <Link
             key={href}
             href={href}
+            prefetch
+            scroll={false}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors",
-              "hover:bg-muted hover:text-foreground",
+              "inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors",
+              "active:bg-muted/80 hover:bg-muted hover:text-foreground",
             )}
           >
             {label}

@@ -65,7 +65,7 @@ export function MeProfileSummary({ displayName, avatarUrl, email }: Props) {
               {email}
             </p>
           </div>
-          <ChangeAvatarControl variant="outline" size="sm" className="w-full sm:w-auto" />
+          <ChangeAvatarControl variant="outline" size="default" className="w-full sm:w-auto" />
         </div>
       </div>
     </div>
