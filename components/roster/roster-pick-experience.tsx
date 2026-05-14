@@ -112,7 +112,7 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
 
   // Keep a short inline loading state so taps always show immediate feedback.
   useEffect(() => {
-    if (!openingMemberId) return null;
+    if (!openingMemberId) return;
     const timeout = window.setTimeout(() => {
       setOpeningMemberId((current) => (current === openingMemberId ? null : current));
     }, 900);
