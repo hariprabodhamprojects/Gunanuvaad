@@ -111,7 +111,9 @@
     user-select: text;
     -webkit-user-select: text;
     -webkit-touch-callout: default;
-    touch-action: manipulation;
+    /* Let the browser handle text gestures (caret drag, selection handles).
+       `manipulation` on inputs has caused flaky typing on iOS PWAs. */
+    touch-action: auto;
     -webkit-tap-highlight-color: transparent;
   }
 
