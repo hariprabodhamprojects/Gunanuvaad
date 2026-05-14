@@ -5,7 +5,7 @@ import { MotionPageHero } from "@/components/motion-page-hero";
 import { CampaignDayNotification } from "@/components/notes/campaign-day-ux";
 import { RosterPickExperience } from "@/components/roster/roster-pick-experience";
 import { Card, CardContent } from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { cn } from "@/lib/utils";
 import { getApprovedNotesSlideshowSlides } from "@/lib/home/approved-slideshow";

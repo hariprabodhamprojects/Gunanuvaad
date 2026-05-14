@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Images } from "lucide-react";
 import { SmrutiComposerForm } from "@/components/smruti/smruti-composer-form";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { cn } from "@/lib/utils";
 

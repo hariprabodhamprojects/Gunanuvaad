@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Images, Plus } from "lucide-react";
 import { SmrutiFeed } from "@/components/smruti/smruti-feed";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { cn } from "@/lib/utils";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
