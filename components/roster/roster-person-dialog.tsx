@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Lock } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
@@ -139,8 +139,20 @@ export function RosterPersonDialog({
       setBody("");
       setElig(null);
       setShowConfirm(false);
+      setLoadingElig(false);
     }
   }, [open]);
+
+  // Before paint: show loading overlay immediately so we never flash the wrong
+  // actions while eligibility is still unknown (slow networks).
+  useLayoutEffect(() => {
+    if (!open || !member?.id) return;
+    if (!canWriteFromRoster || isSelf) {
+      setLoadingElig(false);
+      return;
+    }
+    setLoadingElig(true);
+  }, [open, member?.id, canWriteFromRoster, isSelf]);
 
   useEffect(() => {
     if (!open || !member || !canWriteFromRoster || isSelf) {
@@ -230,7 +242,7 @@ export function RosterPersonDialog({
               // `page-hero` layers the warm primary mesh + top hairline used
               // everywhere else (Swadhyay hero, Standings, Calendar) so the
               // dialog feels like part of the same surface language.
-              "page-hero relative glass-card flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 rounded-t-3xl border-b-0 border-t border-white/20 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border",
+              "page-hero relative flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 overflow-hidden rounded-t-3xl border-b-0 border-t border-white/20 bg-card p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border glass-card",
               "data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0",
               "transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out-standard)] motion-reduce:duration-[140ms] motion-reduce:data-[ending-style]:translate-y-0 motion-reduce:data-[starting-style]:translate-y-0",
             )}
@@ -312,10 +324,7 @@ export function RosterPersonDialog({
                     </div>
                   </>
                 ) : loadingElig ? (
-                  <div className="flex flex-col items-center gap-3 py-6 text-muted-foreground">
-                    <Loader2 className="size-8 animate-spin" aria-hidden />
-                    <p className="text-sm">Checking…</p>
-                  </div>
+                  <div className="min-h-[12rem] shrink-0" aria-hidden />
                 ) : (
                   <div className="flex flex-col gap-3">
                     {blockHint ? (
@@ -385,6 +394,26 @@ export function RosterPersonDialog({
                     )}
                   </div>
                 )}
+                {/* Full-sheet loading while eligibility is fetched (slow networks). */}
+                {!isSelf && canWriteFromRoster && loadingElig ? (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    aria-busy="true"
+                    className="absolute inset-0 z-[55] flex flex-col items-center justify-center gap-4 rounded-t-3xl bg-background/90 px-6 backdrop-blur-md sm:rounded-3xl"
+                  >
+                    <Loader2
+                      className="size-10 shrink-0 animate-spin text-primary"
+                      aria-hidden
+                    />
+                    <p className="max-w-[18rem] text-center text-sm font-medium text-foreground">
+                      Checking whether you can send a note…
+                    </p>
+                    <p className="max-w-[18rem] text-center text-xs text-muted-foreground">
+                      This can take a few seconds on a slow connection.
+                    </p>
+                  </div>
+                ) : null}
               </>
             ) : null}
           </Dialog.Popup>
