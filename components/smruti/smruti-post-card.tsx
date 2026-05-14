@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { deleteSmrutiPostAction, likeSmrutiPostAction } from "@/lib/smruti/actions";
-import { smrutiPublicUrl } from "@/lib/smruti/public-url";
+import { smrutiPublicUrl, SMRUTI_PHOTO_MATTE_URL } from "@/lib/smruti/public-url";
 import type { SmrutiFeedPost } from "@/lib/smruti/types";
 import { cn } from "@/lib/utils";
 
@@ -147,32 +147,45 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
         ) : null}
       </header>
 
-      {/* Shorter on phones so the next post peeks into the fold (ref: Glimpses-style). */}
+      {/* Full photo (object-contain) on parchment matte — no cropping; optional parallax matte on md+. */}
       <div className="px-2 pb-1.5 sm:px-3 sm:pb-2">
         <div
           className={cn(
-            "relative w-full overflow-hidden rounded-xl bg-muted/35",
-            "h-[clamp(10.5rem,36svh,15.5rem)] sm:h-[clamp(12rem,42svh,20rem)] lg:aspect-[4/5] lg:h-auto lg:max-h-[min(70svh,28rem)]",
+            "relative isolate flex min-h-[9.5rem] w-full items-center justify-center overflow-hidden rounded-xl",
+            "ring-1 ring-inset ring-stone-900/10",
           )}
         >
+          <div
+            aria-hidden
+            className={cn(
+              "absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll",
+              "md:bg-fixed md:motion-reduce:bg-scroll",
+            )}
+            style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-stone-950/[0.04] to-stone-950/[0.07]"
+          />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            key={urls[idx]}
             src={urls[idx]}
             alt=""
-            className="size-full object-cover"
+            className="relative z-[2] max-h-[min(76svh,34rem)] w-full max-w-full object-contain object-center sm:max-h-[min(78svh,38rem)]"
             loading="lazy"
             decoding="async"
           />
           {n > 1 ? (
             <>
-              <div className="pointer-events-none absolute right-2 top-2 sm:right-2.5 sm:top-2.5">
+              <div className="pointer-events-none absolute right-2 top-2 z-[3] sm:right-2.5 sm:top-2.5">
                 <span className="rounded-full bg-black/50 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white backdrop-blur-[2px] sm:px-2 sm:text-[11px]">
                   {idx + 1}/{n}
                 </span>
               </div>
               <button
                 type="button"
-                className="absolute left-0.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:left-1 sm:size-9"
+                className="absolute left-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:left-1 sm:size-9"
                 aria-label="Previous photo"
                 disabled={idx === 0}
                 onClick={() => setSlide((s) => Math.max(0, s - 1))}
@@ -181,7 +194,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
               </button>
               <button
                 type="button"
-                className="absolute right-0.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:right-1 sm:size-9"
+                className="absolute right-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:right-1 sm:size-9"
                 aria-label="Next photo"
                 disabled={idx >= n - 1}
                 onClick={() => setSlide((s) => Math.min(n - 1, s + 1))}
