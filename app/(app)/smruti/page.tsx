@@ -16,22 +16,26 @@ export default async function SmrutiPage() {
   const [posts, isOrganizer] = await Promise.all([getSmrutiFeed({ limit: 40 }), getIsOrganizerSession()]);
 
   return (
-    <div className="layout-reading space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <Images className="size-6 text-primary" aria-hidden />
-            <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
+    <div className="layout-reading space-y-4 sm:space-y-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Images className="size-5 shrink-0 text-primary sm:size-6" aria-hidden />
+            <h1 className="font-heading text-xl font-semibold tracking-tight text-primary sm:text-2xl sm:text-[28px]">
               Smruti
             </h1>
           </div>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:mt-1 sm:line-clamp-none sm:max-w-xl sm:text-sm">
             Shared moments from the sangh — photos with a caption. Tap the heart once; it stays on.
           </p>
         </div>
         <Link
           href="/smruti/new"
-          className={cn(buttonVariants({ size: "default" }), "shrink-0 gap-2 self-start sm:self-center")}
+          className={cn(
+            buttonVariants({ size: "default" }),
+            "shrink-0 gap-1.5 self-start sm:gap-2 sm:self-center",
+            "min-h-9 px-3 py-2 text-sm sm:min-h-10",
+          )}
         >
           <Plus className="size-4" aria-hidden />
           New post
