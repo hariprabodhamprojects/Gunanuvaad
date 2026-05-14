@@ -1,22 +1,38 @@
 "use client";
 
+import { useLayoutEffect } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { motion, useReducedMotion } from "motion/react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+const PORTAL_ID = "app-min-loading-splash-portal";
+const MIN_MS = 3000;
+
 const easeLux: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-/**
- * Full-route loading shell — light theme, app mesh + glass card, slow luxe
- * entrance (~3s choreography when visible). Respects `prefers-reduced-motion`.
- *
- * Note: This does not block navigation for 3s; if the segment resolves faster,
- * the splash unmounts as soon as Next replaces `loading.tsx`. The timings below
- * only stretch how smooth the animation feels while it is on screen.
- */
-export function AppLoadingSplash() {
-  const reduceMotion = useReducedMotion() ?? false;
+/** Module state survives React fast-unmount of `loading.tsx` so we can honor MIN_MS. */
+let sessionT0: number | null = null;
+let portalEl: HTMLDivElement | null = null;
+let portalRoot: Root | null = null;
+let teardownTimer: ReturnType<typeof setTimeout> | null = null;
 
+function scheduleTeardown() {
+  if (sessionT0 === null) return;
+  if (teardownTimer) clearTimeout(teardownTimer);
+  const rem = Math.max(0, MIN_MS - (Date.now() - sessionT0));
+  teardownTimer = setTimeout(() => {
+    teardownTimer = null;
+    portalRoot?.unmount();
+    portalRoot = null;
+    portalEl?.remove();
+    portalEl = null;
+    sessionT0 = null;
+    document.body.style.overflow = "";
+  }, rem);
+}
+
+function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
   const logoTransition = reduceMotion
     ? { duration: 0.25 }
     : { type: "spring" as const, stiffness: 88, damping: 26, mass: 1.15 };
@@ -28,7 +44,7 @@ export function AppLoadingSplash() {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[100] flex min-h-dvh flex-col text-foreground bg-app-gradient",
+        "fixed inset-0 z-[200] flex min-h-dvh flex-col text-foreground bg-app-gradient",
       )}
     >
       <span className="sr-only">Loading MananChintan</span>
@@ -38,9 +54,7 @@ export function AppLoadingSplash() {
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={
-            reduceMotion
-              ? { duration: 0.28 }
-              : { duration: 1.22, ease: easeLux }
+            reduceMotion ? { duration: 0.28 } : { duration: 1.22, ease: easeLux }
           }
           className="relative w-full max-w-sm"
         >
@@ -123,4 +137,44 @@ export function AppLoadingSplash() {
       </div>
     </div>
   );
+}
+
+function SplashPortalInner() {
+  const reduceMotion = useReducedMotion() ?? false;
+  return <SplashVisual reduceMotion={reduceMotion} />;
+}
+
+/**
+ * Minimum **3s** on-screen splash: renders into a `document.body` portal so the
+ * UI stays visible after Next.js unmounts `loading.tsx`. Light theme + motion
+ * choreography unchanged inside `SplashVisual`.
+ */
+export function AppLoadingSplash() {
+  useLayoutEffect(() => {
+    if (teardownTimer) {
+      clearTimeout(teardownTimer);
+      teardownTimer = null;
+    }
+    sessionT0 = Date.now();
+
+    let el = document.getElementById(PORTAL_ID) as HTMLDivElement | null;
+    if (!el) {
+      el = document.createElement("div");
+      el.id = PORTAL_ID;
+      document.body.appendChild(el);
+    }
+    portalEl = el;
+    if (!portalRoot) {
+      portalRoot = createRoot(el);
+    }
+
+    document.body.style.overflow = "hidden";
+    portalRoot.render(<SplashPortalInner />);
+
+    return () => {
+      scheduleTeardown();
+    };
+  }, []);
+
+  return <span className="sr-only">Loading MananChintan</span>;
 }

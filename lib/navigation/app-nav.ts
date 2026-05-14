@@ -1,4 +1,11 @@
-import { BarChart2, BookOpenText, CalendarDays, Home, type LucideIcon } from "lucide-react";
+import {
+  BarChart2,
+  BookOpenText,
+  CalendarDays,
+  Home,
+  Images,
+  type LucideIcon,
+} from "lucide-react";
 
 export type AppNavItem = {
   href: string;
@@ -13,6 +20,12 @@ export const appNavItems: AppNavItem[] = [
     label: "Home",
     icon: Home,
     match: (pathname) => pathname === "/home" || pathname === "/" || pathname === "/pick",
+  },
+  {
+    href: "/smruti",
+    label: "Smruti",
+    icon: Images,
+    match: (pathname) => pathname === "/smruti" || pathname.startsWith("/smruti/"),
   },
   {
     href: "/standings",
