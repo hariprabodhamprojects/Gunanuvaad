@@ -400,18 +400,13 @@ export function RosterPersonDialog({
                     role="status"
                     aria-live="polite"
                     aria-busy="true"
-                    className="absolute inset-0 z-[55] flex flex-col items-center justify-center gap-4 rounded-t-3xl bg-background/90 px-6 backdrop-blur-md sm:rounded-3xl"
+                    className="absolute inset-0 z-[55] flex flex-col items-center justify-center rounded-t-3xl bg-background/90 backdrop-blur-md sm:rounded-3xl"
                   >
+                    <span className="sr-only">Loading</span>
                     <Loader2
                       className="size-10 shrink-0 animate-spin text-primary"
                       aria-hidden
                     />
-                    <p className="max-w-[18rem] text-center text-sm font-medium text-foreground">
-                      Checking whether you can send a note…
-                    </p>
-                    <p className="max-w-[18rem] text-center text-xs text-muted-foreground">
-                      This can take a few seconds on a slow connection.
-                    </p>
                   </div>
                 ) : null}
               </>

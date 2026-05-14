@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppBottomNav } from "@/components/app-bottom-nav";
 import { AppHeaderNav } from "@/components/app-header-nav";
+import { AppRouteWarmup } from "@/components/app-route-warmup";
 import { AppSidebar } from "@/components/app-sidebar";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
@@ -22,18 +23,20 @@ export default async function AppShellLayout({
   const { user, email } = await requireAllowlistedUser();
   await requireCompleteProfile(user.id);
   const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  const [{ data: profile }, standings, isOrganizer] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("display_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle(),
+    getStandings(),
+    getIsOrganizerSession(),
+  ]);
 
   const profileName = profile?.display_name?.trim() || user.email || "You";
   const profileAvatarUrl = profile?.avatar_url?.trim() || "";
-  const standings = await getStandings();
   const scoreEntry = standings?.points.find((entry) => entry.id === user.id);
   const streakEntry = standings?.streaks.find((entry) => entry.id === user.id);
-  const isOrganizer = await getIsOrganizerSession();
 
   return (
     // `bg-app-gradient` gives the entire shell a warm primary mesh canvas so
@@ -66,6 +69,7 @@ export default async function AppShellLayout({
         </main>
       </div>
       <AppBottomNav />
+      <AppRouteWarmup />
     </div>
   );
 }

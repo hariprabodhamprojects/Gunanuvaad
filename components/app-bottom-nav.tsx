@@ -152,22 +152,24 @@ export function AppBottomNav() {
               )}
             >
               <span className="relative flex h-6 w-6 items-center justify-center">
+                <Icon
+                  className={cn(
+                    "size-[1.25rem]",
+                    loading && "opacity-25",
+                  )}
+                  strokeWidth={active ? 2.5 : 2}
+                  aria-hidden
+                />
                 {loading ? (
                   <Loader2
-                    className="size-[1.25rem] shrink-0 animate-spin text-primary"
+                    className="pointer-events-none absolute inset-0 m-auto size-[1.1rem] animate-spin text-primary"
                     aria-hidden
                   />
-                ) : (
-                  <Icon
-                    className="size-[1.25rem]"
-                    strokeWidth={active ? 2.5 : 2}
-                    aria-hidden
-                  />
-                )}
+                ) : null}
               </span>
 
               <span className="text-[10px] font-semibold tracking-wide leading-none">
-                {loading ? "Loading…" : label}
+                {label}
               </span>
             </Link>
           );
