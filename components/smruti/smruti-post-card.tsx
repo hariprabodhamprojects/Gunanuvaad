@@ -12,25 +12,6 @@ import { cn } from "@/lib/utils";
 
 const CAPTION_PREVIEW_CHARS = 160;
 
-function formatRelativeTime(value: string): string {
-  const then = new Date(value).getTime();
-  if (!Number.isFinite(then)) return "";
-  const diff = Math.max(0, Date.now() - then);
-  const m = Math.floor(diff / 60_000);
-  if (m < 1) return "now";
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h`;
-  const d = Math.floor(h / 24);
-  if (d < 7) return `${d}d`;
-  const w = Math.floor(d / 7);
-  if (w < 5) return `${w}w`;
-  return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-}
-
 function formatPostDate(value: string): string {
   const d = new Date(value);
   if (!Number.isFinite(d.getTime())) return "";
@@ -102,49 +83,48 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
         "ring-border/30",
       )}
     >
-      <header className="flex items-center gap-2 px-2.5 py-2 sm:gap-2.5 sm:px-3 sm:py-2.5">
+      <header className="flex items-center gap-2.5 px-2.5 py-2.5 sm:gap-3 sm:px-3 sm:py-3">
         {post.author_avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={post.author_avatar_url}
             alt=""
-            className="size-8 shrink-0 rounded-lg object-cover ring-1 ring-border/50 sm:size-9 sm:rounded-full"
+            className="size-9 shrink-0 rounded-md object-cover ring-1 ring-border/50 sm:rounded-lg"
           />
         ) : (
           <div
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-[11px] font-semibold text-muted-foreground ring-1 ring-border/50 sm:size-9 sm:rounded-full"
+            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground ring-1 ring-border/50 sm:rounded-lg"
             aria-hidden
           >
             {authorName.slice(0, 1).toUpperCase()}
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-semibold leading-tight text-foreground sm:text-sm">
+          <p className="truncate font-heading text-[15px] font-semibold tracking-tight text-primary sm:text-base">
             {authorName}
           </p>
-          <p className="truncate text-[10px] text-muted-foreground sm:hidden" title={post.created_at}>
-            {formatRelativeTime(post.created_at)}
-          </p>
         </div>
-        <time
-          className="hidden shrink-0 text-xs text-muted-foreground tabular-nums sm:block"
-          dateTime={post.created_at}
-        >
-          {formatPostDate(post.created_at)}
-        </time>
-        {canDelete ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="size-8 shrink-0 text-muted-foreground hover:text-destructive sm:size-9"
-            disabled={pendingDelete}
-            onClick={onDelete}
-            aria-label="Delete post"
+        <div className="flex shrink-0 items-center gap-1">
+          <time
+            className="font-heading text-xs font-medium tabular-nums text-primary sm:text-sm"
+            dateTime={post.created_at}
           >
-            <Trash2 className="size-3.5 sm:size-4" aria-hidden />
-          </Button>
-        ) : null}
+            {formatPostDate(post.created_at)}
+          </time>
+          {canDelete ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="size-8 shrink-0 text-primary/60 hover:text-destructive sm:size-9"
+              disabled={pendingDelete}
+              onClick={onDelete}
+              aria-label="Delete post"
+            >
+              <Trash2 className="size-3.5 sm:size-4" aria-hidden />
+            </Button>
+          ) : null}
+        </div>
       </header>
 
       {/* Full photo (object-contain) on parchment matte — no cropping; optional parallax matte on md+. */}
@@ -257,12 +237,12 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
       </div>
 
       <div className="px-2.5 pb-2.5 pt-0 sm:px-3 sm:pb-3">
-        <div className="text-xs leading-snug text-foreground sm:text-sm sm:leading-relaxed">
+        <div className="font-heading text-sm font-medium leading-relaxed text-primary sm:text-[15px] sm:leading-relaxed">
           <span className="whitespace-pre-wrap break-words">{captionShown}</span>
           {captionLong && !expanded ? (
             <button
               type="button"
-              className="ml-1 inline font-semibold text-primary hover:underline"
+              className="ml-1 inline font-semibold text-primary underline-offset-2 hover:underline"
               onClick={() => setExpanded(true)}
             >
               Read more
