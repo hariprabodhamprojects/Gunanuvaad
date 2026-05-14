@@ -9,6 +9,7 @@ import { createRosterStagger } from "@/lib/motion-variants";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { buildRosterListRows } from "@/lib/roster/build-list-rows";
 import type { RosterMember } from "@/lib/roster/types";
+import { cn } from "@/lib/utils";
 
 type Props = {
   members: RosterMember[];
@@ -26,52 +27,65 @@ function RosterMemberCard({
   onAvatarClick: () => void;
 }) {
   const canWrite = member.can_write;
+  // The whole row is one tappable surface. Tapping the avatar opens the
+  // lightbox; tapping anywhere else opens the dialog. We deliberately do NOT
+  // wrap each side in a separate <button> any more — nested interactive
+  // elements + small hit gaps were a big part of the "I have to tap 5 times"
+  // perception on iOS.
   return (
-    <div className="group flex items-stretch w-full text-left outline-none px-2 transition-colors duration-[180ms] ease-[var(--ease-out-standard)] hover:bg-muted/30 sm:px-4">
-      {/* Avatar Button */}
-      <div className="py-2 pr-3 sm:pr-4 flex items-center justify-center shrink-0 pl-2">
+    <div
+      role="button"
+      tabIndex={canWrite ? 0 : -1}
+      aria-disabled={!canWrite}
+      aria-label={
+        canWrite
+          ? `Write a ghun to ${member.display_name}`
+          : `${member.display_name} — invited, not joined yet`
+      }
+      onClick={() => {
+        if (!canWrite) return;
+        onSelect();
+      }}
+      onKeyDown={(e) => {
+        if (!canWrite) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      className={cn(
+        "group relative flex w-full select-none items-stretch border-b border-border/40 outline-none",
+        "transition-[background-color] duration-[140ms] ease-[var(--ease-out-standard)]",
+        /* No transform here: the roster list card uses overflow-hidden for
+           rounded corners; active:scale clips the top of the row on iOS. */
+        "active:bg-primary/15",
+        "focus-visible:bg-muted/40",
+        canWrite ? "cursor-pointer" : "cursor-not-allowed opacity-60",
+      )}
+    >
+      <div className="flex shrink-0 items-center justify-center py-2 pl-2 pr-3 sm:pr-4">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            if (!canWrite) return;
             onAvatarClick();
           }}
-          className="relative size-12 overflow-hidden rounded-full ring-2 ring-transparent shadow-sm transition-[transform,box-shadow,ring-color] duration-[180ms] ease-[var(--ease-out-standard)] sm:size-14 group-hover:ring-primary/20 active:scale-[0.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="relative size-12 overflow-hidden rounded-full shadow-sm ring-2 ring-transparent transition-[opacity,box-shadow] duration-[180ms] ease-[var(--ease-out-standard)] active:opacity-90 sm:size-14"
           aria-label={`View profile picture of ${member.display_name}`}
-          disabled={!canWrite}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={member.avatar_url}
-            alt=""
-            className="size-full object-cover"
-          />
+          <img src={member.avatar_url} alt="" className="size-full object-cover" />
         </button>
       </div>
 
-      {/* Select Area Button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (!canWrite) return;
-          onSelect();
-        }}
-        className="relative min-w-0 flex-1 border-b border-border/40 py-3 pr-2 text-left outline-none transition-[transform,opacity] duration-[140ms] ease-[var(--ease-out-standard)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={!canWrite}
-      >
-        <div className="flex flex-col">
-          <p className="truncate text-[16px] sm:text-[17px] font-semibold text-foreground tracking-tight">
-            {member.display_name}
-          </p>
-          <p className="text-[13px] sm:text-[14px] text-muted-foreground mt-0.5 line-clamp-1">
-            {canWrite
-              ? "Tap to write a meaningful ghun."
-              : "Invited - not joined yet."}
-          </p>
-        </div>
-      </button>
+      <div className="flex min-w-0 flex-1 flex-col justify-center py-3 pr-4">
+        <p className="truncate text-[16px] font-semibold tracking-tight text-foreground sm:text-[17px]">
+          {member.display_name}
+        </p>
+        <p className="mt-0.5 line-clamp-1 text-[13px] text-muted-foreground sm:text-[14px]">
+          {canWrite ? "Tap to write a meaningful ghun." : "Invited - not joined yet."}
+        </p>
+      </div>
     </div>
   );
 }
@@ -95,10 +109,6 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
 
   // Build list rows with deterministic dictionary headers.
   const listRows = useMemo(() => buildRosterListRows(filtered), [filtered]);
-  const listStaggerKey = useMemo(
-    () => filtered.map((m) => m.id).join(","),
-    [filtered],
-  );
 
   return (
     <>
@@ -125,8 +135,7 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
           </p>
         ) : (
           <motion.div
-            key={listStaggerKey}
-            className="flex flex-col pb-24 w-full bg-card/30 rounded-3xl overflow-hidden border border-border/50 shadow-sm"
+            className="flex w-full max-w-full flex-col overflow-x-clip rounded-3xl border border-border/50 bg-card/30 pb-24 shadow-sm"
             variants={stagger.container}
             initial="hidden"
             animate="show"

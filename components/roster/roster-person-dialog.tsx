@@ -236,13 +236,13 @@ export function RosterPersonDialog({
             "data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
           )}
         />
-        <Dialog.Viewport className="fixed inset-0 z-[160] flex items-end justify-center p-0 outline-none sm:items-center sm:p-4">
+        <Dialog.Viewport className="fixed inset-0 z-[160] flex items-end justify-center p-0 outline-none sm:items-center sm:p-4 sm:pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
           <Dialog.Popup
             className={cn(
               // `page-hero` layers the warm primary mesh + top hairline used
               // everywhere else (Swadhyay hero, Standings, Calendar) so the
               // dialog feels like part of the same surface language.
-              "page-hero relative flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 overflow-hidden rounded-t-3xl border-b-0 border-t border-white/20 bg-card p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border glass-card",
+              "page-hero relative flex max-h-[min(95dvh,95svh)] w-full max-w-md flex-col gap-6 overflow-y-auto overflow-x-hidden rounded-t-3xl border-b-0 border-t border-white/20 bg-card p-6 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] outline-none sm:rounded-3xl sm:border sm:pb-6 glass-card",
               "data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0",
               "transition-[transform,opacity] duration-[280ms] ease-[var(--ease-out-standard)] motion-reduce:duration-[140ms] motion-reduce:data-[ending-style]:translate-y-0 motion-reduce:data-[starting-style]:translate-y-0",
             )}
@@ -345,7 +345,13 @@ export function RosterPersonDialog({
                             placeholder="Write something kind…"
                             maxLength={NOTE_BODY_MAX_LEN}
                             disabled={pending}
-                            className="min-h-[110px] resize-y rounded-[1.25rem] border-border/80 bg-background/60 text-[15px] shadow-inner backdrop-blur transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] focus-visible:ring-2 focus-visible:ring-primary/40"
+                            /* iOS: never go below 16px on inputs — smaller text
+                               triggers auto zoom + the Safari form accessory bar,
+                               which feels non-native and clips the sheet. */
+                            enterKeyHint="done"
+                            autoComplete="off"
+                            autoCorrect="on"
+                            className="min-h-[110px] resize-y rounded-[1.25rem] border-border/80 bg-background/60 text-base leading-relaxed shadow-inner backdrop-blur transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] focus-visible:ring-2 focus-visible:ring-primary/40 md:text-[15px]"
                             aria-describedby="daily-note-counter"
                           />
                           <div
@@ -400,11 +406,11 @@ export function RosterPersonDialog({
                     role="status"
                     aria-live="polite"
                     aria-busy="true"
-                    className="absolute inset-0 z-[55] flex flex-col items-center justify-center rounded-t-3xl bg-background/90 backdrop-blur-md sm:rounded-3xl"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 top-1/2 z-[55] flex items-start justify-center pt-8"
                   >
                     <span className="sr-only">Loading</span>
                     <Loader2
-                      className="size-10 shrink-0 animate-spin text-primary"
+                      className="size-10 shrink-0 animate-spin text-primary drop-shadow-sm"
                       aria-hidden
                     />
                   </div>
