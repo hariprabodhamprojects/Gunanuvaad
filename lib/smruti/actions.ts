@@ -78,6 +78,7 @@ export async function createSmrutiPostAction(
     return { ok: false, error: msg };
   }
 
+  revalidatePath("/feed");
   revalidatePath("/smruti");
   return { ok: true };
 }
@@ -97,6 +98,7 @@ export async function likeSmrutiPostAction(
     }
     return { ok: false, error: error.message };
   }
+  revalidatePath("/feed");
   revalidatePath("/smruti");
   return { ok: true, created: true };
 }
@@ -127,6 +129,7 @@ export async function deleteSmrutiPostAction(postId: string): Promise<ActionResu
     return { ok: false, error: delErr.message };
   }
 
+  revalidatePath("/feed");
   revalidatePath("/smruti");
   return { ok: true };
 }

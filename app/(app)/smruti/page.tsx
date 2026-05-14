@@ -1,48 +1,70 @@
 import Link from "next/link";
-import { Images, Plus } from "lucide-react";
-import { SmrutiFeed } from "@/components/smruti/smruti-feed";
+import { Images, Plus, SquareStack } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button-variants";
+import { Card, CardContent } from "@/components/ui/card";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { cn } from "@/lib/utils";
-import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
-import { getSmrutiFeed } from "@/lib/smruti/feed";
 
 export const metadata = { title: "Smruti — MananChintan" };
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Smruti — share flow hub. The public timeline of all posts lives on `/feed`.
+ */
 export default async function SmrutiPage() {
-  const { user } = await requireAllowlistedUser();
-  const [posts, isOrganizer] = await Promise.all([getSmrutiFeed({ limit: 40 }), getIsOrganizerSession()]);
+  await requireAllowlistedUser();
 
   return (
-    <div className="layout-reading space-y-4 sm:space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Images className="size-5 shrink-0 text-primary sm:size-6" aria-hidden />
-            <h1 className="font-heading text-xl font-semibold tracking-tight text-primary sm:text-2xl sm:text-[28px]">
-              Smruti
-            </h1>
-          </div>
-          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:mt-1 sm:line-clamp-none sm:max-w-xl sm:text-sm">
-            Shared moments from the sangh — photos with a caption. Tap the heart once; it stays on.
-          </p>
+    <div className="layout-reading space-y-5 sm:space-y-6">
+      <header className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Images className="size-6 text-primary sm:size-7" aria-hidden />
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-primary sm:text-[28px]">
+            Smruti
+          </h1>
         </div>
-        <Link
-          href="/smruti/new"
-          className={cn(
-            buttonVariants({ size: "default" }),
-            "shrink-0 gap-1.5 self-start sm:gap-2 sm:self-center",
-            "min-h-9 px-3 py-2 text-sm sm:min-h-10",
-          )}
-        >
-          <Plus className="size-4" aria-hidden />
-          New post
-        </Link>
+        <p className="max-w-xl text-sm text-muted-foreground">
+          Post up to five photos with a caption. Likes stay on forever — there is no unlike. Browse
+          everyone&apos;s posts anytime on{" "}
+          <Link href="/feed" className="font-medium text-primary underline-offset-2 hover:underline">
+            Feed
+          </Link>
+          .
+        </p>
       </header>
 
-      <SmrutiFeed posts={posts} currentUserId={user.id} isOrganizer={isOrganizer} />
+      <Card className="border-border/60 bg-card/75 ring-border/35">
+        <CardContent className="flex flex-col gap-4 px-4 py-5 sm:px-6">
+          <div className="flex items-start gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary">
+              <Plus className="size-5" strokeWidth={2.25} aria-hidden />
+            </span>
+            <div className="min-w-0 space-y-1">
+              <p className="font-medium text-foreground">Create a post</p>
+              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                JPEG, PNG, WebP, or GIF — up to 5 MB each. You need a short caption before publishing.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Link href="/smruti/new" className={cn(buttonVariants({ size: "default" }), "gap-2 sm:min-w-[10rem]")}>
+              <Plus className="size-4" aria-hidden />
+              New Smruti post
+            </Link>
+            <Link
+              href="/feed"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "default" }),
+                "gap-2 sm:min-w-[10rem]",
+              )}
+            >
+              <SquareStack className="size-4" aria-hidden />
+              Open feed
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

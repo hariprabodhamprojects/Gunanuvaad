@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Shield, X } from "lucide-react";
+import { CalendarDays, Shield, X } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { SettingsPanel } from "@/components/settings-panel";
@@ -75,7 +75,7 @@ export function AppMenu({
             )}
           >
             <Dialog.Description className="sr-only">
-              Profile details, appearance, notifications, and sign out.
+              Profile details, calendar shortcut, appearance, notifications, and sign out.
             </Dialog.Description>
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
               <Dialog.Title className="font-heading text-lg font-semibold tracking-tight">
@@ -141,6 +141,17 @@ export function AppMenu({
                   </Link>
                 ) : null}
               </div>
+              <Link
+                href="/calendar"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "mb-5 flex w-full items-center justify-center gap-2",
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <CalendarDays className="size-4 shrink-0 opacity-80" aria-hidden />
+                Calendar
+              </Link>
               <SettingsPanel email={email} />
             </div>
           </Dialog.Popup>

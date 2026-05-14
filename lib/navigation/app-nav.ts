@@ -1,9 +1,9 @@
 import {
   BarChart2,
   BookOpenText,
-  CalendarDays,
   Home,
   Images,
+  SquareStack,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,10 +22,10 @@ export const appNavItems: AppNavItem[] = [
     match: (pathname) => pathname === "/home" || pathname === "/" || pathname === "/pick",
   },
   {
-    href: "/smruti",
-    label: "Smruti",
-    icon: Images,
-    match: (pathname) => pathname === "/smruti" || pathname.startsWith("/smruti/"),
+    href: "/feed",
+    label: "Feed",
+    icon: SquareStack,
+    match: (pathname) => pathname === "/feed" || pathname.startsWith("/feed/"),
   },
   {
     href: "/standings",
@@ -40,9 +40,9 @@ export const appNavItems: AppNavItem[] = [
     match: (pathname) => pathname === "/swadhyay" || pathname.startsWith("/swadhyay/"),
   },
   {
-    href: "/calendar",
-    label: "Calendar",
-    icon: CalendarDays,
-    match: (pathname) => pathname === "/calendar" || pathname.startsWith("/calendar/"),
+    href: "/smruti",
+    label: "Smruti",
+    icon: Images,
+    match: (pathname) => pathname === "/smruti" || pathname.startsWith("/smruti/"),
   },
 ];

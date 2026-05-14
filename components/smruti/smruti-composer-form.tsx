@@ -65,7 +65,7 @@ export function SmrutiComposerForm() {
         return;
       }
       toast.success("Posted to Smruti.");
-      router.push("/smruti");
+      router.push("/feed");
       router.refresh();
     });
   };
