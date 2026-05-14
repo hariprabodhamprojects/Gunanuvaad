@@ -1,9 +1,10 @@
 "use client";
 
-import { useLayoutEffect, useRef, useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
+import { Loader2 } from "lucide-react";
 import { appNavItems } from "@/lib/navigation/app-nav";
 import { cn } from "@/lib/utils";
 
@@ -12,17 +13,28 @@ import { cn } from "@/lib/utils";
 // Keep the bottom padding just a touch above this nav's visible height so the
 // body background isn't revealed as a blank band above the floating bar:
 //
-//   <main className="pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+//   <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
 //     {children}
 //   </main>
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function AppBottomNav() {
+  const router = useRouter();
   const pathname = usePathname() ?? "";
+  const [, startTransition] = useTransition();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const prevIndexRef = useRef<number>(-1);
   const reduceMotionRef = useRef(false);
+
+  useEffect(() => {
+    if (!pendingHref) return;
+    const item = appNavItems.find((nav) => nav.href === pendingHref);
+    if (item?.match(pathname)) {
+      setPendingHref(null);
+    }
+  }, [pathname, pendingHref]);
 
   useEffect(() => {
     reduceMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -101,36 +113,61 @@ export function AppBottomNav() {
       <div
         ref={panelRef}
         className={cn(
-          "pointer-events-none flex w-full items-center justify-around",
+          "pointer-events-none flex w-full items-stretch justify-around pt-1.5",
           "rounded-t-2xl border border-b-0 border-border/60",
           // Fully opaque so the rounded top corners and edges don't reveal
           // the body background / app gradient behind the bar.
           "bg-card dark:bg-card",
-          // Extra padding above iPhone home indicator — safe area alone can feel tight
-          "pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] shadow-[0_-6px_24px_-8px_rgba(0,0,0,0.12)]",
+          // Extra padding above iPhone home indicator for a larger touch band
+          "pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] shadow-[0_-6px_24px_-8px_rgba(0,0,0,0.12)]",
         )}
       >
         {appNavItems.map(({ href, label, icon: Icon, match }, i) => {
           const active = match(pathname);
+          const loading = pendingHref === href;
           return (
             <Link
               key={href}
               href={href}
+              prefetch
+              scroll={false}
               ref={(el) => { itemRefs.current[i] = el; }}
+              aria-current={active ? "page" : undefined}
+              aria-busy={loading}
+              onClick={(e) => {
+                if (active) return;
+                // Let the browser handle new-tab / modified clicks.
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
+                setPendingHref(href);
+                startTransition(() => {
+                  router.push(href);
+                });
+              }}
               className={cn(
-                "pointer-events-auto relative flex flex-1 flex-col items-center justify-center gap-0.5",
-                "h-[3.25rem] transition-colors duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
+                "pointer-events-auto relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5",
+                "transition-colors duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                loading && "text-primary",
               )}
             >
-              <Icon
-                className="size-[1.2rem]"
-                strokeWidth={active ? 2.5 : 2}
-                aria-hidden
-              />
+              <span className="relative flex h-6 w-6 items-center justify-center">
+                {loading ? (
+                  <Loader2
+                    className="size-[1.25rem] shrink-0 animate-spin text-primary"
+                    aria-hidden
+                  />
+                ) : (
+                  <Icon
+                    className="size-[1.25rem]"
+                    strokeWidth={active ? 2.5 : 2}
+                    aria-hidden
+                  />
+                )}
+              </span>
 
               <span className="text-[10px] font-semibold tracking-wide leading-none">
-                {label}
+                {loading ? "Loading…" : label}
               </span>
             </Link>
           );
