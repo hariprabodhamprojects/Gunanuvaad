@@ -18,6 +18,46 @@ function formatPostDate(value: string): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function likerInitials(name: string | null): string {
+  const n = (name ?? "").trim();
+  if (!n) return "?";
+  const p = n.split(/\s+/).filter(Boolean);
+  if (p.length === 1) return p[0]!.slice(0, 2).toUpperCase();
+  return (p[0]![0] + p[p.length - 1]![0]).toUpperCase();
+}
+
+function LikePreviewStack({ preview }: { preview: SmrutiFeedPost["like_preview"] }) {
+  if (!preview.length) {
+    return (
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary ring-2 ring-card shadow-sm sm:size-8">
+        <Heart className="size-3.5 sm:size-4" strokeWidth={2.2} fill="currentColor" aria-hidden />
+      </span>
+    );
+  }
+  return (
+    <div className="flex items-center pr-0.5">
+      {preview.map((liker, i) => (
+        <span
+          key={`${liker.display_name ?? ""}-${i}`}
+          className={cn(
+            "relative inline-flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-[10px] font-bold text-primary/90 ring-2 ring-card shadow-sm sm:size-8",
+            i > 0 && "-ml-2 sm:-ml-2.5",
+          )}
+          style={{ zIndex: i + 1 }}
+          title={(liker.display_name ?? "").trim() || "Member"}
+        >
+          {liker.avatar_url?.trim() ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={liker.avatar_url} alt="" className="size-full object-cover" />
+          ) : (
+            <span aria-hidden>{likerInitials(liker.display_name)}</span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 type CardProps = {
   post: SmrutiFeedPost;
   currentUserId: string;
@@ -187,33 +227,49 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
       </div>
 
       <div className="flex items-center gap-2 px-2.5 pb-1.5 pt-0 sm:px-3 sm:pb-2">
-        <button
-          type="button"
-          onClick={onLike}
-          disabled={post.liked_by_me || pendingLike}
-          aria-label={post.liked_by_me ? "Liked" : "Like"}
-          aria-pressed={post.liked_by_me}
-          className={cn(
-            "flex shrink-0 items-center gap-1 rounded-md py-0.5 text-xs font-semibold tabular-nums transition active:scale-95 disabled:opacity-45 motion-reduce:active:scale-100 sm:text-sm",
-            post.liked_by_me ? "text-primary" : "text-foreground/70 hover:text-foreground",
-          )}
-        >
-          <Heart
-            className={cn("size-[1.125rem] sm:size-5", post.liked_by_me ? "scale-105" : "")}
-            strokeWidth={post.liked_by_me ? 0 : 2}
-            fill={post.liked_by_me ? "currentColor" : "none"}
-            aria-hidden
-          />
-          {post.like_count > 0 ? (
-            <span>
-              {post.like_count} {post.like_count === 1 ? "like" : "likes"}
-            </span>
-          ) : post.liked_by_me ? (
-            <span className="text-primary">Liked</span>
+        {post.like_count > 0 ? (
+          post.liked_by_me ? (
+            <div
+              className="flex min-w-0 shrink-0 items-center gap-2.5 py-0.5 text-primary/90"
+              aria-label={`${post.like_count} ${post.like_count === 1 ? "like" : "likes"}`}
+            >
+              <LikePreviewStack preview={post.like_preview} />
+              <span className="text-xs font-semibold tabular-nums sm:text-sm">
+                {post.like_count} {post.like_count === 1 ? "Like" : "Likes"}
+              </span>
+            </div>
           ) : (
-            <span className="text-muted-foreground">Like</span>
-          )}
-        </button>
+            <button
+              type="button"
+              onClick={onLike}
+              disabled={pendingLike}
+              aria-label={`Like — ${post.like_count} ${post.like_count === 1 ? "like" : "likes"} so far`}
+              className={cn(
+                "flex min-w-0 shrink-0 items-center gap-2.5 rounded-lg py-0.5 text-left transition",
+                "text-primary hover:opacity-90 active:scale-[0.98] disabled:opacity-55 motion-reduce:active:scale-100",
+              )}
+            >
+              <LikePreviewStack preview={post.like_preview} />
+              <span className="text-xs font-semibold tabular-nums sm:text-sm">
+                {post.like_count} {post.like_count === 1 ? "Like" : "Likes"}
+              </span>
+            </button>
+          )
+        ) : (
+          <button
+            type="button"
+            onClick={onLike}
+            disabled={pendingLike}
+            aria-label="Like this post"
+            className={cn(
+              "flex shrink-0 items-center gap-1.5 rounded-lg py-0.5 text-xs font-semibold transition",
+              "text-primary/85 hover:text-primary active:scale-[0.98] disabled:opacity-55 sm:text-sm",
+            )}
+          >
+            <Heart className="size-4 sm:size-[1.125rem]" strokeWidth={2} aria-hidden />
+            <span>Like</span>
+          </button>
+        )}
         {n > 1 ? (
           <div className="flex min-w-0 flex-1 items-center justify-center gap-1 px-1" role="tablist" aria-label="Photos">
             {urls.map((_, i) => (

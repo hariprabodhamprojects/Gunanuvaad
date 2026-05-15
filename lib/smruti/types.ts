@@ -3,6 +3,11 @@ export type SmrutiFeedMedia = {
   storage_path: string;
 };
 
+export type SmrutiLikePreview = {
+  avatar_url: string | null;
+  display_name: string | null;
+};
+
 export type SmrutiFeedPost = {
   id: string;
   author_id: string;
@@ -13,4 +18,5 @@ export type SmrutiFeedPost = {
   media: SmrutiFeedMedia[];
   like_count: number;
   liked_by_me: boolean;
+  like_preview: SmrutiLikePreview[];
 };

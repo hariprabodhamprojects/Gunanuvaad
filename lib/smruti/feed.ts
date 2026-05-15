@@ -37,6 +37,18 @@ function parseFeedPayload(raw: unknown): SmrutiFeedPost[] {
         : typeof likeRaw === "string" && /^\d+$/.test(likeRaw)
           ? Number.parseInt(likeRaw, 10)
           : 0;
+    const likePreviewRaw = o.like_preview;
+    const like_preview: SmrutiFeedPost["like_preview"] = [];
+    if (Array.isArray(likePreviewRaw)) {
+      for (const lp of likePreviewRaw) {
+        if (!lp || typeof lp !== "object") continue;
+        const lr = lp as Record<string, unknown>;
+        like_preview.push({
+          avatar_url: typeof lr.avatar_url === "string" ? lr.avatar_url : null,
+          display_name: typeof lr.display_name === "string" ? lr.display_name : null,
+        });
+      }
+    }
     out.push({
       id,
       author_id,
@@ -47,6 +59,7 @@ function parseFeedPayload(raw: unknown): SmrutiFeedPost[] {
       media,
       like_count,
       liked_by_me: o.liked_by_me === true,
+      like_preview,
     });
   }
   return out;
