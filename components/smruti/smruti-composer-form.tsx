@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createSmrutiPostAction } from "@/lib/smruti/actions";
 import { validateAvatarFile } from "@/lib/profile/avatar";
+import { SMRUTI_PHOTO_MATTE_URL } from "@/lib/smruti/public-url";
 import { cn } from "@/lib/utils";
 
 const MAX_FILES = 5;
@@ -14,7 +16,9 @@ const MAX_FILES = 5;
 export function SmrutiComposerForm() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const appendNextPick = useRef(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [pending, startTransition] = useTransition();
 
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
@@ -24,16 +28,48 @@ export function SmrutiComposerForm() {
     };
   }, [previews]);
 
-  const onPick = () => inputRef.current?.click();
+  useEffect(() => {
+    setActiveIndex((i) => Math.min(i, Math.max(0, files.length - 1)));
+  }, [files.length]);
+
+  const onPick = (append: boolean) => {
+    appendNextPick.current = append;
+    inputRef.current?.click();
+  };
 
   const onFiles = (list: FileList | null) => {
     if (!list?.length) return;
+    const append = appendNextPick.current;
+    appendNextPick.current = false;
+
+    if (append) {
+      setFiles((prev) => {
+        const next = [...prev];
+        for (let i = 0; i < list.length && next.length < MAX_FILES; i++) {
+          const f = list.item(i);
+          if (f && f.size > 0) next.push(f);
+        }
+        return next;
+      });
+      return;
+    }
+
     const next: File[] = [];
     for (let i = 0; i < list.length && next.length < MAX_FILES; i++) {
       const f = list.item(i);
       if (f && f.size > 0) next.push(f);
     }
     setFiles(next);
+    setActiveIndex(0);
+  };
+
+  const removeAt = (i: number) => {
+    setFiles((prev) => prev.filter((_, j) => j !== i));
+    setActiveIndex((prev) => {
+      if (prev > i) return prev - 1;
+      if (prev === i) return Math.max(0, prev - 1);
+      return prev;
+    });
   };
 
   const submit = (fd: FormData) => {
@@ -70,65 +106,213 @@ export function SmrutiComposerForm() {
     });
   };
 
+  const n = files.length;
+  const idx = n ? Math.min(activeIndex, n - 1) : 0;
+
   return (
-    <form action={submit} className="mx-auto flex w-full max-w-lg flex-col gap-4">
-      <div>
-        <label className="mb-1.5 block text-sm font-medium text-foreground">Photos</label>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          multiple
-          className="sr-only"
-          onChange={(e) => onFiles(e.target.files)}
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="secondary" onClick={onPick} disabled={pending}>
-            Choose up to {MAX_FILES} images
-          </Button>
-          <span className="text-xs text-muted-foreground">
-            {files.length ? `${files.length} selected` : "JPEG, PNG, WebP, or GIF — 5 MB each max."}
-          </span>
+    <form action={submit} className="relative mx-auto flex w-full max-w-lg flex-col gap-3 sm:gap-4">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        className="sr-only"
+        onChange={(e) => {
+          onFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+
+      {/* Hero — Glimpses-style large rounded media; empty = tap to add. */}
+      {!n ? (
+        <button
+          type="button"
+          onClick={() => onPick(false)}
+          disabled={pending}
+          className={cn(
+            "group relative isolate w-full overflow-hidden rounded-2xl text-left outline-none",
+            "ring-1 ring-inset ring-stone-900/10",
+            "min-h-[min(52vw,14rem)] cursor-pointer border-2 border-dashed border-primary/30 bg-muted/15 transition hover:border-primary/45 hover:bg-muted/25 active:scale-[0.99] disabled:opacity-60",
+          )}
+        >
+          <div
+            aria-hidden
+            className={cn(
+              "absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll",
+              "md:bg-fixed md:motion-reduce:bg-scroll",
+            )}
+            style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-stone-950/[0.04] to-stone-950/[0.07]"
+          />
+          <div className="relative z-[2] flex min-h-[min(52vw,14rem)] flex-col items-center justify-center gap-2 px-6 py-8">
+            <span className="flex size-12 items-center justify-center rounded-full bg-primary/12 text-primary ring-1 ring-primary/20">
+              <ImagePlus className="size-6" strokeWidth={2} aria-hidden />
+            </span>
+            <p className="font-heading text-sm font-semibold text-primary">Add photos</p>
+            <p className="max-w-[16rem] text-center text-xs text-muted-foreground">
+              Up to {MAX_FILES} — JPEG, PNG, WebP, or GIF, 5 MB each
+            </p>
+          </div>
+        </button>
+      ) : (
+        <div
+          className={cn(
+            "relative isolate flex w-full items-center justify-center overflow-hidden rounded-2xl",
+            "ring-1 ring-inset ring-stone-900/10",
+          )}
+        >
+          <div
+            aria-hidden
+            className={cn(
+              "absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll",
+              "md:bg-fixed md:motion-reduce:bg-scroll",
+            )}
+            style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-stone-950/[0.04] to-stone-950/[0.07]"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={previews[idx]}
+            src={previews[idx]}
+            alt=""
+            className="relative z-[2] mx-auto block max-h-[min(52svh,22rem)] w-full max-w-full object-contain object-center sm:max-h-[min(56svh,26rem)]"
+          />
+          {n > 1 ? (
+            <div className="pointer-events-none absolute right-2.5 top-2.5 z-[3] sm:right-3 sm:top-3">
+              <span className="rounded-full bg-black/50 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white backdrop-blur-[2px]">
+                {idx + 1}/{n}
+              </span>
+            </div>
+          ) : null}
         </div>
-        {files.length ? (
-          <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {files.map((f, i) => (
-              <li
-                key={`${f.name}-${f.size}-${i}`}
-                className="relative aspect-square overflow-hidden rounded-lg border border-border/60 bg-muted/30"
+      )}
+
+      {n > 1 ? (
+        <div className="flex justify-center gap-1.5 px-1" role="tablist" aria-label="Selected photos">
+          {files.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={i === idx}
+              aria-label={`Photo ${i + 1} of ${n}`}
+              className={cn(
+                "h-2 min-w-2 rounded-full transition-all",
+                i === idx ? "w-5 bg-primary" : "w-2 bg-muted-foreground/35 hover:bg-muted-foreground/55",
+              )}
+              onClick={() => setActiveIndex(i)}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {n ? (
+        <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {files.map((f, i) => (
+            <div
+              key={`${f.name}-${f.size}-${i}`}
+              className={cn(
+                "relative shrink-0 overflow-hidden rounded-xl ring-2 transition-shadow",
+                i === idx ? "ring-primary" : "ring-transparent ring-offset-1 ring-offset-background",
+              )}
+            >
+              <button
+                type="button"
+                className="relative block size-16 sm:size-[4.5rem]"
+                onClick={() => setActiveIndex(i)}
+                aria-label={`Show photo ${i + 1}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previews[i]} alt="" className="size-full object-cover" />
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+              </button>
+              <button
+                type="button"
+                className="absolute right-0.5 top-0.5 flex size-6 items-center justify-center rounded-full bg-black/55 text-white shadow-sm backdrop-blur-sm transition hover:bg-black/70"
+                aria-label={`Remove photo ${i + 1}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeAt(i);
+                }}
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            </div>
+          ))}
+          {n < MAX_FILES ? (
+            <button
+              type="button"
+              onClick={() => onPick(true)}
+              disabled={pending}
+              className="flex size-16 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-muted/10 text-primary transition hover:border-primary/45 hover:bg-muted/20 sm:size-[4.5rem]"
+              aria-label="Add more photos"
+            >
+              <ImagePlus className="size-5 opacity-80" aria-hidden />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
-      <div>
-        <label htmlFor="smruti-caption" className="mb-1.5 block text-sm font-medium text-foreground">
-          Caption <span className="text-destructive">*</span>
+      {!n ? (
+        <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => onPick(false)} disabled={pending}>
+          Choose from library
+        </Button>
+      ) : null}
+
+      <div className="pt-1">
+        <label htmlFor="smruti-caption" className="sr-only">
+          Caption (required)
         </label>
         <Textarea
           id="smruti-caption"
           name="caption"
           required
           minLength={1}
-          rows={4}
-          placeholder="What is this moment about?"
-          className={cn("resize-y min-h-[100px]")}
+          rows={5}
+          placeholder="Write a caption…"
           disabled={pending}
+          className={cn(
+            "min-h-[7.5rem] resize-y rounded-xl border border-border/60 bg-card/60 px-3 py-3",
+            "font-heading text-[15px] font-medium leading-relaxed text-primary",
+            "placeholder:text-primary/40",
+            "focus-visible:border-primary/35 focus-visible:ring-2 focus-visible:ring-primary/25",
+          )}
         />
       </div>
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending} className="min-w-[8rem]">
-          {pending ? "Publishing…" : "Publish"}
+      {/* Desktop actions */}
+      <div className="hidden gap-2 pb-2 lg:flex">
+        <Button type="submit" disabled={pending} className="min-h-10 flex-1">
+          {pending ? "Publishing…" : "Post"}
         </Button>
         <Button type="button" variant="outline" disabled={pending} onClick={() => router.push("/smruti")}>
           Cancel
         </Button>
       </div>
+
+      {/* Mobile — fixed strip above bottom tab bar (Glimpses-style primary action). */}
+      <div
+        className={cn(
+          "fixed inset-x-0 z-[105] flex gap-2 border-t border-border/60 bg-background/90 px-3 py-2.5 backdrop-blur-md",
+          "pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5",
+          "bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] lg:hidden",
+        )}
+      >
+        <Button type="button" variant="outline" className="shrink-0 px-3" disabled={pending} onClick={() => router.push("/smruti")}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={pending} className="min-h-11 flex-1">
+          {pending ? "Publishing…" : "Post"}
+        </Button>
+      </div>
+
+      {/* Spacer so caption clears the fixed mobile action strip */}
+      <div className="h-28 shrink-0 lg:hidden" aria-hidden />
     </form>
   );
 }
