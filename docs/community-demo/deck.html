@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MananChintan — Community walkthrough</title>
+    <style>
+      :root {
+        --brand: #b45309;
+        --brand-soft: #fff7ed;
+        --ink: #1c1917;
+        --muted: #57534e;
+        --line: #e7e5e4;
+        --paper: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background: #f5f5f4;
+      }
+      .slide {
+        min-height: 100vh;
+        padding: 2.25rem 2.5rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        page-break-after: always;
+        break-after: page;
+        background: var(--paper);
+        border-bottom: 1px solid var(--line);
+      }
+      .slide.cover {
+        justify-content: center;
+        text-align: center;
+        background: linear-gradient(165deg, var(--brand-soft) 0%, var(--paper) 55%);
+      }
+      h1 {
+        font-size: 2.1rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.5rem;
+        color: var(--brand);
+      }
+      h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        margin: 0 0 1rem;
+        color: var(--ink);
+      }
+      p,
+      li {
+        font-size: 1.05rem;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+      ul {
+        margin: 0.35rem 0 0;
+        padding-left: 1.25rem;
+      }
+      li {
+        margin-bottom: 0.35rem;
+      }
+      .kicker {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--brand);
+        margin-bottom: 0.35rem;
+      }
+      .shot {
+        margin-top: 1rem;
+        flex: 1;
+        min-height: 12rem;
+        border-radius: 0.75rem;
+        border: 1px dashed var(--line);
+        background: #fafaf9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+      }
+      .shot img {
+        max-width: 100%;
+        max-height: 18rem;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+      }
+      .shot.no-img img {
+        display: none;
+      }
+      .shot .ph {
+        display: none;
+        padding: 1.25rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .shot.no-img .ph {
+        display: block;
+      }
+      .foot {
+        margin-top: auto;
+        padding-top: 1rem;
+        font-size: 0.8rem;
+        color: #78716c;
+      }
+      @media print {
+        body {
+          background: white;
+        }
+        .slide {
+          border: none;
+          min-height: auto;
+          height: 100vh;
+          padding: 1.75rem 2rem;
+        }
+        .shot {
+          min-height: 10rem;
+        }
+        @page {
+          margin: 10mm;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="slide cover">
+      <p class="kicker">Community walkthrough</p>
+      <h1>MananChintan</h1>
+      <p style="max-width: 28rem; margin: 0.75rem auto 0; color: var(--muted)">
+        Daily notes, reflections, shared photos, and standings — in one simple app.
+      </p>
+      <p class="foot" style="text-align: center">Add optional cover image: <code>screenshots/01-cover.png</code></p>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">What it is</p>
+      <h2>One app for our sabha season</h2>
+      <ul>
+        <li><strong>Home</strong> — your day, community spotlight, roster</li>
+        <li><strong>Feed</strong> — everyone’s Smruti photo posts</li>
+        <li><strong>Standings</strong> — points & streaks</li>
+        <li><strong>Swadhyay</strong> — weekly reflection</li>
+        <li><strong>Smruti</strong> — share 1–5 photos with a caption</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Getting started</p>
+      <h2>Open the link & sign in</h2>
+      <ul>
+        <li>Open the sabha link in the phone browser (or scan a QR code).</li>
+        <li>Tap <strong>Continue with Google</strong> and pick your account.</li>
+        <li>Optional: <strong>Add to Home Screen</strong> for a full-screen icon (PWA).</li>
+      </ul>
+      <p class="foot">Replace this line with your live URL on the slide if you export to Slides.</p>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Navigation</p>
+      <h2>Five tabs at the bottom</h2>
+      <p>Home · Feed · Standings · Swadhyay · Smruti — the active tab is highlighted in orange.</p>
+      <div class="shot" data-shot>
+        <img src="screenshots/02-bottom-nav.png" alt="Bottom navigation" />
+        <div class="ph"><code>screenshots/02-bottom-nav.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Home</p>
+      <h2>Greeting & Community Spotlight</h2>
+      <p>Home shows your name, a rotating <strong>Community Spotlight</strong> (notes + photos + reflections), and roster tools if your sabha uses them.</p>
+      <div class="shot" data-shot>
+        <img src="screenshots/03-home.png" alt="Home" />
+        <div class="ph"><code>screenshots/03-home.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Community Spotlight</p>
+      <h2>Celebrating each other</h2>
+      <p>A medium-sized carousel: approved notes (ghun), Smruti photos, and recent Swadhyay — same frame on every slide so it reads cleanly on phones.</p>
+      <div class="shot" data-shot>
+        <img src="screenshots/04-spotlight.png" alt="Community spotlight" />
+        <div class="ph"><code>screenshots/04-spotlight.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Feed</p>
+      <h2>Everyone’s Smruti posts</h2>
+      <ul>
+        <li>Open <strong>Feed</strong> to scroll the shared timeline.</li>
+        <li><strong>Like</strong> once per post (likes stay).</li>
+        <li>Authors & organizers can delete a post when needed.</li>
+      </ul>
+      <div class="shot" data-shot>
+        <img src="screenshots/05-feed.png" alt="Feed" />
+        <div class="ph"><code>screenshots/05-feed.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Smruti</p>
+      <h2>Share a moment</h2>
+      <ol style="padding-left: 1.2rem; margin: 0.25rem 0 0; color: var(--muted); font-size: 1.05rem; line-height: 1.55">
+        <li>Tap <strong>Smruti</strong>.</li>
+        <li>Add <strong>1–5 photos</strong>.</li>
+        <li>Write a <strong>caption</strong> (required).</li>
+        <li>Tap <strong>Post</strong> — it appears on <strong>Feed</strong>.</li>
+      </ol>
+      <div class="shot" data-shot>
+        <img src="screenshots/06-smruti.png" alt="Smruti" />
+        <div class="ph"><code>screenshots/06-smruti.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Swadhyay</p>
+      <h2>Weekly reflection</h2>
+      <p>Read the topic, post your reflection, and engage respectfully with likes and replies where enabled.</p>
+      <div class="shot" data-shot>
+        <img src="screenshots/07-swadhyay.png" alt="Swadhyay" />
+        <div class="ph"><code>screenshots/07-swadhyay.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Standings</p>
+      <h2>Points & streaks</h2>
+      <p>Use this screen the way your sabha agrees — encouragement first.</p>
+      <div class="shot" data-shot>
+        <img src="screenshots/08-standings.png" alt="Standings" />
+        <div class="ph"><code>screenshots/08-standings.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">Profile</p>
+      <h2>Avatar menu (top right)</h2>
+      <ul>
+        <li><strong>View full profile</strong></li>
+        <li><strong>Calendar</strong> (if your sabha uses it)</li>
+        <li>Appearance & notifications</li>
+        <li><strong>Sign out</strong> on shared devices</li>
+      </ul>
+      <div class="shot" data-shot>
+        <img src="screenshots/09-profile.png" alt="Profile menu" />
+        <div class="ph"><code>screenshots/09-profile.png</code></div>
+      </div>
+    </section>
+
+    <section class="slide cover">
+      <p class="kicker">Thank you</p>
+      <h1>Questions?</h1>
+      <p style="max-width: 26rem; margin: 0.75rem auto 0">Add contact details on this slide when you export to Slides or PDF.</p>
+    </section>
+
+    <script>
+      document.querySelectorAll("[data-shot] img").forEach(function (img) {
+        img.addEventListener("error", function () {
+          var box = img.closest("[data-shot]");
+          if (box) box.classList.add("no-img");
+        });
+        if (img.complete && img.naturalWidth === 0) img.dispatchEvent(new Event("error"));
+      });
+    </script>
+  </body>
+</html>
