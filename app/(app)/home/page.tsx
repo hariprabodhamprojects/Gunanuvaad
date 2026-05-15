@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SquareStack } from "lucide-react";
-import { ApprovedNotesSlideshow } from "@/components/home/approved-notes-slideshow";
+import { CommunitySpotlightSlideshow } from "@/components/home/community-spotlight-slideshow";
 import { MotionPageHero } from "@/components/motion-page-hero";
 import { CampaignDayNotification } from "@/components/notes/campaign-day-ux";
 import { RosterPickExperience } from "@/components/roster/roster-pick-experience";
@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { cn } from "@/lib/utils";
-import { getApprovedNotesSlideshowSlides } from "@/lib/home/approved-slideshow";
+import { getCommunitySpotlightSlides } from "@/lib/home/community-spotlight";
 import { getDailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { getRosterMembers } from "@/lib/roster/get-roster";
 import { createClient } from "@/lib/supabase/server";
@@ -34,7 +34,7 @@ export default async function HomePage() {
   const displayName = profile?.display_name?.trim() ?? "";
   const members = await getRosterMembers();
 
-  const approvedSlides = await getApprovedNotesSlideshowSlides(5);
+  const spotlightSlides = await getCommunitySpotlightSlides();
   const dailyCampaignStatus = await getDailyCampaignStatus(user.id);
 
   return (
@@ -75,7 +75,7 @@ export default async function HomePage() {
           </div>
         </CardContent>
       </Card>
-      <ApprovedNotesSlideshow slides={approvedSlides} />
+      <CommunitySpotlightSlideshow slides={spotlightSlides} />
       <RosterPickExperience
         members={members}
         currentUserId={user.id}
