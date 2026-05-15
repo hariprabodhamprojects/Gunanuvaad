@@ -1,13 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { AppBottomNav } from "@/components/app-bottom-nav";
-import { AppHeaderNav } from "@/components/app-header-nav";
+import { AppHeaderNavSkeleton } from "@/components/app-header-nav-skeleton";
 import { AppRouteWarmup } from "@/components/app-route-warmup";
+import { AppShellHeaderNav } from "@/components/app-shell-header-nav";
 import { AppSidebar } from "@/components/app-sidebar";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
-import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { requireCompleteProfile } from "@/lib/auth/require-complete-profile";
-import { getStandings } from "@/lib/standings/get-standings";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -22,26 +21,8 @@ export default async function AppShellLayout({
 }) {
   const { user, email } = await requireAllowlistedUser();
   await requireCompleteProfile(user.id);
-  const supabase = await createClient();
-  const [{ data: profile }, standings, isOrganizer] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("display_name, avatar_url")
-      .eq("id", user.id)
-      .maybeSingle(),
-    getStandings(),
-    getIsOrganizerSession(),
-  ]);
-
-  const profileName = profile?.display_name?.trim() || user.email || "You";
-  const profileAvatarUrl = profile?.avatar_url?.trim() || "";
-  const scoreEntry = standings?.points.find((entry) => entry.id === user.id);
-  const streakEntry = standings?.streaks.find((entry) => entry.id === user.id);
 
   return (
-    // `bg-app-gradient` gives the entire shell a warm primary mesh canvas so
-    // any empty space (e.g. below short pages, behind the bottom nav's rounded
-    // corners) still reads as "part of the app" instead of raw body colour.
     <div className="bg-app-gradient flex h-[100dvh] min-h-[100dvh] w-full min-w-0 max-w-[100vw] flex-col overflow-x-hidden overflow-y-hidden">
       <header className="glass-header sticky top-0 z-40 w-full min-w-0 shrink-0 pt-[env(safe-area-inset-top,0px)]">
         <div className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-2 sm:h-14 sm:gap-3 sm:px-4 sm:py-0 lg:px-6 xl:px-8 2xl:px-10">
@@ -51,19 +32,13 @@ export default async function AppShellLayout({
           >
             MananChintan
           </Link>
-          <AppHeaderNav
-            email={email}
-            displayName={scoreEntry?.display_name ?? profileName}
-            avatarUrl={scoreEntry?.avatar_url ?? profileAvatarUrl}
-            totalScore={scoreEntry?.score ?? 0}
-            totalStreak={streakEntry?.streak ?? 0}
-            isOrganizer={isOrganizer}
-          />
+          <Suspense fallback={<AppHeaderNavSkeleton />}>
+            <AppShellHeaderNav userId={user.id} email={email} />
+          </Suspense>
         </div>
       </header>
       <div className="flex min-h-0 w-full flex-1">
         <AppSidebar />
-        {/* Bottom padding matches the taller mobile bottom nav (~5.5rem + safe area). */}
         <main className="page-enter flex min-h-0 w-full min-w-0 max-w-[100vw] flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-y-none scroll-pt-[calc(env(safe-area-inset-top,0px)+3.5rem)] px-3 py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:px-4 lg:px-6 lg:py-7 lg:pb-8 xl:px-8 2xl:px-10">
           {children}
         </main>

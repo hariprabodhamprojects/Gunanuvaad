@@ -32,7 +32,16 @@ function scheduleTeardown() {
   }, rem);
 }
 
-function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
+export type SplashVisualVariant = "fullscreen" | "embedded";
+
+function SplashVisual({
+  reduceMotion,
+  variant = "fullscreen",
+}: {
+  reduceMotion: boolean;
+  variant?: SplashVisualVariant;
+}) {
+  const embedded = variant === "embedded";
   const logoTransition = reduceMotion
     ? { duration: 0.25 }
     : { type: "spring" as const, stiffness: 88, damping: 26, mass: 1.15 };
@@ -44,12 +53,20 @@ function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[200] flex min-h-dvh flex-col text-foreground bg-app-gradient",
+        "flex w-full flex-col text-foreground bg-app-gradient",
+        embedded
+          ? "min-h-[min(70vh,36rem)] flex-1"
+          : "fixed inset-0 z-[200] min-h-dvh",
       )}
     >
       <span className="sr-only">Loading MananChintan</span>
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-16 pt-[max(1.5rem,env(safe-area-inset-top))]">
+      <div
+        className={cn(
+          "relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center px-6",
+          embedded ? "py-10" : "pb-16 pt-[max(1.5rem,env(safe-area-inset-top))]",
+        )}
+      >
         <motion.div
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -119,7 +136,14 @@ function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
         </motion.div>
       </div>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom,0px)]">
+      <div
+        className={cn(
+          "pointer-events-none z-20 w-full",
+          embedded
+            ? "mt-auto shrink-0 pb-2"
+            : "fixed inset-x-0 bottom-0 pb-[env(safe-area-inset-bottom,0px)]",
+        )}
+      >
         <div className="h-[3px] w-full overflow-hidden bg-muted sm:h-1">
           <div className="h-full w-full bg-border/50">
             {reduceMotion ? (
@@ -141,13 +165,18 @@ function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
 
 function SplashPortalInner() {
   const reduceMotion = useReducedMotion() ?? false;
-  return <SplashVisual reduceMotion={reduceMotion} />;
+  return <SplashVisual reduceMotion={reduceMotion} variant="fullscreen" />;
+}
+
+/** Tab / in-app route changes: same splash as cold start, inside the main column. */
+export function TabRouteLoadingSplash() {
+  const reduceMotion = useReducedMotion() ?? false;
+  return <SplashVisual reduceMotion={reduceMotion} variant="embedded" />;
 }
 
 /**
  * Minimum **3s** on-screen splash: renders into a `document.body` portal so the
- * UI stays visible after Next.js unmounts `loading.tsx`. Light theme + motion
- * choreography unchanged inside `SplashVisual`.
+ * UI stays visible after Next.js unmounts root `loading.tsx`.
  */
 export function AppLoadingSplash() {
   useLayoutEffect(() => {
