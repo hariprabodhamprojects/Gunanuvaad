@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createSmrutiPostAction } from "@/lib/smruti/actions";
+import { compressSmrutiPhotosForUpload } from "@/lib/smruti/compress-client-photo";
 import { validateAvatarFile } from "@/lib/profile/avatar";
 import { SMRUTI_PHOTO_MATTE_URL } from "@/lib/smruti/public-url";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ const MAX_FILES = 5;
 export function SmrutiComposerForm() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const captionRef = useRef<HTMLTextAreaElement>(null);
   const appendNextPick = useRef(false);
   const [files, setFiles] = useState<File[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -31,6 +33,39 @@ export function SmrutiComposerForm() {
   useEffect(() => {
     setActiveIndex((i) => Math.min(i, Math.max(0, files.length - 1)));
   }, [files.length]);
+
+  /** iOS PWA: `visualViewport` shrinks when the keyboard opens; sync inset so sticky controls sit above it. */
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => {
+      const vv = window.visualViewport;
+      if (!vv) {
+        root.style.setProperty("--smruti-vv-obscured", "0px");
+        return;
+      }
+      const obscured = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      root.style.setProperty("--smruti-vv-obscured", `${Math.round(obscured)}px`);
+    };
+    sync();
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", sync);
+    vv?.addEventListener("scroll", sync);
+    window.addEventListener("orientationchange", sync);
+    return () => {
+      vv?.removeEventListener("resize", sync);
+      vv?.removeEventListener("scroll", sync);
+      window.removeEventListener("orientationchange", sync);
+      root.style.removeProperty("--smruti-vv-obscured");
+    };
+  }, []);
+
+  const scrollCaptionIntoView = () => {
+    const el = captionRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+    });
+  };
 
   const onPick = (append: boolean) => {
     appendNextPick.current = append;
@@ -90,9 +125,30 @@ export function SmrutiComposerForm() {
           return;
         }
       }
+
+      const needsOptimize = files.some((f) => f.size > 450_000 || f.type !== "image/jpeg");
+      const loadingId = needsOptimize ? toast.loading("Optimizing photos for upload…") : null;
+      let prepared: File[];
+      try {
+        prepared = await compressSmrutiPhotosForUpload(files);
+      } catch (e) {
+        if (loadingId) toast.dismiss(loadingId);
+        toast.error(e instanceof Error ? e.message : "Could not process photos.");
+        return;
+      }
+      if (loadingId) toast.dismiss(loadingId);
+
+      for (const f of prepared) {
+        const err = validateAvatarFile(f);
+        if (err) {
+          toast.error(err);
+          return;
+        }
+      }
+
       const body = new FormData();
       body.set("caption", caption);
-      for (const f of files) {
+      for (const f of prepared) {
         body.append("images", f);
       }
       const res = await createSmrutiPostAction(body);
@@ -137,10 +193,7 @@ export function SmrutiComposerForm() {
         >
           <div
             aria-hidden
-            className={cn(
-              "absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll",
-              "md:bg-fixed md:motion-reduce:bg-scroll",
-            )}
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll"
             style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
           />
           <div
@@ -166,10 +219,7 @@ export function SmrutiComposerForm() {
         >
           <div
             aria-hidden
-            className={cn(
-              "absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll",
-              "md:bg-fixed md:motion-reduce:bg-scroll",
-            )}
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll"
             style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
           />
           <div
@@ -269,6 +319,7 @@ export function SmrutiComposerForm() {
           Caption (required)
         </label>
         <Textarea
+          ref={captionRef}
           id="smruti-caption"
           name="caption"
           required
@@ -276,8 +327,9 @@ export function SmrutiComposerForm() {
           rows={5}
           placeholder="Write a caption…"
           disabled={pending}
+          onFocus={scrollCaptionIntoView}
           className={cn(
-            "min-h-[7.5rem] resize-y rounded-xl border border-border/60 bg-card/60 px-3 py-3",
+            "min-h-[7.5rem] resize-y scroll-mt-24 rounded-xl border border-border/60 bg-card/60 px-3 py-3",
             "font-heading text-[15px] font-medium leading-relaxed text-primary",
             "placeholder:text-primary/40",
             "focus-visible:border-primary/35 focus-visible:ring-2 focus-visible:ring-primary/25",
@@ -295,24 +347,28 @@ export function SmrutiComposerForm() {
         </Button>
       </div>
 
-      {/* Mobile — fixed strip above bottom tab bar (Glimpses-style primary action). */}
+      {/* Mobile — sticky strip in scroll flow (avoids fighting the iOS keyboard vs `position: fixed`). */}
       <div
         className={cn(
-          "fixed inset-x-0 z-[105] flex gap-2 border-t border-border/60 bg-background/90 px-3 py-2.5 backdrop-blur-md",
+          "flex gap-2 border-t border-border/60 bg-background/95 px-3 py-2.5 backdrop-blur-md",
           "pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5",
-          "bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] lg:hidden",
+          "sticky z-30 lg:hidden",
+          "bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px)+var(--smruti-vv-obscured,0px))]",
         )}
       >
-        <Button type="button" variant="outline" className="shrink-0 px-3" disabled={pending} onClick={() => router.push("/smruti")}>
+        <Button
+          type="button"
+          variant="outline"
+          className="shrink-0 touch-manipulation px-3"
+          disabled={pending}
+          onClick={() => router.push("/smruti")}
+        >
           Cancel
         </Button>
-        <Button type="submit" disabled={pending} className="min-h-11 flex-1">
+        <Button type="submit" disabled={pending} className="min-h-11 flex-1 touch-manipulation">
           {pending ? "Publishing…" : "Post"}
         </Button>
       </div>
-
-      {/* Spacer so caption clears the fixed mobile action strip */}
-      <div className="h-28 shrink-0 lg:hidden" aria-hidden />
     </form>
   );
 }

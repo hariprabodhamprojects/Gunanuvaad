@@ -167,7 +167,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
         </div>
       </header>
 
-      {/* Full photo (object-contain) on parchment matte — no cropping; optional parallax matte on md+. */}
+      {/* Full photo (object-contain) on parchment matte — no cropping; scroll background only (iOS-safe). */}
       <div className="px-2 pb-1 sm:px-3 sm:pb-1.5">
         <div
           className={cn(
@@ -177,10 +177,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
         >
           <div
             aria-hidden
-            className={cn(
-              "absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll",
-              "md:bg-fixed md:motion-reduce:bg-scroll",
-            )}
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll"
             style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
           />
           <div
@@ -205,7 +202,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
               </div>
               <button
                 type="button"
-                className="absolute left-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:left-1 sm:size-9"
+                className="absolute left-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:left-1 sm:size-9"
                 aria-label="Previous photo"
                 disabled={idx === 0}
                 onClick={() => setSlide((s) => Math.max(0, s - 1))}
@@ -214,7 +211,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
               </button>
               <button
                 type="button"
-                className="absolute right-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:right-1 sm:size-9"
+                className="absolute right-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:right-1 sm:size-9"
                 aria-label="Next photo"
                 disabled={idx >= n - 1}
                 onClick={() => setSlide((s) => Math.min(n - 1, s + 1))}
@@ -245,7 +242,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
               disabled={pendingLike}
               aria-label={`Like — ${post.like_count} ${post.like_count === 1 ? "like" : "likes"} so far`}
               className={cn(
-                "flex min-w-0 shrink-0 items-center gap-2.5 rounded-lg py-0.5 text-left transition",
+                "flex min-w-0 shrink-0 items-center gap-2.5 rounded-lg py-0.5 text-left transition touch-manipulation",
                 "text-primary hover:opacity-90 active:scale-[0.98] disabled:opacity-55 motion-reduce:active:scale-100",
               )}
             >
@@ -262,7 +259,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
             disabled={pendingLike}
             aria-label="Like this post"
             className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-lg py-0.5 text-xs font-semibold transition",
+              "flex shrink-0 items-center gap-1.5 rounded-lg py-0.5 text-xs font-semibold transition touch-manipulation",
               "text-primary/85 hover:text-primary active:scale-[0.98] disabled:opacity-55 sm:text-sm",
             )}
           >
@@ -280,7 +277,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
                 aria-selected={i === idx}
                 aria-label={`Photo ${i + 1} of ${n}`}
                 className={cn(
-                  "h-1.5 min-w-1.5 rounded-full transition-all",
+                  "h-1.5 min-w-1.5 touch-manipulation rounded-full transition-all",
                   i === idx ? "w-4 bg-primary" : "w-1.5 bg-muted-foreground/35 hover:bg-muted-foreground/55",
                 )}
                 onClick={() => setSlide(i)}

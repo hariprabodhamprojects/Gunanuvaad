@@ -19,7 +19,7 @@ export function SmrutiFeed({ posts, currentUserId, isOrganizer }: Props) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-2.5 sm:gap-3 lg:gap-3.5">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 sm:gap-7 lg:gap-8">
       {posts.map((post) => (
         <SmrutiPostCard
           key={post.id}

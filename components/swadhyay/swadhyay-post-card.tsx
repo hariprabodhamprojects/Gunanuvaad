@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition, type FocusEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Heart,
@@ -337,6 +337,12 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
   const visibleReplies = useMemo(() => replies ?? [], [replies]);
   const hasOverflow = post.reply_count > 1;
 
+  const scrollFieldIntoView = useCallback((e: FocusEvent<HTMLTextAreaElement>) => {
+    requestAnimationFrame(() => {
+      e.currentTarget.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+    });
+  }, []);
+
   const renderReply = (reply: SwadhyayReply) => {
     const canEdit = canEditOrDelete(reply.author_id, reply.created_at, currentUserId);
     const isEditingThisReply = editingReplyId === reply.id;
@@ -356,7 +362,8 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
                 onChange={(e) => setEditingReplyBody(e.target.value)}
                 maxLength={2000}
                 disabled={pending}
-                className="min-h-[58px] rounded-lg text-sm"
+                onFocus={scrollFieldIntoView}
+                className="min-h-[58px] scroll-mt-24 rounded-lg text-sm"
               />
               <div className="flex items-center justify-end gap-1.5">
                 <button
@@ -532,7 +539,8 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
               onChange={(e) => setEditBody(e.target.value)}
               maxLength={4000}
               disabled={pending}
-              className="min-h-[120px] rounded-lg"
+              onFocus={scrollFieldIntoView}
+              className="min-h-[120px] scroll-mt-24 rounded-lg"
             />
             <div className="flex items-center justify-end gap-2">
               <button
@@ -632,8 +640,9 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             onChange={(e) => setRevokeReason(e.target.value)}
             maxLength={500}
             disabled={pending}
+            onFocus={scrollFieldIntoView}
             placeholder="Optional reason (shown with the post)…"
-            className="mt-2 min-h-[52px] rounded-lg text-xs"
+            className="mt-2 min-h-[52px] scroll-mt-24 rounded-lg text-xs"
           />
           <div className="mt-2 flex items-center justify-end gap-2">
             <button
@@ -668,13 +677,14 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             onChange={(e) => setReplyBody(e.target.value)}
             maxLength={2000}
             disabled={pending}
+            onFocus={scrollFieldIntoView}
             placeholder={
               replyParentId
                 ? "Reply to this comment…"
                 : `Reply to ${post.author_display_name}…`
             }
             autoFocus
-            className="min-h-[52px] resize-none border-0 bg-transparent p-1 text-[13.5px] shadow-none focus-visible:ring-0 sm:text-sm"
+            className="min-h-[52px] resize-none scroll-mt-24 border-0 bg-transparent p-1 text-[13.5px] shadow-none focus-visible:ring-0 sm:text-sm"
           />
           <div className="mt-1 flex items-center justify-end gap-1.5">
             <button
