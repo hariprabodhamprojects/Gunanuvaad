@@ -69,7 +69,7 @@ export default async function HomePage() {
             <Link href="/feed" className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}>
               View feed
             </Link>
-            <Link href="/smruti/new" className={cn(buttonVariants({ size: "sm" }))}>
+            <Link href="/smruti" className={cn(buttonVariants({ size: "sm" }))}>
               New post
             </Link>
           </div>

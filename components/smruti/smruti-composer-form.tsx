@@ -34,7 +34,7 @@ export function SmrutiComposerForm() {
     setActiveIndex((i) => Math.min(i, Math.max(0, files.length - 1)));
   }, [files.length]);
 
-  /** iOS PWA: `visualViewport` shrinks when the keyboard opens; sync inset so sticky controls sit above it. */
+  /** iOS PWA: keyboard shrinks the visual viewport — lift the fixed action bar so it stays usable. */
   useEffect(() => {
     const root = document.documentElement;
     const sync = () => {
@@ -166,7 +166,14 @@ export function SmrutiComposerForm() {
   const idx = n ? Math.min(activeIndex, n - 1) : 0;
 
   return (
-    <form action={submit} className="relative mx-auto flex w-full max-w-lg flex-col gap-3 sm:gap-4">
+    <form
+      action={submit}
+      className={cn(
+        "relative mx-auto flex w-full max-w-lg flex-col gap-3 sm:gap-4",
+        /* Room to scroll the caption above the fixed mobile action row (main already pads for the tab bar). */
+        "pb-24 lg:pb-0",
+      )}
+    >
       <input
         ref={inputRef}
         type="file"
@@ -324,12 +331,12 @@ export function SmrutiComposerForm() {
           name="caption"
           required
           minLength={1}
-          rows={5}
+          rows={4}
           placeholder="Write a caption…"
           disabled={pending}
           onFocus={scrollCaptionIntoView}
           className={cn(
-            "min-h-[7.5rem] resize-y scroll-mt-24 rounded-xl border border-border/60 bg-card/60 px-3 py-3",
+            "min-h-[6.5rem] resize-y scroll-mt-28 rounded-xl border border-border/60 bg-card px-3 py-3 sm:min-h-[7.5rem] sm:px-3.5",
             "font-heading text-[15px] font-medium leading-relaxed text-primary",
             "placeholder:text-primary/40",
             "focus-visible:border-primary/35 focus-visible:ring-2 focus-visible:ring-primary/25",
@@ -337,37 +344,43 @@ export function SmrutiComposerForm() {
         />
       </div>
 
-      {/* Desktop actions */}
-      <div className="hidden gap-2 pb-2 lg:flex">
-        <Button type="submit" disabled={pending} className="min-h-10 flex-1">
-          {pending ? "Publishing…" : "Post"}
-        </Button>
-        <Button type="button" variant="outline" disabled={pending} onClick={() => router.push("/smruti")}>
-          Cancel
-        </Button>
-      </div>
-
-      {/* Mobile — sticky strip in scroll flow (avoids fighting the iOS keyboard vs `position: fixed`). */}
-      <div
-        className={cn(
-          "flex gap-2 border-t border-border/60 bg-background/95 px-3 py-2.5 backdrop-blur-md",
-          "pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5",
-          "sticky z-30 lg:hidden",
-          "bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px)+var(--smruti-vv-obscured,0px))]",
-        )}
-      >
+      {/* Desktop — same-width actions under the caption */}
+      <div className="mt-1 hidden grid-cols-2 gap-2 pb-1 lg:grid">
         <Button
           type="button"
           variant="outline"
-          className="shrink-0 touch-manipulation px-3"
           disabled={pending}
-          onClick={() => router.push("/smruti")}
+          className="min-h-11 w-full touch-manipulation"
+          onClick={() => router.push("/home")}
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={pending} className="min-h-11 flex-1 touch-manipulation">
+        <Button type="submit" disabled={pending} className="min-h-11 w-full touch-manipulation">
           {pending ? "Publishing…" : "Post"}
         </Button>
+      </div>
+
+      {/* Mobile — fixed above the tab bar; equal-width Cancel / Post; visualViewport keeps it clear of the keyboard. */}
+      <div
+        className={cn(
+          "fixed inset-x-0 z-[105] border-t border-border/60 bg-background/95 backdrop-blur-md lg:hidden",
+          "bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px)+var(--smruti-vv-obscured,0px))]",
+        )}
+      >
+        <div className="mx-auto flex w-full max-w-lg gap-2 px-3 py-2.5 sm:px-4">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={pending}
+            className="min-h-11 min-w-0 flex-1 touch-manipulation"
+            onClick={() => router.push("/home")}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={pending} className="min-h-11 min-w-0 flex-1 touch-manipulation">
+            {pending ? "Publishing…" : "Post"}
+          </Button>
+        </div>
       </div>
     </form>
   );
