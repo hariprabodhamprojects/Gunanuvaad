@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useTransition, type MouseEvent } from "react";
 import { CalendarDays, Shield, X } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { buttonVariants } from "@/components/ui/button";
@@ -32,11 +33,48 @@ export function AppMenu({
   totalStreak,
   isOrganizer = false,
 }: Props) {
+  const router = useRouter();
+  const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
+  const [navPending, setNavPending] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
   const initials = initialsFromName(displayName);
 
+  /** Close the sheet only after the new route is active — avoids a flash of the previous page under the dialog. */
+  useEffect(() => {
+    if (!navPending) return;
+    const arrived =
+      pathname === navPending ||
+      (navPending.startsWith("/admin") && pathname.startsWith("/admin"));
+    if (!arrived) return;
+    setOpen(false);
+    setNavPending(null);
+  }, [pathname, navPending]);
+
+  const navigateFromSheet = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (
+      pathname === href ||
+      (href.startsWith("/admin") && pathname.startsWith("/admin"))
+    ) {
+      setOpen(false);
+      return;
+    }
+    setNavPending(href);
+    startTransition(() => {
+      router.push(href);
+    });
+  };
+
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen} modal>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setNavPending(null);
+      }}
+      modal
+    >
       <Dialog.Trigger
         className={cn(
           buttonVariants({ variant: "ghost", size: "icon-sm" }),
@@ -119,22 +157,26 @@ export function AppMenu({
                 </div>
                 <Link
                   href="/me"
+                  prefetch
+                  scroll={false}
                   className={cn(
                     buttonVariants({ variant: "outline", size: "sm" }),
                     "mt-3 w-full",
                   )}
-                  onClick={() => setOpen(false)}
+                  onClick={navigateFromSheet("/me")}
                 >
                   View full profile
                 </Link>
                 {isOrganizer ? (
                   <Link
                     href="/admin/invites"
+                    prefetch
+                    scroll={false}
                     className={cn(
                       buttonVariants({ variant: "secondary", size: "sm" }),
                       "mt-2 w-full gap-2",
                     )}
-                    onClick={() => setOpen(false)}
+                    onClick={navigateFromSheet("/admin/invites")}
                   >
                     <Shield className="size-4 shrink-0 opacity-80" aria-hidden />
                     Admin
@@ -143,11 +185,13 @@ export function AppMenu({
               </div>
               <Link
                 href="/calendar"
+                prefetch
+                scroll={false}
                 className={cn(
                   buttonVariants({ variant: "outline", size: "sm" }),
                   "mb-5 flex w-full items-center justify-center gap-2",
                 )}
-                onClick={() => setOpen(false)}
+                onClick={navigateFromSheet("/calendar")}
               >
                 <CalendarDays className="size-4 shrink-0 opacity-80" aria-hidden />
                 Calendar
