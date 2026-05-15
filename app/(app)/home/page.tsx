@@ -1,13 +1,8 @@
-import Link from "next/link";
-import { SquareStack } from "lucide-react";
 import { CommunitySpotlightSlideshow } from "@/components/home/community-spotlight-slideshow";
 import { MotionPageHero } from "@/components/motion-page-hero";
 import { CampaignDayNotification } from "@/components/notes/campaign-day-ux";
 import { RosterPickExperience } from "@/components/roster/roster-pick-experience";
-import { Card, CardContent } from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button-variants";
 import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
-import { cn } from "@/lib/utils";
 import { getCommunitySpotlightSlides } from "@/lib/home/community-spotlight";
 import { getDailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { getRosterMembers } from "@/lib/roster/get-roster";
@@ -52,29 +47,6 @@ export default async function HomePage() {
           !
         </h1>
       </MotionPageHero>
-      <Card className="overflow-hidden border-border/60 bg-card/70 ring-border/40">
-        <CardContent className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary">
-              <SquareStack className="size-5" aria-hidden />
-            </span>
-            <div>
-              <p className="text-sm font-semibold text-foreground">Feed & Smruti</p>
-              <p className="text-xs text-muted-foreground">
-                See everyone&apos;s posts on Feed; share photos with a caption from Smruti.
-              </p>
-            </div>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Link href="/feed" className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}>
-              View feed
-            </Link>
-            <Link href="/smruti" className={cn(buttonVariants({ size: "sm" }))}>
-              New post
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
       <CommunitySpotlightSlideshow slides={spotlightSlides} />
       <RosterPickExperience
         members={members}
