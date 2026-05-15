@@ -168,7 +168,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
       </header>
 
       {/* Full photo (object-contain) on parchment matte — no cropping; optional parallax matte on md+. */}
-      <div className="px-2 pb-1.5 sm:px-3 sm:pb-2">
+      <div className="px-2 pb-1 sm:px-3 sm:pb-1.5">
         <div
           className={cn(
             "relative isolate flex min-h-[9.5rem] w-full items-center justify-center overflow-hidden rounded-xl",
@@ -226,7 +226,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
         </div>
       </div>
 
-      <div className="flex items-center gap-2 px-2.5 pb-1.5 pt-0 sm:px-3 sm:pb-2">
+      <div className="flex items-center gap-2 px-2.5 pb-1 pt-0 sm:px-3 sm:pb-1.5">
         {post.like_count > 0 ? (
           post.liked_by_me ? (
             <div
@@ -292,13 +292,13 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
         )}
       </div>
 
-      <div className="px-2.5 pb-2.5 pt-0 sm:px-3 sm:pb-3">
-        <div className="font-heading text-sm font-medium leading-relaxed text-primary sm:text-[15px] sm:leading-relaxed">
+      <div className="px-3 pb-1.5 pl-5 pr-3 pt-1 sm:px-4 sm:pb-2 sm:pl-6 sm:pr-4 sm:pt-1.5">
+        <div className="font-heading text-base font-semibold leading-relaxed text-primary sm:text-lg sm:leading-relaxed">
           <span className="whitespace-pre-wrap break-words">{captionShown}</span>
           {captionLong && !expanded ? (
             <button
               type="button"
-              className="ml-1 inline font-semibold text-primary underline-offset-2 hover:underline"
+              className="ml-1.5 inline text-base font-semibold text-primary underline-offset-2 hover:underline sm:text-lg"
               onClick={() => setExpanded(true)}
             >
               Read more
