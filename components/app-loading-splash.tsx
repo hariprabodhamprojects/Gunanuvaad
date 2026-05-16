@@ -32,16 +32,7 @@ function scheduleTeardown() {
   }, rem);
 }
 
-export type SplashVisualVariant = "fullscreen" | "embedded";
-
-function SplashVisual({
-  reduceMotion,
-  variant = "fullscreen",
-}: {
-  reduceMotion: boolean;
-  variant?: SplashVisualVariant;
-}) {
-  const embedded = variant === "embedded";
+function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
   const logoTransition = reduceMotion
     ? { duration: 0.25 }
     : { type: "spring" as const, stiffness: 88, damping: 26, mass: 1.15 };
@@ -51,21 +42,19 @@ function SplashVisual({
     : { duration: 2.85, repeat: Infinity, ease: "linear" as const };
 
   return (
-    <div
-      className={cn(
-        "flex w-full flex-col text-foreground bg-app-gradient",
-        embedded
-          ? "min-h-[min(70vh,36rem)] flex-1"
-          : "fixed inset-0 z-[200] min-h-dvh",
-      )}
+    <motion.div
+      className="fixed inset-0 z-[200] flex min-h-dvh w-full flex-col bg-app-gradient text-foreground"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={reduceMotion ? { duration: 0.2 } : { duration: 0.35, ease: easeLux }}
     >
       <span className="sr-only">Loading MananChintan</span>
 
-      <div
-        className={cn(
-          "relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center px-6",
-          embedded ? "py-10" : "pb-16 pt-[max(1.5rem,env(safe-area-inset-top))]",
-        )}
+      <motion.div
+        className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-16 pt-[max(1.5rem,env(safe-area-inset-top))]"
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={reduceMotion ? { duration: 0.25 } : { duration: 0.5, ease: easeLux, delay: 0.05 }}
       >
         <motion.div
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 20 }}
@@ -90,7 +79,14 @@ function SplashVisual({
               "ring-1 ring-border/40 backdrop-blur-md",
             )}
           >
-            <div className="flex flex-col items-center gap-7 px-6">
+            <motion.div
+              className="flex flex-col items-center gap-7 px-6"
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={
+                reduceMotion ? { duration: 0.22 } : { duration: 0.45, ease: easeLux, delay: 0.12 }
+              }
+            >
               <motion.div
                 initial={reduceMotion ? false : { scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -105,47 +101,34 @@ function SplashVisual({
                 />
               </motion.div>
 
-              <div className="flex flex-col items-center gap-2 text-center">
-                <motion.p
-                  className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
-                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={
-                    reduceMotion
-                      ? { duration: 0.22 }
-                      : { delay: 0.7, duration: 1.05, ease: easeLux }
-                  }
-                >
+              <motion.div
+                className="flex flex-col items-center gap-2 text-center"
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduceMotion ? { duration: 0.22 } : { duration: 0.5, ease: easeLux, delay: 0.2 }
+                }
+              >
+                <p className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   MananChintan
-                </motion.p>
-                <motion.p
-                  className="text-sm font-medium tracking-[0.18em] text-primary sm:text-base"
-                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={
-                    reduceMotion
-                      ? { duration: 0.22 }
-                      : { delay: 1.65, duration: 1.05, ease: easeLux }
-                  }
-                >
+                </p>
+                <p className="text-sm font-medium tracking-[0.18em] text-primary sm:text-base">
                   મનન ચિંતન
-                </motion.p>
-              </div>
-            </div>
+                </p>
+              </motion.div>
+            </motion.div>
           </Card>
         </motion.div>
-      </div>
+      </motion.div>
 
-      <div
-        className={cn(
-          "pointer-events-none z-20 w-full",
-          embedded
-            ? "mt-auto shrink-0 pb-2"
-            : "fixed inset-x-0 bottom-0 pb-[env(safe-area-inset-bottom,0px)]",
-        )}
-      >
-        <div className="h-[3px] w-full overflow-hidden bg-muted sm:h-1">
-          <div className="h-full w-full bg-border/50">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 w-full pb-[env(safe-area-inset-bottom,0px)]">
+        <motion.div
+          className="h-[3px] w-full overflow-hidden bg-muted sm:h-1"
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={reduceMotion ? { duration: 0.2 } : { duration: 0.35, delay: 0.15 }}
+        >
+          <motion.div className="h-full w-full bg-border/50">
             {reduceMotion ? (
               <div className="h-full w-full bg-primary/60" />
             ) : (
@@ -156,27 +139,22 @@ function SplashVisual({
                 transition={barTransition}
               />
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function SplashPortalInner() {
   const reduceMotion = useReducedMotion() ?? false;
-  return <SplashVisual reduceMotion={reduceMotion} variant="fullscreen" />;
-}
-
-/** Tab / in-app route changes: same splash as cold start, inside the main column. */
-export function TabRouteLoadingSplash() {
-  const reduceMotion = useReducedMotion() ?? false;
-  return <SplashVisual reduceMotion={reduceMotion} variant="embedded" />;
+  return <SplashVisual reduceMotion={reduceMotion} />;
 }
 
 /**
- * Minimum **3s** on-screen splash: renders into a `document.body` portal so the
- * UI stays visible after Next.js unmounts root `loading.tsx`.
+ * Full-screen splash (portal + min 3s): used only for cold start via root `app/loading.tsx`.
+ * In-app tab navigations do not show a splash — the previous page stays visible until the
+ * next route is ready, then content swaps in one step.
  */
 export function AppLoadingSplash() {
   useLayoutEffect(() => {

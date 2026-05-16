@@ -1,0 +1,43 @@
+---
+description: QA MananChintan with Cursor Browser (@browser). Use for smoke tests, UI checks, and regressions on localhost or preview URLs.
+globs:
+alwaysApply: false
+---
+
+# Browser QA (MananChintan)
+
+Use **Cursor Browser** (`cursor-ide-browser` MCP), not Playwright, for interactive QA. Google OAuth blocks Playwright/Chromium automation.
+
+## Prerequisites
+
+1. `npm run dev` running → `http://localhost:3000`
+2. **Cursor Settings → Features → Browser** enabled (built-in; no `mcp.json` entry required)
+3. Sign in once in the Browser pane with **Continue with Google** (allowlisted account). Session cookies persist per workspace.
+
+## MCP workflow
+
+1. `browser_tabs` list — reuse an open tab when possible
+2. `browser_navigate` → target URL
+3. `browser_lock` → interact → `browser_unlock` when done
+4. `browser_snapshot` before every click/type; short waits + re-snapshot instead of one long sleep
+5. After bottom-nav taps, wait until URL/title changes (server pages can take 1–3s); there is no in-app loading splash — the previous page stays visible until the swap
+
+## Smoke checklist (report pass/fail + screenshot on failure)
+
+| Step | Action | Pass criteria |
+|------|--------|----------------|
+| Auth | Open `/home` | App shell (header + nav), not Google CTA |
+| Nav | Tap Home, Feed, Standings, Swadhyay, Smruti | URL changes; active tab highlighted |
+| Profile | Header avatar → sheet | "Profile" title; Calendar link; close works |
+| Smruti | `/smruti` → add photo → caption → Post | Lands on `/feed`; post visible |
+| Feed | `/feed` scroll | Main scrolls; posts load |
+
+## URLs
+
+- Local: `http://localhost:3000`
+- Production preview: team Vercel URL (sign in separately)
+
+## When blocked
+
+- **Google “browser not secure”** → use Cursor Browser (this), not `playwright codegen`
+- **Not signed in** → user completes Google login in Browser pane, then re-run checklist
