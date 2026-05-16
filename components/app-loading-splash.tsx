@@ -44,18 +44,11 @@ function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
   return (
     <motion.div
       className="fixed inset-0 z-[200] flex min-h-dvh w-full flex-col bg-app-gradient text-foreground"
-      initial={reduceMotion ? false : { opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={reduceMotion ? { duration: 0.2 } : { duration: 0.35, ease: easeLux }}
+      initial={false}
     >
       <span className="sr-only">Loading MananChintan</span>
 
-      <motion.div
-        className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-16 pt-[max(1.5rem,env(safe-area-inset-top))]"
-        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={reduceMotion ? { duration: 0.25 } : { duration: 0.5, ease: easeLux, delay: 0.05 }}
-      >
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-16 pt-[max(1.5rem,env(safe-area-inset-top))]">
         <motion.div
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -79,14 +72,7 @@ function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
               "ring-1 ring-border/40 backdrop-blur-md",
             )}
           >
-            <motion.div
-              className="flex flex-col items-center gap-7 px-6"
-              initial={reduceMotion ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={
-                reduceMotion ? { duration: 0.22 } : { duration: 0.45, ease: easeLux, delay: 0.12 }
-              }
-            >
+            <div className="flex flex-col items-center gap-7 px-6">
               <motion.div
                 initial={reduceMotion ? false : { scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -101,34 +87,40 @@ function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
                 />
               </motion.div>
 
-              <motion.div
-                className="flex flex-col items-center gap-2 text-center"
-                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={
-                  reduceMotion ? { duration: 0.22 } : { duration: 0.5, ease: easeLux, delay: 0.2 }
-                }
-              >
-                <p className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              <motion.div className="flex flex-col items-center gap-2 text-center">
+                <motion.p
+                  className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={
+                    reduceMotion
+                      ? { duration: 0.22 }
+                      : { delay: 0.7, duration: 1.05, ease: easeLux }
+                  }
+                >
                   MananChintan
-                </p>
-                <p className="text-sm font-medium tracking-[0.18em] text-primary sm:text-base">
+                </motion.p>
+                <motion.p
+                  className="text-sm font-medium tracking-[0.18em] text-primary sm:text-base"
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={
+                    reduceMotion
+                      ? { duration: 0.22 }
+                      : { delay: 1.65, duration: 1.05, ease: easeLux }
+                  }
+                >
                   મનન ચિંતન
-                </p>
+                </motion.p>
               </motion.div>
-            </motion.div>
+            </div>
           </Card>
         </motion.div>
-      </motion.div>
+      </div>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 w-full pb-[env(safe-area-inset-bottom,0px)]">
-        <motion.div
-          className="h-[3px] w-full overflow-hidden bg-muted sm:h-1"
-          initial={reduceMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={reduceMotion ? { duration: 0.2 } : { duration: 0.35, delay: 0.15 }}
-        >
-          <motion.div className="h-full w-full bg-border/50">
+        <div className="h-[3px] w-full overflow-hidden bg-muted sm:h-1">
+          <div className="h-full w-full bg-border/50">
             {reduceMotion ? (
               <div className="h-full w-full bg-primary/60" />
             ) : (
@@ -139,8 +131,8 @@ function SplashVisual({ reduceMotion }: { reduceMotion: boolean }) {
                 transition={barTransition}
               />
             )}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
@@ -152,9 +144,8 @@ function SplashPortalInner() {
 }
 
 /**
- * Full-screen splash (portal + min 3s): used only for cold start via root `app/loading.tsx`.
- * In-app tab navigations do not show a splash — the previous page stays visible until the
- * next route is ready, then content swaps in one step.
+ * Full-screen splash (portal + min 3s): cold start via root `app/loading.tsx` only.
+ * In-app tab navigations do not show a splash.
  */
 export function AppLoadingSplash() {
   useLayoutEffect(() => {
@@ -171,12 +162,11 @@ export function AppLoadingSplash() {
       document.body.appendChild(el);
     }
     portalEl = el;
-    if (!portalRoot) {
-      portalRoot = createRoot(el);
-    }
+    portalRoot?.unmount();
+    portalRoot = createRoot(el);
 
     document.body.style.overflow = "hidden";
-    portalRoot.render(<SplashPortalInner />);
+    portalRoot.render(<SplashPortalInner key={sessionT0} />);
 
     return () => {
       scheduleTeardown();
