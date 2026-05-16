@@ -20,7 +20,7 @@ Use **Cursor Browser** (`cursor-ide-browser` MCP), not Playwright, for interacti
 2. `browser_navigate` → target URL
 3. `browser_lock` → interact → `browser_unlock` when done
 4. `browser_snapshot` before every click/type; short waits + re-snapshot instead of one long sleep
-5. After bottom-nav taps, wait until URL/title changes (server pages can take 1–3s); there is no in-app loading splash — the previous page stays visible until the swap
+5. After bottom-nav taps, active tab should highlight immediately; main area shows a **route skeleton** until content loads (no full-screen splash)
 
 ## Smoke checklist (report pass/fail + screenshot on failure)
 

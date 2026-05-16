@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import gsap from "gsap";
+import { AppNavLink } from "@/components/app-nav-link";
 import { appNavItems } from "@/lib/navigation/app-nav";
+import { useNavSelection } from "@/lib/navigation/use-nav-selection";
 import { cn } from "@/lib/utils";
 
 export function AppBottomNav() {
-  const pathname = usePathname() ?? "";
+  const { isActive, activeIndex } = useNavSelection();
   const panelRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const prevIndexRef = useRef<number>(-1);
@@ -50,7 +50,6 @@ export function AppBottomNav() {
 
   useEffect(() => {
     if (reduceMotionRef.current) return;
-    const activeIndex = appNavItems.findIndex(({ match }) => match(pathname));
     if (activeIndex === -1) return;
 
     const prevIndex = prevIndexRef.current;
@@ -77,7 +76,7 @@ export function AppBottomNav() {
         },
       );
     }
-  }, [pathname]);
+  }, [activeIndex]);
 
   return (
     <nav
@@ -93,23 +92,22 @@ export function AppBottomNav() {
           "pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] shadow-[0_-6px_24px_-8px_rgba(0,0,0,0.12)]",
         )}
       >
-        {appNavItems.map(({ href, label, icon: Icon, match }, i) => {
-          const active = match(pathname);
+        {appNavItems.map((item, i) => {
+          const { label, icon: Icon } = item;
+          const active = isActive(item);
           return (
-            <Link
-              key={href}
-              href={href}
-              prefetch
-              scroll={false}
+            <AppNavLink
+              key={item.href}
+              item={item}
               ref={(el) => {
                 itemRefs.current[i] = el;
               }}
-              aria-current={active ? "page" : undefined}
               className={cn(
                 "pointer-events-auto relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5",
-                "transition-colors duration-[180ms] ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
-                active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                "transition-colors duration-150 ease-[var(--ease-out-standard)] active:scale-[0.97] motion-reduce:active:scale-100",
               )}
+              inactiveClassName="text-muted-foreground hover:text-foreground"
+              activeClassName="text-primary"
             >
               <Icon
                 className="size-[1.25rem]"
@@ -117,7 +115,7 @@ export function AppBottomNav() {
                 aria-hidden
               />
               <span className="text-[10px] font-semibold tracking-wide leading-none">{label}</span>
-            </Link>
+            </AppNavLink>
           );
         })}
       </div>
