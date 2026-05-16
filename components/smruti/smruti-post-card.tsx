@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Heart, Trash2 } from "lucide-react";
+import { Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { deleteSmrutiPostAction, likeSmrutiPostAction } from "@/lib/smruti/actions";
@@ -54,6 +54,154 @@ function LikePreviewStack({ preview }: { preview: SmrutiFeedPost["like_preview"]
           )}
         </span>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Fixed-aspect photo frame with parchment matte + finger swipe.
+ * Every photo sits inside the same square frame (object-contain), so post heights
+ * stay uniform regardless of source aspect ratio. Horizontal pointer drag advances
+ * slides; vertical movement falls through to page scroll.
+ */
+function PhotoCarousel({
+  urls,
+  idx,
+  setSlide,
+}: {
+  urls: string[];
+  idx: number;
+  setSlide: (n: number) => void;
+}) {
+  const n = urls.length;
+  const trackRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    width: number;
+    pointerId: number;
+    dragging: boolean;
+    locked: "h" | "v" | null;
+  } | null>(null);
+  const [dragDx, setDragDx] = useState(0);
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (n <= 1) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    const el = trackRef.current;
+    if (!el) return;
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      width: el.clientWidth,
+      pointerId: e.pointerId,
+      dragging: false,
+      locked: null,
+    };
+  };
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (d.locked === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      d.locked = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+      if (d.locked === "v") {
+        dragRef.current = null;
+        return;
+      }
+      d.dragging = true;
+      try {
+        (e.currentTarget as Element).setPointerCapture(e.pointerId);
+      } catch {}
+    }
+    if (d.locked !== "h") return;
+    e.preventDefault();
+    let next = dx;
+    if (idx === 0 && next > 0) next *= 0.35;
+    if (idx === n - 1 && next < 0) next *= 0.35;
+    setDragDx(next);
+  };
+
+  const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId) return;
+    const threshold = Math.max(40, d.width * 0.18);
+    if (d.dragging) {
+      if (dragDx <= -threshold && idx < n - 1) setSlide(idx + 1);
+      else if (dragDx >= threshold && idx > 0) setSlide(idx - 1);
+    }
+    dragRef.current = null;
+    setDragDx(0);
+    try {
+      (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const translatePct = -idx * 100;
+  const dragPct =
+    dragRef.current && trackRef.current
+      ? (dragDx / trackRef.current.clientWidth) * 100
+      : 0;
+  const dragging = dragRef.current?.dragging ?? false;
+
+  return (
+    <div className="px-2 pb-1 sm:px-3 sm:pb-1.5">
+      <div
+        ref={trackRef}
+        className={cn(
+          "relative isolate aspect-square w-full overflow-hidden rounded-xl select-none",
+          "ring-1 ring-inset ring-stone-900/10",
+          "touch-pan-y",
+        )}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+      >
+        <div
+          className="flex h-full w-full"
+          style={{
+            transform: `translate3d(calc(${translatePct}% + ${dragPct}%), 0, 0)`,
+            transition: dragging ? "none" : "transform 280ms cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        >
+          {urls.map((src, i) => (
+            <div
+              key={src}
+              className="relative flex h-full w-full shrink-0 items-center justify-center overflow-hidden"
+            >
+              <div
+                aria-hidden
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll"
+                style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-stone-950/[0.04] to-stone-950/[0.07]"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt=""
+                draggable={false}
+                className="relative z-[2] max-h-full max-w-full object-contain object-center"
+                loading={i === idx ? "eager" : "lazy"}
+                decoding="async"
+              />
+            </div>
+          ))}
+        </div>
+        {n > 1 ? (
+          <div className="pointer-events-none absolute right-2 top-2 z-[3] sm:right-2.5 sm:top-2.5">
+            <span className="rounded-full bg-black/50 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white backdrop-blur-[2px] sm:px-2 sm:text-[11px]">
+              {idx + 1}/{n}
+            </span>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -167,61 +315,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
         </div>
       </header>
 
-      {/* Full photo (object-contain) on parchment matte — no cropping; scroll background only (iOS-safe). */}
-      <div className="px-2 pb-1 sm:px-3 sm:pb-1.5">
-        <div
-          className={cn(
-            "relative isolate flex min-h-[9.5rem] w-full items-center justify-center overflow-hidden rounded-xl",
-            "ring-1 ring-inset ring-stone-900/10",
-          )}
-        >
-          <div
-            aria-hidden
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll"
-            style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-stone-950/[0.04] to-stone-950/[0.07]"
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            key={urls[idx]}
-            src={urls[idx]}
-            alt=""
-            className="relative z-[2] max-h-[min(76svh,34rem)] w-full max-w-full object-contain object-center sm:max-h-[min(78svh,38rem)]"
-            loading="lazy"
-            decoding="async"
-          />
-          {n > 1 ? (
-            <>
-              <div className="pointer-events-none absolute right-2 top-2 z-[3] sm:right-2.5 sm:top-2.5">
-                <span className="rounded-full bg-black/50 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white backdrop-blur-[2px] sm:px-2 sm:text-[11px]">
-                  {idx + 1}/{n}
-                </span>
-              </div>
-              <button
-                type="button"
-                className="absolute left-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:left-1 sm:size-9"
-                aria-label="Previous photo"
-                disabled={idx === 0}
-                onClick={() => setSlide((s) => Math.max(0, s - 1))}
-              >
-                <ChevronLeft className="size-4 sm:size-5" aria-hidden />
-              </button>
-              <button
-                type="button"
-                className="absolute right-0.5 top-1/2 z-[3] flex size-8 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-[1px] transition hover:bg-black/55 active:scale-95 disabled:pointer-events-none disabled:opacity-0 sm:right-1 sm:size-9"
-                aria-label="Next photo"
-                disabled={idx >= n - 1}
-                onClick={() => setSlide((s) => Math.min(n - 1, s + 1))}
-              >
-                <ChevronRight className="size-4 sm:size-5" aria-hidden />
-              </button>
-            </>
-          ) : null}
-        </div>
-      </div>
+      <PhotoCarousel urls={urls} idx={idx} setSlide={setSlide} />
 
       <div className="flex items-center gap-2 px-2.5 pb-1 pt-0 sm:px-3 sm:pb-1.5">
         {post.like_count > 0 ? (
