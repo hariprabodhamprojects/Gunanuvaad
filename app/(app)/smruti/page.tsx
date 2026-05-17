@@ -9,14 +9,14 @@ export default async function SmrutiPage() {
   await requireAllowlistedUser();
 
   return (
-    <div className="layout-reading pb-2">
-      <header className="mb-4 flex items-center justify-center pt-1 sm:mb-5 sm:pt-0">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <header className="mb-3 flex shrink-0 items-center justify-center pt-1 sm:mb-4 sm:pt-0">
         <h1 className="text-center font-heading text-xl font-semibold tracking-tight text-primary sm:text-2xl">
           Share your Smruti!
         </h1>
       </header>
 
-      <SmrutiComposerForm />
+      <SmrutiComposerForm className="min-h-0 flex-1" />
     </div>
   );
 }
