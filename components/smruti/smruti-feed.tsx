@@ -6,10 +6,18 @@ import type { SmrutiFeedPost } from "@/lib/smruti/types";
 type Props = {
   posts: SmrutiFeedPost[];
   currentUserId: string;
+  currentUserDisplayName: string | null;
+  currentUserAvatarUrl: string | null;
   isOrganizer: boolean;
 };
 
-export function SmrutiFeed({ posts, currentUserId, isOrganizer }: Props) {
+export function SmrutiFeed({
+  posts,
+  currentUserId,
+  currentUserDisplayName,
+  currentUserAvatarUrl,
+  isOrganizer,
+}: Props) {
   if (!posts.length) {
     return (
       <p className="rounded-2xl border border-dashed border-border/70 bg-card/40 px-4 py-10 text-center text-sm text-muted-foreground">
@@ -25,6 +33,8 @@ export function SmrutiFeed({ posts, currentUserId, isOrganizer }: Props) {
           key={post.id}
           post={post}
           currentUserId={currentUserId}
+          currentUserDisplayName={currentUserDisplayName}
+          currentUserAvatarUrl={currentUserAvatarUrl}
           isOrganizer={isOrganizer}
         />
       ))}

@@ -1,14 +1,30 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { deleteSmrutiPostAction, likeSmrutiPostAction } from "@/lib/smruti/actions";
 import { smrutiPublicUrl, SMRUTI_PHOTO_MATTE_URL } from "@/lib/smruti/public-url";
-import type { SmrutiFeedPost } from "@/lib/smruti/types";
+import type { SmrutiFeedPost, SmrutiLikePreview } from "@/lib/smruti/types";
 import { cn } from "@/lib/utils";
+
+const LIKE_PREVIEW_MAX = 3;
+
+type LikeUiState = {
+  likedByMe: boolean;
+  likeCount: number;
+  likePreview: SmrutiLikePreview[];
+};
+
+function likeStateFromPost(post: SmrutiFeedPost): LikeUiState {
+  return {
+    likedByMe: post.liked_by_me,
+    likeCount: post.like_count,
+    likePreview: post.like_preview,
+  };
+}
 
 const CAPTION_PREVIEW_CHARS = 160;
 
@@ -209,15 +225,29 @@ function PhotoCarousel({
 type CardProps = {
   post: SmrutiFeedPost;
   currentUserId: string;
+  currentUserDisplayName: string | null;
+  currentUserAvatarUrl: string | null;
   isOrganizer: boolean;
 };
 
-export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) {
+export function SmrutiPostCard({
+  post,
+  currentUserId,
+  currentUserDisplayName,
+  currentUserAvatarUrl,
+  isOrganizer,
+}: CardProps) {
   const router = useRouter();
-  const [pendingLike, startLike] = useTransition();
-  const [pendingDelete, startDelete] = useTransition();
+  const likeInFlightRef = useRef(false);
+  const [like, setLike] = useState<LikeUiState>(() => likeStateFromPost(post));
+  const [hidden, setHidden] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
   const [slide, setSlide] = useState(0);
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    setLike(likeStateFromPost(post));
+  }, [post.id, post.liked_by_me, post.like_count, post.like_preview]);
 
   const urls = useMemo(
     () =>
@@ -234,10 +264,28 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
     expanded || !captionLong ? post.caption : `${post.caption.slice(0, CAPTION_PREVIEW_CHARS)}…`;
 
   const onLike = () => {
-    if (post.liked_by_me || pendingLike) return;
-    startLike(async () => {
-      const res = await likeSmrutiPostAction(post.id);
+    if (like.likedByMe || likeInFlightRef.current) return;
+
+    const previous = like;
+    const optimistic: LikeUiState = {
+      likedByMe: true,
+      likeCount: previous.likeCount + 1,
+      likePreview: [
+        {
+          display_name: currentUserDisplayName,
+          avatar_url: currentUserAvatarUrl,
+        },
+        ...previous.likePreview,
+      ].slice(0, LIKE_PREVIEW_MAX),
+    };
+
+    likeInFlightRef.current = true;
+    setLike(optimistic);
+
+    void likeSmrutiPostAction(post.id).then((res) => {
+      likeInFlightRef.current = false;
       if (!res.ok) {
+        setLike(previous);
         toast.error(res.error);
         return;
       }
@@ -248,9 +296,14 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
   const onDelete = () => {
     if (!canDelete || pendingDelete) return;
     if (!window.confirm("Delete this post? This cannot be undone.")) return;
-    startDelete(async () => {
-      const res = await deleteSmrutiPostAction(post.id);
+
+    setPendingDelete(true);
+    setHidden(true);
+
+    void deleteSmrutiPostAction(post.id).then((res) => {
+      setPendingDelete(false);
       if (!res.ok) {
+        setHidden(false);
         toast.error(res.error);
         return;
       }
@@ -259,7 +312,7 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
     });
   };
 
-  if (!urls.length) return null;
+  if (hidden || !urls.length) return null;
 
   const n = urls.length;
   const idx = Math.min(Math.max(slide, 0), n - 1);
@@ -318,31 +371,30 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
       <PhotoCarousel urls={urls} idx={idx} setSlide={setSlide} />
 
       <div className="flex items-center gap-2 px-2.5 pb-1 pt-0 sm:px-3 sm:pb-1.5">
-        {post.like_count > 0 ? (
-          post.liked_by_me ? (
+        {like.likeCount > 0 ? (
+          like.likedByMe ? (
             <div
               className="flex min-w-0 shrink-0 items-center gap-2.5 py-0.5 text-primary/90"
-              aria-label={`${post.like_count} ${post.like_count === 1 ? "like" : "likes"}`}
+              aria-label={`${like.likeCount} ${like.likeCount === 1 ? "like" : "likes"}`}
             >
-              <LikePreviewStack preview={post.like_preview} />
+              <LikePreviewStack preview={like.likePreview} />
               <span className="text-xs font-semibold tabular-nums sm:text-sm">
-                {post.like_count} {post.like_count === 1 ? "Like" : "Likes"}
+                {like.likeCount} {like.likeCount === 1 ? "Like" : "Likes"}
               </span>
             </div>
           ) : (
             <button
               type="button"
               onClick={onLike}
-              disabled={pendingLike}
-              aria-label={`Like — ${post.like_count} ${post.like_count === 1 ? "like" : "likes"} so far`}
+              aria-label={`Like — ${like.likeCount} ${like.likeCount === 1 ? "like" : "likes"} so far`}
               className={cn(
                 "flex min-w-0 shrink-0 items-center gap-2.5 rounded-lg py-0.5 text-left transition touch-manipulation",
-                "text-primary hover:opacity-90 active:scale-[0.98] disabled:opacity-55 motion-reduce:active:scale-100",
+                "text-primary hover:opacity-90 active:scale-[0.98] motion-reduce:active:scale-100",
               )}
             >
-              <LikePreviewStack preview={post.like_preview} />
+              <LikePreviewStack preview={like.likePreview} />
               <span className="text-xs font-semibold tabular-nums sm:text-sm">
-                {post.like_count} {post.like_count === 1 ? "Like" : "Likes"}
+                {like.likeCount} {like.likeCount === 1 ? "Like" : "Likes"}
               </span>
             </button>
           )
@@ -350,11 +402,10 @@ export function SmrutiPostCard({ post, currentUserId, isOrganizer }: CardProps) 
           <button
             type="button"
             onClick={onLike}
-            disabled={pendingLike}
             aria-label="Like this post"
             className={cn(
               "flex shrink-0 items-center gap-1.5 rounded-lg py-0.5 text-xs font-semibold transition touch-manipulation",
-              "text-primary/85 hover:text-primary active:scale-[0.98] disabled:opacity-55 sm:text-sm",
+              "text-primary/85 hover:text-primary active:scale-[0.98] sm:text-sm",
             )}
           >
             <Heart className="size-4 sm:size-[1.125rem]" strokeWidth={2} aria-hidden />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { approveDailyNoteAction, disapproveDailyNoteAction } from "@/lib/admin/actions";
@@ -45,7 +45,11 @@ function SortIcon({
 
 export function ApprovedNotesTable({ rows }: Props) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [approvalOverrides, setApprovalOverrides] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setApprovalOverrides({});
+  }, [rows]);
 
   // Live-update the moderation queue when members submit new notes or when
   // another organizer approves/rejects in a different tab.
@@ -72,29 +76,51 @@ export function ApprovedNotesTable({ rows }: Props) {
    * swallowed errors, which is how the "Revoke button does nothing" bug
    * shipped in the first place (see QA report P0-1).
    */
+  const rowsWithOverrides = useMemo(
+    () =>
+      rows.map((r) => ({
+        ...r,
+        is_approved: approvalOverrides[r.note_id] ?? r.is_approved,
+      })),
+    [rows, approvalOverrides],
+  );
+
   const run = (
     noteId: string,
     label: string,
+    nextApproved: boolean,
     fn: () => Promise<{ ok: boolean; error?: string }>,
   ) => {
+    setApprovalOverrides((o) => ({ ...o, [noteId]: nextApproved }));
     setLoadingId(noteId);
-    startTransition(async () => {
-      try {
-        const r = await fn();
+
+    void fn()
+      .then((r) => {
         if (r.ok) {
           router.refresh();
-        } else {
-          toast.error(`${label} failed`, {
-            description: r.error ?? "Please try again.",
-          });
+          return;
         }
-      } catch (err) {
+        setApprovalOverrides((o) => {
+          const next = { ...o };
+          delete next[noteId];
+          return next;
+        });
+        toast.error(`${label} failed`, {
+          description: r.error ?? "Please try again.",
+        });
+      })
+      .catch((err) => {
         console.error("[admin] approved-notes-table action", err);
+        setApprovalOverrides((o) => {
+          const next = { ...o };
+          delete next[noteId];
+          return next;
+        });
         toast.error(`${label} failed`, { description: "Unexpected error." });
-      } finally {
+      })
+      .finally(() => {
         setLoadingId(null);
-      }
-    });
+      });
   };
 
   const uniqueDates = useMemo(() => {
@@ -105,7 +131,7 @@ export function ApprovedNotesTable({ rows }: Props) {
   }, [rows]);
 
   const filtered = useMemo(() => {
-    return rows
+    return rowsWithOverrides
       .filter((r) => {
         if (filterStatus === "pending" && r.is_approved) return false;
         if (filterStatus === "approved" && !r.is_approved) return false;
@@ -120,7 +146,7 @@ export function ApprovedNotesTable({ rows }: Props) {
         else if (sortKey === "status") cmp = Number(a.is_approved) - Number(b.is_approved);
         return sortAsc ? cmp : -cmp;
       });
-  }, [rows, filterStatus, filterDate, sortKey, sortAsc]);
+  }, [rowsWithOverrides, filterStatus, filterDate, sortKey, sortAsc]);
 
   const pendingCount = rows.filter((r) => !r.is_approved).length;
   const approvedCount = rows.filter((r) => r.is_approved).length;
@@ -292,9 +318,11 @@ export function ApprovedNotesTable({ rows }: Props) {
                               type="button"
                               size="sm"
                               variant="outline"
-                              disabled={pending || isLoading}
+                              disabled={isLoading}
                               onClick={() =>
-                                run(r.note_id, "Revoke", () => disapproveDailyNoteAction(r.note_id))
+                                run(r.note_id, "Revoke", false, () =>
+                                  disapproveDailyNoteAction(r.note_id),
+                                )
                               }
                               className="h-7 rounded-lg px-3 text-[12px] font-bold"
                             >
@@ -306,9 +334,11 @@ export function ApprovedNotesTable({ rows }: Props) {
                                 type="button"
                                 size="sm"
                                 variant="default"
-                                disabled={pending || isLoading}
+                                disabled={isLoading}
                                 onClick={() =>
-                                  run(r.note_id, "Approve", () => approveDailyNoteAction(r.note_id))
+                                  run(r.note_id, "Approve", true, () =>
+                                    approveDailyNoteAction(r.note_id),
+                                  )
                                 }
                                 className="h-7 rounded-lg px-3 text-[12px] font-bold bg-gradient-to-b from-primary to-primary/80 shadow-sm hover:brightness-110"
                               >
@@ -318,9 +348,11 @@ export function ApprovedNotesTable({ rows }: Props) {
                                 type="button"
                                 size="sm"
                                 variant="ghost"
-                                disabled={pending || isLoading}
+                                disabled={isLoading}
                                 onClick={() =>
-                                  run(r.note_id, "Reject", () => disapproveDailyNoteAction(r.note_id))
+                                  run(r.note_id, "Reject", false, () =>
+                                    disapproveDailyNoteAction(r.note_id),
+                                  )
                                 }
                                 className="h-7 rounded-lg px-3 text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/60"
                               >

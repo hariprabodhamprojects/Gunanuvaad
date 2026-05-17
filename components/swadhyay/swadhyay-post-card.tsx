@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useState, useTransition, type FocusEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type FocusEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   Heart,
@@ -27,12 +35,20 @@ import {
   toggleReplyReactionAction,
 } from "@/lib/swadhyay/actions";
 import { createClient } from "@/lib/supabase/client";
+import {
+  reactionUiFromPost,
+  reactionUiFromReply,
+  toggleReactionUi,
+  type ReactionUi,
+} from "@/lib/swadhyay/reaction-ui";
 import type { SwadhyayPost, SwadhyayReply } from "@/lib/swadhyay/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
   post: SwadhyayPost;
   currentUserId: string;
+  currentUserDisplayName: string;
+  currentUserAvatarUrl: string;
   isOrganizer: boolean;
 };
 
@@ -142,13 +158,40 @@ function IconButton({
   );
 }
 
-export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
+export function SwadhyayPostCard({
+  post,
+  currentUserId,
+  currentUserDisplayName,
+  currentUserAvatarUrl,
+  isOrganizer,
+}: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-
-  // Post edit state
+  const postReactionBusy = useRef(false);
+  const replyReactionBusy = useRef(new Set<string>());
+  const [localPost, setLocalPost] = useState(post);
+  const [hidden, setHidden] = useState(false);
+  const [postReaction, setPostReaction] = useState<ReactionUi>(() => reactionUiFromPost(post));
+  const [replyReactionOverrides, setReplyReactionOverrides] = useState<Record<string, ReactionUi>>({});
   const [editingPost, setEditingPost] = useState(false);
   const [editBody, setEditBody] = useState(post.body);
+
+  useEffect(() => {
+    setLocalPost(post);
+    setHidden(false);
+  }, [post]);
+
+  useEffect(() => {
+    if (!editingPost) setEditBody(localPost.body);
+  }, [localPost.body, editingPost]);
+
+  useEffect(() => {
+    setPostReaction(reactionUiFromPost(localPost));
+  }, [localPost.id, localPost.viewer_reacted, localPost.reaction_count]);
+
+  useEffect(() => {
+    setReplyReactionOverrides({});
+  }, [localPost.id, localPost.viewer_reacted, localPost.reaction_count, localPost.reply_count]);
 
   // Replies
   const [replies, setReplies] = useState<SwadhyayReply[] | null>(null);
@@ -166,7 +209,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
   const [revokeOpen, setRevokeOpen] = useState(false);
   const [revokeReason, setRevokeReason] = useState("");
 
-  const canEditPost = canEditOrDelete(post.author_id, post.created_at, currentUserId);
+  const canEditPost = canEditOrDelete(localPost.author_id, localPost.created_at, currentUserId);
 
   const loadAllReplies = useCallback(async () => {
     setRepliesLoading(true);
@@ -188,21 +231,35 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
     if (next && replies === null) void loadAllReplies();
   };
 
-  // When a reply mutation happens we need fresh data from the server. Rather
-  // than refetching eagerly we just invalidate the local cache and let the
-  // router.refresh() surface the updated preview + reply_count; if the thread
-  // is currently expanded we also reload the full list.
-  const afterReplyMutation = () => {
-    router.refresh();
-    if (expanded) void loadAllReplies();
-  };
-
   // ── Post actions ────────────────────────────────────────────────────────
 
+  const resolveReplyReaction = useCallback(
+    (reply: SwadhyayReply): ReactionUi =>
+      replyReactionOverrides[reply.id] ?? reactionUiFromReply(reply),
+    [replyReactionOverrides],
+  );
+
+  const patchReplyReaction = useCallback((replyId: string, next: ReactionUi) => {
+    setReplies((prev) =>
+      prev?.map((r) =>
+        r.id === replyId
+          ? { ...r, viewer_reacted: next.viewerReacted, reaction_count: next.reactionCount }
+          : r,
+      ) ?? null,
+    );
+  }, []);
+
   const togglePostReaction = () => {
-    startTransition(async () => {
-      const r = await togglePostReactionAction(post.id);
+    if (postReactionBusy.current) return;
+    const previous = postReaction;
+    const optimistic = toggleReactionUi(previous);
+    postReactionBusy.current = true;
+    setPostReaction(optimistic);
+
+    void togglePostReactionAction(post.id).then((r) => {
+      postReactionBusy.current = false;
       if (!r.ok) {
+        setPostReaction(previous);
         toast.error(r.error ?? "Could not update reaction.");
         return;
       }
@@ -211,52 +268,78 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
   };
 
   const savePostEdit = () => {
-    startTransition(async () => {
-      const r = await editPostAction(post.id, editBody);
+    const trimmed = editBody.trim();
+    if (!trimmed) return;
+    const previousBody = localPost.body;
+    setLocalPost((p) => ({ ...p, body: trimmed, updated_at: new Date().toISOString() }));
+    setEditingPost(false);
+    toast.success("Reflection updated.");
+
+    void editPostAction(post.id, trimmed).then((r) => {
       if (!r.ok) {
+        setLocalPost((p) => ({ ...p, body: previousBody }));
+        setEditingPost(true);
+        setEditBody(trimmed);
         toast.error(r.error ?? "Could not save changes.");
         return;
       }
-      setEditingPost(false);
-      toast.success("Reflection updated.");
       router.refresh();
     });
   };
 
   const removePost = () => {
-    startTransition(async () => {
-      const r = await deletePostAction(post.id);
+    setHidden(true);
+    toast.success("Reflection deleted.");
+
+    void deletePostAction(post.id).then((r) => {
       if (!r.ok) {
+        setHidden(false);
         toast.error(r.error ?? "Could not delete reflection.");
         return;
       }
-      toast.success("Reflection deleted.");
       router.refresh();
     });
   };
 
   const revoke = () => {
-    startTransition(async () => {
-      const r = await revokePostAction(post.id, revokeReason);
+    const reason = revokeReason.trim();
+    const previous = localPost;
+    setLocalPost((p) => ({
+      ...p,
+      is_revoked: true,
+      revoke_reason: reason || null,
+    }));
+    setRevokeOpen(false);
+    setRevokeReason("");
+    toast.success("Post revoked.");
+
+    void revokePostAction(post.id, reason).then((r) => {
       if (!r.ok) {
+        setLocalPost(previous);
         toast.error(r.error ?? "Could not revoke post.");
         return;
       }
-      setRevokeOpen(false);
-      setRevokeReason("");
-      toast.success("Post revoked.");
       router.refresh();
     });
   };
 
   const restore = () => {
-    startTransition(async () => {
-      const r = await restorePostAction(post.id);
+    const previous = localPost;
+    setLocalPost((p) => ({
+      ...p,
+      is_revoked: false,
+      revoke_reason: null,
+      revoked_at: null,
+      revoked_by: null,
+    }));
+    toast.success("Post restored.");
+
+    void restorePostAction(post.id).then((r) => {
       if (!r.ok) {
+        setLocalPost(previous);
         toast.error(r.error ?? "Could not restore post.");
         return;
       }
-      toast.success("Post restored.");
       router.refresh();
     });
   };
@@ -279,63 +362,138 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
   };
 
   const submitReply = () => {
-    startTransition(async () => {
-      const r = await replyToPostAction(post.id, replyParentId, replyBody);
+    const trimmed = replyBody.trim();
+    if (!trimmed) return;
+
+    const optimisticId = `optimistic-reply-${crypto.randomUUID()}`;
+    const now = new Date().toISOString();
+    const optimisticReply: SwadhyayReply = {
+      id: optimisticId,
+      post_id: post.id,
+      author_id: currentUserId,
+      parent_reply_id: replyParentId,
+      body: trimmed,
+      is_deleted: false,
+      created_at: now,
+      updated_at: now,
+      author_display_name: currentUserDisplayName || "You",
+      author_avatar_url: currentUserAvatarUrl,
+      reaction_count: 0,
+      viewer_reacted: false,
+    };
+
+    const previousPost = localPost;
+    const previousReplies = replies;
+
+    setReplyOpen(false);
+    setReplyBody("");
+    setReplyParentId(null);
+    setExpanded(true);
+    setLocalPost((p) => ({
+      ...p,
+      reply_count: p.reply_count + 1,
+      preview_reply:
+        p.reply_count === 0 && !p.preview_reply ? optimisticReply : p.preview_reply,
+    }));
+    setReplies((prev) => [...(prev ?? []), optimisticReply]);
+    toast.success("Reply posted.");
+
+    void replyToPostAction(post.id, replyParentId, trimmed).then((r) => {
       if (!r.ok) {
+        setLocalPost(previousPost);
+        setReplies(previousReplies);
         toast.error(r.error ?? "Could not post reply.");
         return;
       }
-      setReplyOpen(false);
-      setReplyBody("");
-      setReplyParentId(null);
-      setExpanded(true);
-      toast.success("Reply posted.");
-      afterReplyMutation();
+      router.refresh();
+      if (expanded) void loadAllReplies();
     });
   };
 
   const saveReplyEdit = () => {
     if (!editingReplyId) return;
-    startTransition(async () => {
-      const r = await editReplyAction(editingReplyId, editingReplyBody);
+    const trimmed = editingReplyBody.trim();
+    if (!trimmed) return;
+
+    const previousReplies = replies;
+    setReplies((prev) =>
+      prev?.map((r) =>
+        r.id === editingReplyId ? { ...r, body: trimmed, updated_at: new Date().toISOString() } : r,
+      ) ?? null,
+    );
+    setLocalPost((p) =>
+      p.preview_reply?.id === editingReplyId
+        ? { ...p, preview_reply: { ...p.preview_reply, body: trimmed } }
+        : p,
+    );
+    setEditingReplyId(null);
+    setEditingReplyBody("");
+    toast.success("Reply updated.");
+
+    void editReplyAction(editingReplyId, trimmed).then((r) => {
       if (!r.ok) {
+        setReplies(previousReplies);
         toast.error(r.error ?? "Could not save changes.");
         return;
       }
-      setEditingReplyId(null);
-      setEditingReplyBody("");
-      toast.success("Reply updated.");
-      afterReplyMutation();
+      router.refresh();
+      if (expanded) void loadAllReplies();
     });
   };
 
   const removeReply = (replyId: string) => {
-    startTransition(async () => {
-      const r = await deleteReplyAction(replyId);
+    const previousPost = localPost;
+    const previousReplies = replies;
+
+    setReplies((prev) => prev?.filter((r) => r.id !== replyId) ?? null);
+    setLocalPost((p) => ({
+      ...p,
+      reply_count: Math.max(0, p.reply_count - 1),
+      preview_reply: p.preview_reply?.id === replyId ? null : p.preview_reply,
+    }));
+    toast.success("Reply deleted.");
+
+    void deleteReplyAction(replyId).then((r) => {
       if (!r.ok) {
+        setLocalPost(previousPost);
+        setReplies(previousReplies);
         toast.error(r.error ?? "Could not delete reply.");
         return;
       }
-      toast.success("Reply deleted.");
-      afterReplyMutation();
+      router.refresh();
+      if (expanded) void loadAllReplies();
     });
   };
 
-  const toggleReplyReaction = (replyId: string) => {
-    startTransition(async () => {
-      const r = await toggleReplyReactionAction(replyId);
+  const toggleReplyReaction = (reply: SwadhyayReply) => {
+    if (replyReactionBusy.current.has(reply.id)) return;
+    const previous = resolveReplyReaction(reply);
+    const optimistic = toggleReactionUi(previous);
+    replyReactionBusy.current.add(reply.id);
+    setReplyReactionOverrides((o) => ({ ...o, [reply.id]: optimistic }));
+    patchReplyReaction(reply.id, optimistic);
+
+    void toggleReplyReactionAction(reply.id).then((r) => {
+      replyReactionBusy.current.delete(reply.id);
       if (!r.ok) {
+        setReplyReactionOverrides((o) => {
+          const next = { ...o };
+          delete next[reply.id];
+          return next;
+        });
+        patchReplyReaction(reply.id, previous);
         toast.error(r.error ?? "Could not update reaction.");
         return;
       }
-      afterReplyMutation();
+      router.refresh();
+      if (expanded) void loadAllReplies();
     });
   };
 
   // ── Render helpers ──────────────────────────────────────────────────────
 
   const visibleReplies = useMemo(() => replies ?? [], [replies]);
-  const hasOverflow = post.reply_count > 1;
+  const hasOverflow = localPost.reply_count > 1;
 
   const scrollFieldIntoView = useCallback((e: FocusEvent<HTMLTextAreaElement>) => {
     requestAnimationFrame(() => {
@@ -346,6 +504,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
   const renderReply = (reply: SwadhyayReply) => {
     const canEdit = canEditOrDelete(reply.author_id, reply.created_at, currentUserId);
     const isEditingThisReply = editingReplyId === reply.id;
+    const replyReaction = resolveReplyReaction(reply);
     return (
       <div className="flex items-start gap-2.5" data-reply-row>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -410,12 +569,13 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
               <span className="text-[11px] text-foreground/50">
                 {formatRelativeTime(reply.created_at)}
               </span>
-              {reply.reaction_count > 0 ? (
+              {replyReaction.reactionCount > 0 ? (
                 <span className="text-[11px] font-semibold text-foreground/65">
-                  {reply.reaction_count} {reply.reaction_count === 1 ? "like" : "likes"}
+                  {replyReaction.reactionCount}{" "}
+                  {replyReaction.reactionCount === 1 ? "like" : "likes"}
                 </span>
               ) : null}
-              {reply.author_id !== currentUserId && !post.is_revoked ? (
+              {reply.author_id !== currentUserId && !localPost.is_revoked ? (
                 <IconButton
                   icon={<MessageCircle className="size-[13px]" aria-hidden />}
                   label="Reply"
@@ -451,10 +611,10 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
         </div>
         {!isEditingThisReply ? (
           <HeartButton
-            reacted={reply.viewer_reacted}
-            count={reply.reaction_count}
-            disabled={pending}
-            onClick={() => toggleReplyReaction(reply.id)}
+            reacted={replyReaction.viewerReacted}
+            count={replyReaction.reactionCount}
+            disabled={false}
+            onClick={() => toggleReplyReaction(reply)}
             size="sm"
           />
         ) : null}
@@ -462,29 +622,31 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
     );
   };
 
+  if (hidden) return null;
+
   return (
     <article
       data-post-card
       className={cn(
         "group/post relative rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm transition-[transform,box-shadow,border-color] duration-[var(--motion-base)] ease-[var(--ease-out-standard)] hover:-translate-y-[1px] hover:border-border hover:shadow-md motion-reduce:hover:translate-y-0",
-        post.is_revoked && "opacity-[0.92]",
+        localPost.is_revoked && "opacity-[0.92]",
       )}
     >
       {/* Header */}
       <header className="flex items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={post.author_avatar_url}
+          src={localPost.author_avatar_url}
           alt=""
           className="size-10 shrink-0 rounded-full border border-border/60 object-cover ring-2 ring-primary/0 transition-shadow duration-[var(--motion-base)] ease-[var(--ease-out-standard)] group-hover/post:ring-primary/20"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">
-            {post.author_display_name}
+            {localPost.author_display_name}
           </p>
           <p className="text-[11px] text-foreground/55">
-            {formatRelativeTime(post.created_at)}
-            {post.created_at !== post.updated_at ? (
+            {formatRelativeTime(localPost.created_at)}
+            {localPost.created_at !== localPost.updated_at ? (
               <span className="ml-1 italic text-foreground/45">(edited)</span>
             ) : null}
           </p>
@@ -494,14 +656,14 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             moderation action is visually attached to the post author, not to
             the reply area below. */}
         <div className="flex shrink-0 items-center gap-1.5">
-          {post.is_revoked ? (
+          {localPost.is_revoked ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-destructive">
               <ShieldAlert className="size-3" aria-hidden />
               Revoked
             </span>
           ) : null}
           {isOrganizer ? (
-            post.is_revoked ? (
+            localPost.is_revoked ? (
               <button
                 type="button"
                 onClick={restore}
@@ -547,7 +709,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
                 type="button"
                 onClick={() => {
                   setEditingPost(false);
-                  setEditBody(post.body);
+                  setEditBody(localPost.body);
                 }}
                 disabled={pending}
                 className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-semibold text-foreground/60 hover:text-foreground disabled:opacity-40"
@@ -565,7 +727,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
               </Button>
             </div>
           </div>
-        ) : post.is_revoked && !isOrganizer ? (
+        ) : localPost.is_revoked && !isOrganizer ? (
           // Body is redacted on the server for revoked posts (see migration
           // `20260420120000_swadhyay_visibility_hardening.sql`). We render a
           // soft placeholder instead of the empty string so the card still
@@ -575,12 +737,12 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
           </p>
         ) : (
           <p className="whitespace-pre-wrap break-words text-sm leading-6 text-foreground/90">
-            {post.body}
+            {localPost.body}
           </p>
         )}
-        {post.is_revoked && post.revoke_reason ? (
+        {localPost.is_revoked && localPost.revoke_reason ? (
           <p className="mt-2 rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-[11px] text-destructive/90">
-            <span className="font-semibold">Admin note:</span> {post.revoke_reason}
+            <span className="font-semibold">Admin note:</span> {localPost.revoke_reason}
           </p>
         ) : null}
       </div>
@@ -589,16 +751,16 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
       {!editingPost ? (
         <div className="mt-3 flex items-center gap-1 border-t border-border/50 pt-2">
           <HeartButton
-            reacted={post.viewer_reacted}
-            count={post.reaction_count}
-            disabled={pending}
+            reacted={postReaction.viewerReacted}
+            count={postReaction.reactionCount}
+            disabled={false}
             onClick={togglePostReaction}
           />
           {/* Reply only shows on other people's posts AND only while the
               post is still live. Replying to a revoked post is blocked at
               the DB (trigger) and at the action layer — hiding the button
               just keeps the UI honest. */}
-          {post.author_id !== currentUserId && !post.is_revoked ? (
+          {localPost.author_id !== currentUserId && !localPost.is_revoked ? (
             <IconButton
               icon={<MessageCircle className="size-4" aria-hidden />}
               label="Reply"
@@ -614,7 +776,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
                 disabled={pending}
                 onClick={() => {
                   setEditingPost(true);
-                  setEditBody(post.body);
+                  setEditBody(localPost.body);
                 }}
               />
               <IconButton
@@ -681,7 +843,7 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
             placeholder={
               replyParentId
                 ? "Reply to this comment…"
-                : `Reply to ${post.author_display_name}…`
+                : `Reply to ${localPost.author_display_name}…`
             }
             autoFocus
             className="min-h-[52px] resize-none scroll-mt-24 border-0 bg-transparent p-1 text-[13.5px] shadow-none focus-visible:ring-0 sm:text-sm"
@@ -713,22 +875,22 @@ export function SwadhyayPostCard({ post, currentUserId, isOrganizer }: Props) {
       ) : null}
 
       {/* Replies — Instagram-style collapse */}
-      {post.reply_count > 0 ? (
+      {localPost.reply_count > 0 ? (
         <div className="mt-3 ml-3 border-l-2 border-border/40 pl-3">
-          {!expanded && post.preview_reply ? renderReply(post.preview_reply) : null}
+          {!expanded && localPost.preview_reply ? renderReply(localPost.preview_reply) : null}
 
           {!expanded && hasOverflow ? (
             <button
               type="button"
               onClick={onExpand}
-              disabled={pending || repliesLoading}
+              disabled={repliesLoading}
               className="mt-2 flex items-center gap-2 text-[11px] font-semibold text-foreground/55 transition-colors hover:text-foreground disabled:opacity-50"
             >
               <span className="inline-block h-px w-6 bg-border" aria-hidden />
               {repliesLoading
                 ? "Loading…"
-                : `View ${post.reply_count - 1} more ${
-                    post.reply_count - 1 === 1 ? "reply" : "replies"
+                : `View ${localPost.reply_count - 1} more ${
+                    localPost.reply_count - 1 === 1 ? "reply" : "replies"
                   }`}
             </button>
           ) : null}

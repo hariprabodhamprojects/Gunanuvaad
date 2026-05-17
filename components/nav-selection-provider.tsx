@@ -8,7 +8,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  useTransition,
   type ReactNode,
 } from "react";
 import { appNavItems, type AppNavItem } from "@/lib/navigation/app-nav";
@@ -25,7 +24,6 @@ export function NavSelectionProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const router = useRouter();
   const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
 
   useEffect(() => {
     if (appNavItems.some((item) => item.match(pathname))) {
@@ -42,12 +40,11 @@ export function NavSelectionProvider({ children }: { children: ReactNode }) {
 
   const navigate = useCallback(
     (href: string) => {
+      if (href === pathname) return;
       setOptimisticHref(href);
-      startTransition(() => {
-        router.push(href);
-      });
+      router.push(href);
     },
-    [router],
+    [router, pathname],
   );
 
   const value = useMemo(

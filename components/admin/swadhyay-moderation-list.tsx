@@ -85,45 +85,47 @@ export function SwadhyayModerationList({ topics, initialTopicId }: Props) {
   }, [selected, router]);
 
   const revoke = (postId: string) => {
-    startTransition(async () => {
-      const r = await revokePostAction(postId, revokeReason);
+    const reason = revokeReason.trim();
+    const previous = posts;
+    setRevokingId(null);
+    setRevokeReason("");
+    toast.success("Post revoked.");
+    setPosts((prev) =>
+      prev
+        ? prev.map((p) =>
+            p.id === postId
+              ? { ...p, is_revoked: true, revoke_reason: reason || null }
+              : p,
+          )
+        : prev,
+    );
+
+    void revokePostAction(postId, reason).then((r) => {
       if (!r.ok) {
+        if (previous) setPosts(previous);
         toast.error(r.error ?? "Could not revoke post.");
-        return;
       }
-      setRevokingId(null);
-      setRevokeReason("");
-      toast.success("Post revoked.");
-      // Optimistic: update local cache immediately; real refresh lands next tick.
-      setPosts((prev) =>
-        prev
-          ? prev.map((p) =>
-              p.id === postId
-                ? { ...p, is_revoked: true, revoke_reason: revokeReason || null }
-                : p,
-            )
-          : prev,
-      );
     });
   };
 
   const restore = (postId: string) => {
-    startTransition(async () => {
-      const r = await restorePostAction(postId);
+    const previous = posts;
+    toast.success("Post restored.");
+    setPosts((prev) =>
+      prev
+        ? prev.map((p) =>
+            p.id === postId
+              ? { ...p, is_revoked: false, revoke_reason: null, revoked_at: null }
+              : p,
+          )
+        : prev,
+    );
+
+    void restorePostAction(postId).then((r) => {
       if (!r.ok) {
+        if (previous) setPosts(previous);
         toast.error(r.error ?? "Could not restore post.");
-        return;
       }
-      toast.success("Post restored.");
-      setPosts((prev) =>
-        prev
-          ? prev.map((p) =>
-              p.id === postId
-                ? { ...p, is_revoked: false, revoke_reason: null, revoked_at: null }
-                : p,
-            )
-          : prev,
-      );
     });
   };
 

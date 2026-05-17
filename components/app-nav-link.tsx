@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { forwardRef, type ComponentProps, type MouseEvent } from "react";
 import type { AppNavItem } from "@/lib/navigation/app-nav";
 import { useNavSelection } from "@/lib/navigation/use-nav-selection";
@@ -18,7 +19,12 @@ export const AppNavLink = forwardRef<HTMLAnchorElement, Props>(function AppNavLi
   ref,
 ) {
   const { isActive, navigate } = useNavSelection();
+  const router = useRouter();
   const active = isActive(item);
+
+  const prefetchRoute = () => {
+    if (!active) router.prefetch(item.href);
+  };
 
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (
@@ -43,6 +49,7 @@ export const AppNavLink = forwardRef<HTMLAnchorElement, Props>(function AppNavLi
       scroll={false}
       aria-current={active ? "page" : undefined}
       className={cn(className, active ? activeClassName : inactiveClassName)}
+      onPointerDown={prefetchRoute}
       onClick={onClick}
       {...rest}
     >

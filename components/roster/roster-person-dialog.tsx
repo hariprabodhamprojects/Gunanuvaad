@@ -193,19 +193,20 @@ export function RosterPersonDialog({
 
   const onSubmit = () => {
     if (!member || !canWriteFromRoster || isSelf || !canWrite || !lengthOk) return;
-    startTransition(async () => {
-      const r = await submitDailyNote(
-        {
-          rosterRowId,
-          recipientId,
-        },
-        body,
-      );
+    const bodySnapshot = body;
+    setBody("");
+    setShowConfirm(false);
+    onOpenChange(false);
+    toast.success("Your note is sent.");
+
+    void submitDailyNote(
+      {
+        rosterRowId,
+        recipientId,
+      },
+      bodySnapshot,
+    ).then((r) => {
       if (r.ok) {
-        toast.success("Your note is sent.");
-        setBody("");
-        setShowConfirm(false);
-        onOpenChange(false);
         router.refresh();
         return;
       }
@@ -213,16 +214,19 @@ export function RosterPersonDialog({
         toast.error(
           `Use between ${NOTE_BODY_MIN_LEN} and ${NOTE_BODY_MAX_LEN} characters.`,
         );
-        setShowConfirm(false); // Go back to editing if invalid
+        onOpenChange(true);
+        setBody(bodySnapshot);
+        setShowConfirm(true);
         return;
       }
       if (r.code === "already_today") {
         toast.message("Today’s points already counted. You can still send notes.");
-        setShowConfirm(false);
         return;
       }
       toast.error("Couldn’t send your note. Try again.");
-      setShowConfirm(false);
+      onOpenChange(true);
+      setBody(bodySnapshot);
+      setShowConfirm(true);
     });
   };
 

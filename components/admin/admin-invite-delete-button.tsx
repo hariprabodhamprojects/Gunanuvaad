@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { deleteAllowlistUserByEmailAction } from "@/lib/admin/actions";
 
@@ -29,7 +29,6 @@ function codeToMessage(code: string): string {
 }
 
 export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
-  const [pending, startTransition] = useTransition();
   const [deleted, setDeleted] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -47,27 +46,25 @@ export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
           <span className="text-xs text-muted-foreground">Are you sure?</span>
           <button
             type="button"
-            disabled={pending}
-            className="inline-flex min-h-10 min-w-[2.75rem] touch-manipulation items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15 active:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-10 min-w-[2.75rem] touch-manipulation items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15 active:bg-destructive/20"
             onClick={() => {
-              startTransition(async () => {
-                const result = await deleteAllowlistUserByEmailAction(email);
-                if (result.ok) {
-                  setDeleted(true);
-                  toast.success("User deleted from app access.");
-                  return;
-                }
+              setDeleted(true);
+              setConfirming(false);
+              toast.success("User deleted from app access.");
+
+              void deleteAllowlistUserByEmailAction(email).then((result) => {
+                if (result.ok) return;
+                setDeleted(false);
+                setConfirming(true);
                 toast.error(codeToMessage(result.code));
-                setConfirming(false);
               });
             }}
           >
-            {pending ? "Deleting..." : "OK"}
+            OK
           </button>
           <button
             type="button"
-            disabled={pending}
-            className="inline-flex min-h-10 min-w-[2.75rem] touch-manipulation items-center justify-center rounded-lg border border-border/60 bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted active:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-10 min-w-[2.75rem] touch-manipulation items-center justify-center rounded-lg border border-border/60 bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted active:bg-muted/80"
             onClick={() => setConfirming(false)}
           >
             Cancel
@@ -76,8 +73,7 @@ export function AdminInviteDeleteButton({ email, isOrganizer }: Props) {
       ) : (
         <button
           type="button"
-          disabled={pending}
-          className="inline-flex min-h-10 touch-manipulation items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15 active:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-10 touch-manipulation items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15 active:bg-destructive/20"
           onClick={() => setConfirming(true)}
         >
           Delete

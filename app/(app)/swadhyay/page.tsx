@@ -5,6 +5,7 @@ import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { getActiveSwadhyayTopic, getTopicPosts } from "@/lib/swadhyay/queries";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Swadhyay — MananChintan" };
 
@@ -37,10 +38,16 @@ function weekProgress(startISO: string, endISO: string, todayISO: string) {
 
 export default async function SwadhyayPage() {
   const { user } = await requireAllowlistedUser();
+  const supabase = await createClient();
   const isOrganizer = await getIsOrganizerSession();
   const today = getCampaignDateTodayISO();
   const topic = await getActiveSwadhyayTopic();
-  const posts = topic ? await getTopicPosts(topic.id) : [];
+  const [posts, profileRes] = await Promise.all([
+    topic ? getTopicPosts(topic.id) : Promise.resolve([]),
+    supabase.from("profiles").select("display_name, avatar_url").eq("id", user.id).maybeSingle(),
+  ]);
+  const currentUserDisplayName = profileRes.data?.display_name?.trim() || "You";
+  const currentUserAvatarUrl = profileRes.data?.avatar_url?.trim() || "";
 
   const canPost = Boolean(
     topic &&
@@ -131,6 +138,8 @@ export default async function SwadhyayPage() {
           <SwadhyayPostsFeed
             topic={topic}
             currentUserId={user.id}
+            currentUserDisplayName={currentUserDisplayName}
+            currentUserAvatarUrl={currentUserAvatarUrl}
             isOrganizer={isOrganizer}
             canPost={canPost}
             posts={posts}
