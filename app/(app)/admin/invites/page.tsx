@@ -1,8 +1,7 @@
-import { AdminInviteDeleteButton } from "@/components/admin/admin-invite-delete-button";
+import { AdminInvitesList } from "@/components/admin/admin-invites-list";
 import { AdminInvitesRealtime } from "@/components/admin/admin-invites-realtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchAllowlistOverview } from "@/lib/admin/queries";
-import { cn } from "@/lib/utils";
 
 export const metadata = {
   title: "Invites — Admin",
@@ -12,11 +11,6 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminInvitesPage() {
   const rows = await fetchAllowlistOverview();
-  const sortedRows = [...rows].sort((a, b) => {
-    const an = a.invite_display_name?.trim() || a.profile_display_name?.trim() || a.email;
-    const bn = b.invite_display_name?.trim() || b.profile_display_name?.trim() || b.email;
-    return an.localeCompare(bn, undefined, { sensitivity: "base" });
-  });
   const total = rows.length;
   const signedUp = rows.filter((r) => r.has_signed_up).length;
   const rosterReady = rows.filter((r) => r.roster_ready).length;
@@ -55,79 +49,7 @@ export default async function AdminInvitesPage() {
         </Card>
       </div>
 
-      <Card className="overflow-hidden ring-border/60">
-        <CardHeader className="border-b border-border/60 pb-3">
-          <CardTitle className="text-base">All invites</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border/60 bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="px-3 py-2.5 font-medium sm:px-4">Email</th>
-                  <th className="px-3 py-2.5 font-medium sm:px-4">Invite name</th>
-                  <th className="px-3 py-2.5 font-medium sm:px-4">Status</th>
-                  <th className="px-3 py-2.5 font-medium sm:px-4">Profile</th>
-                  <th className="px-3 py-2.5 font-medium sm:px-4">Org</th>
-                  <th className="px-3 py-2.5 font-medium sm:px-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                      No rows returned. Run the new admin migration and ensure you are an organizer.
-                    </td>
-                  </tr>
-                ) : (
-                  sortedRows.map((r) => (
-                    <tr key={r.email} className="border-b border-border/40 last:border-0">
-                      <td className="px-3 py-2.5 font-mono text-xs sm:px-4 sm:text-sm">{r.email}</td>
-                      <td className="max-w-[10rem] truncate px-3 py-2.5 text-muted-foreground sm:px-4">
-                        {r.invite_display_name?.trim() || "—"}
-                      </td>
-                      <td className="px-3 py-2.5 sm:px-4">
-                        <span
-                          className={cn(
-                            "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-                            r.has_signed_up
-                              ? "bg-primary/15 text-primary"
-                              : "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {r.has_signed_up ? "Signed up" : "Not yet"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 sm:px-4">
-                        <span
-                          className={cn(
-                            "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-                            r.roster_ready
-                              ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
-                              : "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {r.roster_ready ? "Roster-ready" : "Incomplete"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 sm:px-4">
-                        {r.is_organizer ? (
-                          <span className="text-xs font-medium text-primary">Yes</span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 sm:px-4">
-                        <AdminInviteDeleteButton email={r.email} isOrganizer={r.is_organizer} />
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <AdminInvitesList rows={rows} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { getCroppedAvatarBlob } from "@/lib/profile/crop-image";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type Props = {
   imageSrc: string | null;
@@ -48,6 +49,8 @@ export function AvatarCropModal({
       const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
       await onCropped(file);
       onOpenChange(false);
+    } catch {
+      toast.error("Could not process that photo. Try another image.");
     } finally {
       setBusy(false);
     }

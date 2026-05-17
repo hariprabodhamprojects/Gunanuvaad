@@ -4,19 +4,13 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
-  AVATAR_ACCEPT_MIMES,
+  AVATAR_PICK_ACCEPT_MIMES,
   uploadUserAvatar,
   validateAvatarFile,
+  validateAvatarPick,
 } from "@/lib/profile/avatar";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AvatarCropModal } from "@/components/avatar-crop-modal";
 import { toast } from "sonner";
 
@@ -31,7 +25,7 @@ export function OnboardingWizard() {
     const f = e.target.files?.[0];
     e.target.value = "";
     if (!f) return;
-    const err = validateAvatarFile(f);
+    const err = validateAvatarPick(f);
     if (err) {
       toast.error(err);
       return;
@@ -41,6 +35,12 @@ export function OnboardingWizard() {
   }
 
   async function onCropped(file: File) {
+    const err = validateAvatarFile(file);
+    if (err) {
+      toast.error(err);
+      return;
+    }
+
     setBusy(true);
     try {
       const supabase = createClient();
@@ -91,34 +91,25 @@ export function OnboardingWizard() {
   }
 
   return (
-    <div className="glass-card w-full max-w-md">
+    <div className="glass-card w-full max-w-sm">
       <Card className="border-0 !bg-transparent shadow-none ring-0">
-        <CardHeader className="text-center">
+        <CardHeader className="pb-4 pt-8 text-center">
           <CardTitle className="font-heading text-2xl tracking-tight">Profile photo</CardTitle>
-          <CardDescription>
-            Choose a photo, crop it, and upload. Your name comes from the invite list.
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="pb-8 pt-0">
           <input
             ref={inputRef}
             type="file"
-            accept={AVATAR_ACCEPT_MIMES.join(",")}
+            accept={[...AVATAR_PICK_ACCEPT_MIMES, "image/*"].join(",")}
             className="sr-only"
             aria-hidden
             tabIndex={-1}
             disabled={busy}
             onChange={onPickImage}
           />
-          <div className="space-y-2">
-            <Label>Photo</Label>
-            <p className="text-sm text-muted-foreground">
-              Pick an image, then crop and zoom before it&apos;s saved.
-            </p>
-          </div>
           <Button
             type="button"
-            className="w-full"
+            className="h-12 w-full rounded-xl text-base font-medium"
             size="lg"
             disabled={busy}
             onClick={() => inputRef.current?.click()}

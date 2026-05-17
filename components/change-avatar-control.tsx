@@ -3,7 +3,12 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { uploadUserAvatar, validateAvatarFile } from "@/lib/profile/avatar";
+import {
+  AVATAR_PICK_ACCEPT_MIMES,
+  uploadUserAvatar,
+  validateAvatarFile,
+  validateAvatarPick,
+} from "@/lib/profile/avatar";
 import { Button } from "@/components/ui/button";
 import { AvatarCropModal } from "@/components/avatar-crop-modal";
 import { toast } from "sonner";
@@ -31,7 +36,7 @@ export function ChangeAvatarControl({
     const f = e.target.files?.[0];
     e.target.value = "";
     if (!f) return;
-    const err = validateAvatarFile(f);
+    const err = validateAvatarPick(f);
     if (err) {
       toast.error(err);
       return;
@@ -41,6 +46,11 @@ export function ChangeAvatarControl({
   }
 
   async function onCropped(file: File) {
+    const err = validateAvatarFile(file);
+    if (err) {
+      toast.error(err);
+      return;
+    }
     setBusy(true);
     try {
       const supabase = createClient();
@@ -87,7 +97,7 @@ export function ChangeAvatarControl({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept={[...AVATAR_PICK_ACCEPT_MIMES, "image/*"].join(",")}
         className="sr-only"
         aria-hidden
         tabIndex={-1}
