@@ -41,7 +41,7 @@ export default async function AppShellLayout({
         </header>
         <div className="flex min-h-0 w-full flex-1">
           <AppSidebar />
-          <main className="page-enter flex min-h-0 w-full min-w-0 max-w-[100vw] flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-y-none scroll-pt-[calc(env(safe-area-inset-top,0px)+3.5rem)] px-3 py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:px-4 lg:px-6 lg:py-7 lg:pb-8 xl:px-8 2xl:px-10">
+          <main className="page-enter flex min-h-0 w-full min-w-0 max-w-[100vw] flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-y-none scroll-pt-[calc(env(safe-area-inset-top,0px)+3.5rem)] scroll-pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] px-3 py-6 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] sm:px-4 lg:scroll-pb-0 lg:px-6 lg:py-7 lg:pb-8 xl:px-8 2xl:px-10">
             {children}
           </main>
         </div>

@@ -5,36 +5,15 @@ import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { getActiveSwadhyayTopic, getTopicPosts } from "@/lib/swadhyay/queries";
+import {
+  formatSwadhyayWeekRange,
+  swadhyayWeekProgress,
+} from "@/lib/swadhyay/topic-dates";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Swadhyay — MananChintan" };
 
 export const dynamic = "force-dynamic";
-
-/** Short human week range, e.g. "Apr 17 – 24" (same month) or "Apr 30 – May 6". */
-function formatRange(startISO: string, endISO: string): string {
-  const start = new Date(`${startISO}T00:00:00`);
-  const end = new Date(`${endISO}T00:00:00`);
-  const sameMonth =
-    start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-  const monthFmt: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-  const endFmt: Intl.DateTimeFormatOptions = sameMonth
-    ? { day: "numeric" }
-    : { month: "short", day: "numeric" };
-  return `${start.toLocaleDateString(undefined, monthFmt)} – ${end.toLocaleDateString(undefined, endFmt)}`;
-}
-
-/** Inclusive day index (1-based) and total week length in days. */
-function weekProgress(startISO: string, endISO: string, todayISO: string) {
-  const start = new Date(`${startISO}T00:00:00`).getTime();
-  const end = new Date(`${endISO}T00:00:00`).getTime();
-  const today = new Date(`${todayISO}T00:00:00`).getTime();
-  const dayMs = 24 * 60 * 60 * 1000;
-  const total = Math.max(1, Math.round((end - start) / dayMs) + 1);
-  const raw = Math.round((today - start) / dayMs) + 1;
-  const current = Math.min(total, Math.max(1, raw));
-  return { current, total, pct: Math.round((current / total) * 100) };
-}
 
 export default async function SwadhyayPage() {
   const { user } = await requireAllowlistedUser();
@@ -56,7 +35,8 @@ export default async function SwadhyayPage() {
       today <= topic.end_date,
   );
 
-  const progress = topic ? weekProgress(topic.start_date, topic.end_date, today) : null;
+  const weekRange = topic ? formatSwadhyayWeekRange(topic.start_date, topic.end_date) : null;
+  const progress = topic ? swadhyayWeekProgress(topic.start_date, topic.end_date, today) : null;
 
   return (
     <div className="layout-reading space-y-5">
@@ -81,11 +61,6 @@ export default async function SwadhyayPage() {
         </>
       ) : (
         <>
-          {/* Hero — typography and padding match the other tab heroes
-              (Home / Calendar / Standings) for a uniform rhythm across the app.
-              The topic title lives on the left with a muted week-range
-              subtitle; the live Day N/N pill sits on the right; a thin
-              week-progress bar closes the bottom. */}
           <section
             aria-labelledby="swadhyay-topic-title"
             className="page-hero rounded-3xl border border-border/60 bg-card/70 px-5 py-5 shadow-sm sm:px-7"
@@ -98,9 +73,11 @@ export default async function SwadhyayPage() {
                 >
                   {topic.title}
                 </h1>
-                <p className="mt-1 text-xs text-muted-foreground sm:text-[13px]">
-                  Week of {formatRange(topic.start_date, topic.end_date)}
-                </p>
+                {weekRange ? (
+                  <p className="mt-1 text-xs text-muted-foreground sm:text-[13px]">
+                    Week of {weekRange}
+                  </p>
+                ) : null}
               </div>
               {progress ? (
                 <span

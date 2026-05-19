@@ -88,14 +88,17 @@ export function SwadhyayPostsFeed({
   useLayoutEffect(() => {
     const root = listRef.current;
     if (!root) return;
+    const cards = root.querySelectorAll<HTMLElement>("[data-post-card]");
+    if (cards.length === 0) return;
+
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) {
-      gsap.set("[data-post-card]", { opacity: 1, y: 0 });
+      gsap.set(cards, { opacity: 1, y: 0 });
       return;
     }
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        "[data-post-card]",
+        cards,
         { opacity: 0, y: 12 },
         {
           opacity: 1,

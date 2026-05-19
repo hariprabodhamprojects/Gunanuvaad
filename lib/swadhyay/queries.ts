@@ -1,5 +1,6 @@
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
 import { createClient } from "@/lib/supabase/server";
+import { isUsableSwadhyayTopic } from "@/lib/swadhyay/topic-dates";
 import type { SwadhyayPost, SwadhyayReply, SwadhyayTopic } from "@/lib/swadhyay/types";
 
 /**
@@ -19,7 +20,13 @@ export async function getActiveSwadhyayTopic(): Promise<SwadhyayTopic | null> {
     return null;
   }
 
-  return (data as SwadhyayTopic | null) ?? null;
+  const raw = (data as SwadhyayTopic | null) ?? null;
+  if (raw && !isUsableSwadhyayTopic(raw)) {
+    console.warn("[swadhyay] active topic has invalid dates — treating as no topic", raw.id);
+    return null;
+  }
+  if (!isUsableSwadhyayTopic(raw)) return null;
+  return raw;
 }
 
 /**

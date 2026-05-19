@@ -131,28 +131,30 @@ where true;
 
 ## Launch reset (clear test ghunos, scores, Swadhyay, feed)
 
-Before opening the app to bhaktos, wipe **test** content while keeping accounts (`allowed_emails`, `profiles`, sign-ins).
+Wipe **test** content while keeping accounts (`allowed_emails`, `profiles`, sign-ins).
 
-**Removed:** all `daily_notes` and `approved_daily_notes` (ghunos + standings), all Swadhyay posts/replies/reactions/topics, all Smruti feed posts and `smruti` bucket files.
+**Removed:** `daily_notes`, `approved_daily_notes` (ghunos + **points on Standings**), Swadhyay posts/replies/topics, Smruti feed.
 
-**Kept:** invite list, user profiles, avatars.
+**Kept:** invite list, profiles, avatars.
 
-### Run now (production)
+### Why you might still see old points after DELETE
 
-1. Open your Supabase project → **SQL Editor** → **New query**.
-2. Paste the contents of `migrations/20260519120000_reset_launch_test_data.sql` and **Run**.
-3. Confirm row counts in the output (or run spot checks):
+1. **Storage line broke the whole transaction** — `delete from storage.objects` is **not allowed** in SQL. Supabase rolls back the entire `BEGIN … COMMIT`, so **ghunos and points were never deleted**. Use the updated script (no storage delete) or `npm run db:reset-test-data`.
+2. **Wrong Supabase project** — `NEXT_PUBLIC_SUPABASE_URL` must match where you run SQL.
+3. **Run the AFTER counts** in `supabase/scripts/verify-and-reset-test-data.sql` — all tables must show **0**.
 
-```sql
-select
-  (select count(*) from public.daily_notes) as daily_notes,
-  (select count(*) from public.approved_daily_notes) as approved_notes,
-  (select count(*) from public.swadhyay_posts) as swadhyay_posts,
-  (select count(*) from public.smruti_posts) as smruti_posts;
-```
+### Option A — SQL Editor (production)
 
-All counts should be **0**. Standings and scores then start fresh as people use the app again.
+1. Open the **same** Supabase project as your deployed app.
+2. Run **`supabase/scripts/verify-and-reset-test-data.sql`** (full file).
+3. The last result set must show **0** for every table. If not, you are on the wrong project.
 
-Alternatively, apply via CLI: `supabase db push` (includes this migration if not yet applied).
+### Option B — CLI against `.env.local` (recommended for local dev)
 
-**Warning:** This is destructive. Run once for launch; do not run again unless you intend to wipe community content.
+1. Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` (Supabase → Settings → API → `service_role`).
+2. Apply migration `20260519130000_reset_launch_test_data_rpc.sql` in SQL Editor once.
+3. Run: `npm run db:reset-test-data`
+
+This prints BEFORE/AFTER counts for the project your app actually uses.
+
+**Warning:** Destructive. Run once for launch.
