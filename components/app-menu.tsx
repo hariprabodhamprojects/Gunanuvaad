@@ -173,12 +173,12 @@ export function AppMenu({
                     prefetch
                     scroll={false}
                     className={cn(
-                      buttonVariants({ variant: "secondary", size: "sm" }),
-                      "mt-2 w-full gap-2",
+                      buttonVariants({ variant: "default", size: "sm" }),
+                      "mt-2 w-full gap-2 font-semibold",
                     )}
                     onClick={navigateFromSheet("/admin/invites")}
                   >
-                    <Shield className="size-4 shrink-0 opacity-80" aria-hidden />
+                    <Shield className="size-4 shrink-0" aria-hidden />
                     Admin
                   </Link>
                 ) : null}

@@ -128,3 +128,31 @@ update public.daily_notes
 set campaign_date = campaign_date + interval '1 day'
 where true;
 ```
+
+## Launch reset (clear test ghunos, scores, Swadhyay, feed)
+
+Before opening the app to bhaktos, wipe **test** content while keeping accounts (`allowed_emails`, `profiles`, sign-ins).
+
+**Removed:** all `daily_notes` and `approved_daily_notes` (ghunos + standings), all Swadhyay posts/replies/reactions/topics, all Smruti feed posts and `smruti` bucket files.
+
+**Kept:** invite list, user profiles, avatars.
+
+### Run now (production)
+
+1. Open your Supabase project → **SQL Editor** → **New query**.
+2. Paste the contents of `migrations/20260519120000_reset_launch_test_data.sql` and **Run**.
+3. Confirm row counts in the output (or run spot checks):
+
+```sql
+select
+  (select count(*) from public.daily_notes) as daily_notes,
+  (select count(*) from public.approved_daily_notes) as approved_notes,
+  (select count(*) from public.swadhyay_posts) as swadhyay_posts,
+  (select count(*) from public.smruti_posts) as smruti_posts;
+```
+
+All counts should be **0**. Standings and scores then start fresh as people use the app again.
+
+Alternatively, apply via CLI: `supabase db push` (includes this migration if not yet applied).
+
+**Warning:** This is destructive. Run once for launch; do not run again unless you intend to wipe community content.
