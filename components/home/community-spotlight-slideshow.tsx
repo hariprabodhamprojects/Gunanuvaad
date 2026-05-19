@@ -12,8 +12,9 @@ const INTERVAL_MS = 4500;
 const SLIDE_DURATION = 0.28;
 const SLIDE_EASE = "power3.out";
 
-/** One physical tile for every slide — medium footprint, not full-viewport. */
-const VIEWPORT_H = "h-[236px] sm:h-[252px]";
+/** One physical tile for every slide — grows on larger screens so portrait
+ * Smruti images don't sit inside a flat letterbox on desktop. */
+const VIEWPORT_H = "h-[236px] sm:h-[280px] md:h-[360px] lg:h-[440px]";
 
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
@@ -101,7 +102,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
 
 function SlideFrame({ slide }: { slide: CommunitySpotlightSlide }) {
   return (
-    <div className={cn("flex h-full min-h-0 flex-col gap-2 px-3 py-2.5 sm:gap-2.5 sm:px-3.5 sm:py-3")}>
+    <div className={cn("flex h-full min-h-0 flex-col gap-2 px-3 py-2.5 sm:gap-2.5 sm:px-3.5 sm:py-3 md:gap-3 md:px-5 md:py-4")}>
       <div className="flex shrink-0 items-center gap-2">
         <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
           {chip(slide.kind)}
@@ -199,7 +200,7 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
 
   return (
     <section
-      className="space-y-2"
+      className="mx-auto w-full max-w-2xl space-y-2"
       aria-label="Community spotlight"
       aria-live="polite"
       aria-atomic="true"
