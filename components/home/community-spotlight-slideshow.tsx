@@ -16,6 +16,19 @@ const SLIDE_EASE = "power3.out";
  * Smruti images don't sit inside a flat letterbox on desktop. */
 const VIEWPORT_H = "h-[236px] sm:h-[280px] md:h-[360px] lg:h-[440px]";
 
+/** Scales with viewport — aligned with Smruti feed caption rhythm. */
+const spotlightCaptionClass =
+  "font-heading line-clamp-3 shrink-0 font-semibold leading-relaxed text-primary text-sm sm:text-base md:text-lg";
+
+const spotlightHeadlineClass =
+  "min-w-0 flex-1 truncate font-heading font-semibold text-foreground text-sm sm:text-base md:text-lg";
+
+const spotlightBodyClass =
+  "leading-relaxed text-foreground text-sm sm:text-[15px] md:text-base md:leading-relaxed";
+
+const spotlightMetaClass =
+  "shrink-0 truncate font-medium text-muted-foreground text-xs sm:text-sm md:text-[15px]";
+
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
   if (kind === "smruti") return "Smruti";
@@ -44,12 +57,13 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
         </div>
         <div
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-0.5 text-sm leading-snug",
+            "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-0.5",
+            spotlightBodyClass,
             "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
             "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
           )}
         >
-          <p className="whitespace-pre-wrap text-foreground">{slide.body}</p>
+          <p className="whitespace-pre-wrap">{slide.body}</p>
         </div>
       </div>
     );
@@ -58,7 +72,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   if (slide.kind === "smruti") {
     const src = smrutiPublicUrl(slide.storage_path);
     return (
-      <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5 md:gap-3">
         <div
           className={cn(
             "relative isolate flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg",
@@ -79,22 +93,23 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
             decoding="async"
           />
         </div>
-        <p className="line-clamp-2 shrink-0 text-xs font-medium leading-snug text-primary">{slide.caption}</p>
+        <p className={spotlightCaptionClass}>{slide.caption}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-1.5">
-      <p className="shrink-0 truncate text-[11px] font-medium text-muted-foreground sm:text-xs">{slide.topic_title}</p>
+    <div className="flex min-h-0 flex-1 flex-col gap-1.5 sm:gap-2 md:gap-2.5">
+      <p className={spotlightMetaClass}>{slide.topic_title}</p>
       <div
         className={cn(
-          "min-h-0 flex-1 overflow-y-auto text-sm leading-snug",
+          "min-h-0 flex-1 overflow-y-auto",
+          spotlightBodyClass,
           "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
           "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
         )}
       >
-        <p className="whitespace-pre-wrap text-foreground">{slide.body}</p>
+        <p className="whitespace-pre-wrap">{slide.body}</p>
       </div>
     </div>
   );
@@ -107,9 +122,9 @@ function SlideFrame({ slide }: { slide: CommunitySpotlightSlide }) {
         <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
           {chip(slide.kind)}
         </span>
-        <p className="min-w-0 flex-1 truncate font-heading text-sm font-semibold text-foreground">{headline(slide)}</p>
+        <p className={spotlightHeadlineClass}>{headline(slide)}</p>
         {slide.kind === "smruti" ? (
-          <ImageIcon className="size-3.5 shrink-0 text-primary/70 sm:size-4" aria-hidden />
+          <ImageIcon className="size-4 shrink-0 text-primary/70 sm:size-[1.125rem] md:size-5" aria-hidden />
         ) : null}
       </div>
       <SlideContent slide={slide} />
