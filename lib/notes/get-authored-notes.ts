@@ -6,16 +6,22 @@ export type AuthoredDailyNote = {
   body: string;
   campaign_date: string;
   created_at: string;
-  recipient_id: string;
+  recipient_id: string | null;
+  recipient_email: string | null;
   recipient_name: string;
   recipient_avatar_url: string;
 };
+
+function nameFromEmail(email: string): string {
+  const local = email.split("@")[0]?.replace(/[._-]+/g, " ").trim();
+  return local || email;
+}
 
 export async function getAuthoredDailyNotes(): Promise<AuthoredDailyNote[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("daily_notes")
-    .select("id, recipient_id, body, campaign_date, created_at")
+    .select("id, recipient_id, recipient_email, body, campaign_date, created_at")
     .order("campaign_date", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -26,7 +32,8 @@ export async function getAuthoredDailyNotes(): Promise<AuthoredDailyNote[]> {
 
   const notes = (data ?? []) as {
     id: string;
-    recipient_id: string;
+    recipient_id: string | null;
+    recipient_email: string | null;
     body: string;
     campaign_date: string;
     created_at: string;
@@ -34,25 +41,50 @@ export async function getAuthoredDailyNotes(): Promise<AuthoredDailyNote[]> {
 
   if (notes.length === 0) return [];
 
-  const { data: roster, error: rosterError } = await supabase.rpc("roster_for_mosaic");
+  const { data: roster, error: rosterError } = await supabase.rpc("roster_for_picker");
   if (rosterError) {
-    console.error("[daily-note] roster_for_mosaic", rosterError.message);
+    console.error("[daily-note] roster_for_picker", rosterError.message);
   }
 
-  const rosterMap = new Map(
-    ((roster ?? []) as { id: string; display_name: string; avatar_url: string }[]).map((r) => [
-      r.id,
-      { name: r.display_name?.trim() || "", avatarUrl: r.avatar_url?.trim() || "" },
-    ]),
-  );
+  const byRecipientId = new Map<string, { name: string; avatarUrl: string }>();
+  const byRecipientEmail = new Map<string, { name: string; avatarUrl: string }>();
+
+  for (const r of (roster ?? []) as {
+    recipient_id: string | null;
+    recipient_email: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+  }[]) {
+    const name = r.display_name?.trim() || "";
+    const avatarUrl = r.avatar_url?.trim() || "";
+    const entry = { name, avatarUrl };
+    if (r.recipient_id) {
+      byRecipientId.set(r.recipient_id, entry);
+    }
+    const email = r.recipient_email?.trim().toLowerCase();
+    if (email) {
+      byRecipientEmail.set(email, entry);
+    }
+  }
 
   return notes.map((note) => {
-    const recipient = rosterMap.get(note.recipient_id);
+    const email = note.recipient_email?.trim().toLowerCase() || null;
+    const byId = note.recipient_id ? byRecipientId.get(note.recipient_id) : undefined;
+    const byEmail = email ? byRecipientEmail.get(email) : undefined;
+
+    const recipient_name =
+      byId?.name ||
+      byEmail?.name ||
+      (email ? nameFromEmail(email) : "Someone");
+
+    const recipient_avatar_url =
+      byId?.avatarUrl || byEmail?.avatarUrl || "/logo.png";
+
     return {
       ...note,
       campaign_date: normalizeCampaignDate(note.campaign_date),
-      recipient_name: recipient?.name || "User",
-      recipient_avatar_url: recipient?.avatarUrl || "",
+      recipient_name,
+      recipient_avatar_url,
     };
   });
 }

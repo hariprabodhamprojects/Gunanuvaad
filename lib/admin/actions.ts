@@ -73,6 +73,40 @@ export async function deleteAllowlistUserAction(formData: FormData): Promise<voi
   revalidatePath("/admin");
 }
 
+export async function addAllowlistUserAction(input: {
+  email: string;
+  firstName: string;
+  lastName: string;
+}): Promise<{ ok: boolean; code: string }> {
+  await requireOrganizer();
+  const email = input.email.trim().toLowerCase();
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+
+  if (!email) return { ok: false, code: "invalid_email" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_add_allowlist_user", {
+    p_email: email,
+    p_first_name: firstName,
+    p_last_name: lastName,
+  });
+
+  if (error) {
+    console.error("[admin] admin_add_allowlist_user", error.message);
+    return { ok: false, code: "rpc_error" };
+  }
+
+  const row = data as { ok?: boolean; code?: string } | null;
+  if (!row?.ok) {
+    return { ok: false, code: row?.code ?? "failed" };
+  }
+
+  revalidatePath("/admin/invites");
+  revalidatePath("/admin");
+  return { ok: true, code: row.code ?? "created" };
+}
+
 export async function deleteAllowlistUserByEmailAction(
   emailInput: string,
 ): Promise<{ ok: boolean; code: string }> {

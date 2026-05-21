@@ -2,6 +2,7 @@
 
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
+import { AdminInviteAddDialog } from "@/components/admin/admin-invite-add-dialog";
 import { AdminInviteDeleteButton } from "@/components/admin/admin-invite-delete-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -63,7 +64,8 @@ export function AdminInvitesList({ rows }: Props) {
 
   return (
     <div className="space-y-4">
-      <div ref={rootRef} className="relative max-w-xl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div ref={rootRef} className="relative min-w-0 flex-1 max-w-xl">
         <Search
           className="pointer-events-none absolute left-3.5 top-1/2 z-0 size-4 -translate-y-1/2 text-muted-foreground sm:left-4 sm:size-5"
           aria-hidden
@@ -135,6 +137,8 @@ export function AdminInvitesList({ rows }: Props) {
             ) : null}
           </ul>
         ) : null}
+      </div>
+      <AdminInviteAddDialog />
       </div>
 
       {deferredQuery.trim() ? (
