@@ -12,21 +12,26 @@ const INTERVAL_MS = 4500;
 const SLIDE_DURATION = 0.28;
 const SLIDE_EASE = "power3.out";
 
-/** Side-by-side ghun + tall Smruti on larger breakpoints. */
-const VIEWPORT_H = "h-[236px] sm:h-[280px] md:h-[360px] lg:h-[440px]";
+/** Mobile: compact side-by-side. Laptop: taller card, photo + text scale up. */
+const VIEWPORT_H =
+  "h-[236px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[340px]";
 
 const spotlightCaptionClass =
-  "font-heading line-clamp-3 shrink-0 font-semibold leading-relaxed text-primary text-sm sm:text-base md:text-lg";
+  "font-heading line-clamp-3 shrink-0 font-semibold leading-relaxed text-primary text-sm sm:text-base md:text-lg lg:text-xl";
 
 const spotlightHeadlineClass =
-  "min-w-0 flex-1 truncate font-heading font-semibold text-foreground text-sm sm:text-base md:text-lg";
+  "min-w-0 flex-1 truncate font-heading font-semibold text-foreground text-sm sm:text-base md:text-lg lg:text-xl";
 
-/** Ghun / Swadhyay body — left column, larger than the original text-sm. */
+/** Ghun / Swadhyay body — right column; scales up on laptop. */
 const spotlightBodyClass =
-  "text-pretty text-left font-medium leading-relaxed text-foreground text-base sm:text-[17px] sm:leading-relaxed md:text-lg md:leading-relaxed";
+  "text-pretty text-left font-medium leading-relaxed text-foreground text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
 
 const spotlightMetaClass =
-  "shrink-0 truncate text-left font-medium text-muted-foreground text-xs sm:text-sm md:text-base";
+  "shrink-0 truncate text-left font-medium text-muted-foreground text-xs sm:text-sm md:text-base lg:text-lg";
+
+/** Photo column — capped on phone; fixed wider column on md+ so laptop isn’t a tiny thumb + ocean of whitespace. */
+const ghunPhotoColumnClass =
+  "relative w-[38%] max-w-[8.75rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:max-w-[9.5rem] md:w-[11.5rem] md:max-w-[11.5rem] lg:w-[13rem] lg:max-w-[13rem] xl:w-[14rem] xl:max-w-[14rem]";
 
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
@@ -43,13 +48,8 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   if (slide.kind === "note") {
     const hasAvatar = slide.recipient_avatar_url.trim().length > 0;
     return (
-      <div className="flex min-h-0 flex-1 gap-3 sm:gap-3.5">
-        <div
-          className={cn(
-            "relative w-[38%] max-w-[8.75rem] shrink-0 self-stretch overflow-hidden rounded-xl",
-            "bg-muted/40 ring-1 ring-border/50 sm:max-w-[9.5rem] md:max-w-[10.5rem]",
-          )}
-        >
+      <div className="flex min-h-0 flex-1 items-center gap-3 sm:gap-3.5 md:gap-5 lg:gap-6">
+        <div className={ghunPhotoColumnClass}>
           {hasAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -68,7 +68,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
         </div>
         <div
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-0.5",
+            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 md:py-1",
             spotlightBodyClass,
             "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
             "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
@@ -110,7 +110,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-1.5 sm:gap-2 md:gap-2.5">
+    <div className="flex min-h-0 flex-1 flex-col justify-center gap-1.5 sm:gap-2 md:gap-2.5">
       <p className={spotlightMetaClass}>{slide.topic_title}</p>
       <div
         className={cn(
@@ -128,7 +128,12 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
 
 function SlideFrame({ slide }: { slide: CommunitySpotlightSlide }) {
   return (
-    <div className={cn("flex h-full min-h-0 flex-col gap-2 px-3 py-2.5 sm:gap-2.5 sm:px-3.5 sm:py-3 md:gap-3 md:px-5 md:py-4")}>
+    <div
+      className={cn(
+        "flex h-full min-h-0 flex-col gap-2 px-3 py-2.5 sm:gap-2.5 sm:px-3.5 sm:py-3",
+        "md:gap-3 md:px-5 md:py-4 lg:px-6 lg:py-5",
+      )}
+    >
       <div className="flex shrink-0 items-center gap-2">
         <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
           {chip(slide.kind)}
@@ -226,7 +231,7 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
 
   return (
     <section
-      className="mx-auto w-full max-w-2xl space-y-2"
+      className="mx-auto w-full max-w-2xl space-y-2 lg:max-w-[36rem]"
       aria-label="Community spotlight"
       aria-live="polite"
       aria-atomic="true"
