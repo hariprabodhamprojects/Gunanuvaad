@@ -61,26 +61,32 @@ export function AvatarCropModal({
       <Dialog.Portal>
         <Dialog.Backdrop
           className={cn(
-            "fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]",
+            "fixed inset-0 z-[160] bg-black/50 backdrop-blur-[2px]",
             "transition-opacity duration-200 ease-out",
             "data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
           )}
         />
-        <Dialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-0 outline-none sm:items-center sm:p-4">
+        <Dialog.Viewport
+          className={cn(
+            "fixed inset-0 z-[160] flex items-center justify-center outline-none",
+            "p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6",
+          )}
+        >
           <Dialog.Popup
             className={cn(
-              "flex w-full max-w-md flex-col gap-4 rounded-t-2xl border border-border bg-popover p-5 shadow-2xl outline-none sm:rounded-2xl",
-              "data-[ending-style]:translate-y-4 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-4 data-[starting-style]:opacity-0",
+              "flex w-full max-w-md max-h-[min(92dvh,40rem)] flex-col gap-3 overflow-y-auto overscroll-contain",
+              "rounded-2xl border border-border bg-popover p-4 shadow-2xl outline-none sm:gap-4 sm:p-5",
+              "data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
               "transition-[transform,opacity] duration-200 ease-out",
             )}
           >
-            <Dialog.Title className="font-heading text-lg font-semibold">{title}</Dialog.Title>
+            <Dialog.Title className="shrink-0 font-heading text-lg font-semibold">{title}</Dialog.Title>
             <Dialog.Description className="sr-only">
               Drag to reposition, use the slider to zoom, then save.
             </Dialog.Description>
             {imageSrc ? (
               <>
-                <div className="relative h-[min(85vw,340px)] w-full overflow-hidden rounded-2xl bg-black/80 sm:h-[320px]">
+                <div className="relative h-[min(68vw,260px)] w-full shrink-0 overflow-hidden rounded-2xl bg-black/80 sm:h-[300px] md:h-[320px]">
                   <Cropper
                     image={imageSrc}
                     crop={crop}
@@ -93,7 +99,7 @@ export function AvatarCropModal({
                     onCropComplete={onCropComplete}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="shrink-0 space-y-2">
                   <label className="text-xs font-medium text-muted-foreground" htmlFor="avatar-zoom">
                     Zoom
                   </label>
@@ -105,17 +111,25 @@ export function AvatarCropModal({
                     step={0.01}
                     value={zoom}
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    className="w-full accent-primary"
+                    className="h-8 w-full touch-pan-y accent-primary"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex shrink-0 gap-2 pb-0.5">
                   <Dialog.Close
-                    className={cn(buttonVariants({ variant: "outline", size: "default" }), "flex-1")}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "default" }),
+                      "min-h-11 flex-1",
+                    )}
                     disabled={busy}
                   >
                     Cancel
                   </Dialog.Close>
-                  <Button type="button" className="flex-1" disabled={busy || !pixels} onClick={confirm}>
+                  <Button
+                    type="button"
+                    className="min-h-11 flex-1"
+                    disabled={busy || !pixels}
+                    onClick={confirm}
+                  >
                     {busy ? (
                       <>
                         <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
