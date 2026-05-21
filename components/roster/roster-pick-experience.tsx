@@ -3,6 +3,7 @@
 import { Fragment, useDeferredValue, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { RosterMemberAvatar } from "@/components/roster/roster-member-avatar";
 import { RosterPersonDialog } from "@/components/roster/roster-person-dialog";
 import type { DailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
 import { buildRosterListRows } from "@/lib/roster/build-list-rows";
@@ -36,8 +37,11 @@ function RosterMemberCard({
           className="relative size-12 overflow-hidden rounded-full shadow-sm ring-2 ring-transparent transition-opacity duration-150 ease-[var(--ease-out-standard)] active:opacity-80 sm:size-14"
           aria-label={`View profile picture of ${member.display_name}`}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={member.avatar_url} alt="" className="size-full object-cover" />
+          <RosterMemberAvatar
+            displayName={member.display_name}
+            avatarUrl={member.avatar_url}
+            hasSignedUp={member.has_signed_up}
+          />
         </button>
       </div>
 
@@ -119,7 +123,7 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
               : "No matches for your search."}
           </p>
         ) : (
-          <div className="flex w-full max-w-full flex-col overflow-x-clip rounded-3xl border border-border/50 bg-card/30 pb-24 shadow-sm">
+          <div className="flex w-full max-w-full flex-col overflow-x-clip rounded-3xl border border-border/50 bg-card/30 pb-24 shadow-sm [content-visibility:auto]">
             {listRows.map(({ member, firstLetter, showHeader }) => (
               <Fragment key={member.id}>
                 {showHeader && (
@@ -129,7 +133,7 @@ export function RosterPickExperience({ members, currentUserId, dailyCampaignStat
                     </span>
                   </div>
                 )}
-                <div className="w-full">
+                <div className="w-full [content-visibility:auto]">
                   <RosterMemberCard
                     member={member}
                     onSelect={() => setSelected(member)}
