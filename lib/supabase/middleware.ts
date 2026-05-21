@@ -1,22 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
+import { isNextRouterPrefetch, sessionNeedsRefresh } from "@/lib/supabase/session-freshness";
 
-/** Cold Vercel + Supabase after deploy can exceed 4s; timing out skips cookie refresh → mass sign-out. */
-const SESSION_REFRESH_TIMEOUT_MS = 12_000;
+const SESSION_REFRESH_TIMEOUT_MS = 8_000;
 
 function hasSupabaseAuthCookies(request: NextRequest): boolean {
   return request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
 }
 
-/**
- * Skip remote auth refresh for anonymous landing traffic (biggest spike during link shares).
- * App routes and OAuth still refresh every time.
- */
 function shouldRefreshSession(request: NextRequest): boolean {
   const { pathname, searchParams } = request.nextUrl;
 
-  // Do not call getUser() while the route handler is exchanging the OAuth code (race / wasted work).
   if (pathname.startsWith("/auth/callback") && searchParams.has("code")) {
     return false;
   }
@@ -55,10 +50,6 @@ async function refreshSessionWithTimeout(
   ]);
 }
 
-/**
- * Refreshes the auth cookie on navigations that need it.
- * Anonymous `/` visits skip Supabase entirely to survive traffic spikes.
- */
 export async function updateSession(request: NextRequest) {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -75,9 +66,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -90,9 +79,7 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
@@ -101,15 +88,18 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
+  if (isNextRouterPrefetch(request)) {
+    return supabaseResponse;
+  }
+
   try {
+    const needsRefresh = await sessionNeedsRefresh(supabase);
+    if (!needsRefresh) {
+      return supabaseResponse;
+    }
     await refreshSessionWithTimeout(supabase);
   } catch (error) {
-    console.error("[middleware] session refresh failed — continuing without blocking", error);
-    try {
-      await refreshSessionWithTimeout(supabase);
-    } catch (retryError) {
-      console.error("[middleware] session refresh retry failed", retryError);
-    }
+    console.error("[middleware] session refresh failed — continuing", error);
   }
 
   return supabaseResponse;

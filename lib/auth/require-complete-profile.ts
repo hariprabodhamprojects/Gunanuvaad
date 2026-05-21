@@ -1,11 +1,8 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-/**
- * Ensures `profiles.display_name` and `profiles.avatar_url` are set.
- * Call after `requireAllowlistedUser` in the main app shell only.
- */
-export async function requireCompleteProfile(userId: string): Promise<void> {
+export const requireCompleteProfile = cache(async (userId: string): Promise<void> => {
   const supabase = await createClient();
   const { data: profile, error } = await supabase
     .from("profiles")
@@ -23,4 +20,4 @@ export async function requireCompleteProfile(userId: string): Promise<void> {
   if (!hasName || !hasAvatar) {
     redirect("/onboarding");
   }
-}
+});

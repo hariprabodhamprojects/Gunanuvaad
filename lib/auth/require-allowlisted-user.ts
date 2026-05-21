@@ -1,61 +1,11 @@
-import { redirect } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
-import { resolveSessionUser } from "@/lib/supabase/resolve-session-user";
+import { getAllowlistedUser } from "@/lib/auth/get-allowlisted-user";
 
 export type AllowlistedUser = {
-  user: User;
+  user: import("@supabase/supabase-js").User;
   email: string;
 };
 
-/** Prefer JWT email; fall back to metadata/identities if the provider omits the top-level field. */
-function resolveSessionEmail(user: User): string | null {
-  const direct = user.email?.trim();
-  if (direct) return direct.toLowerCase();
-  const meta = user.user_metadata?.email;
-  if (typeof meta === "string" && meta.trim()) return meta.trim().toLowerCase();
-  const fromIdent = user.identities?.[0]?.identity_data;
-  if (fromIdent && typeof fromIdent === "object" && "email" in fromIdent) {
-    const e = (fromIdent as { email?: string }).email;
-    if (typeof e === "string" && e.trim()) return e.trim().toLowerCase();
-  }
-  return null;
-}
-
-/**
- * Use in `app/(app)/layout.tsx` (and later any protected Server Component).
- * - No session → `/` (splash + Google)
- * - Session but email not in `allowed_emails` → sign out + `/not-invited`
- *
- * Allowlist is enforced via RPC `is_allowlisted_session()` (matches auth.users ↔ allowed_emails
- * in SQL Editor; avoids RLS quirks on direct `select` from `allowed_emails`).
- */
+/** @see getAllowlistedUser — thin wrapper for call sites. */
 export async function requireAllowlistedUser(): Promise<AllowlistedUser> {
-  const supabase = await createClient();
-  const user = await resolveSessionUser(supabase);
-
-  if (!user) {
-    redirect("/?next=/home");
-  }
-
-  const email = resolveSessionEmail(user);
-  if (!email) {
-    await supabase.auth.signOut();
-    redirect("/not-invited");
-  }
-
-  const { data: allowed, error } = await supabase.rpc("is_allowlisted_session");
-
-  if (error) {
-    console.error("[auth] allowlist check failed", error.message);
-    // Transient DB errors must not wipe a valid session (felt like “deploy logged everyone out”).
-    redirect("/?error=auth");
-  }
-
-  if (!allowed) {
-    await supabase.auth.signOut();
-    redirect("/not-invited");
-  }
-
-  return { user, email };
+  return getAllowlistedUser();
 }
