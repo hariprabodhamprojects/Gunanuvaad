@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { displayAvatarUrl } from "@/lib/profile/avatar-display";
 
 export const AVATAR_ACCEPT_MIMES = [
   "image/jpeg",
@@ -89,18 +90,47 @@ export function avatarProfileUrl(publicUrl: string, version: number | string = D
   }
 }
 
+function avatarObjectPath(userId: string, ext: string): string {
+  const id =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${userId}/avatar-${id}.${ext}`;
+}
+
+/** Remove prior avatar objects for this user (best-effort; does not block upload). */
+async function removePriorAvatarObjects(
+  supabase: SupabaseClient,
+  userId: string,
+  keepPath?: string,
+): Promise<void> {
+  const { data: existing, error: listErr } = await supabase.storage.from("avatars").list(userId, {
+    limit: 100,
+  });
+  if (listErr || !existing?.length) return;
+
+  const toRemove = existing
+    .map((f) => (f.name ? `${userId}/${f.name}` : null))
+    .filter((p): p is string => Boolean(p && p !== keepPath));
+
+  if (toRemove.length === 0) return;
+  await supabase.storage.from("avatars").remove(toRemove);
+}
+
 export async function uploadUserAvatar(
   supabase: SupabaseClient,
   userId: string,
   file: File,
-): Promise<{ publicUrl: string } | { error: string }> {
+): Promise<{ publicUrl: string; storagePath: string } | { error: string }> {
   const ext = avatarExtFromMime(file.type);
-  const path = `${userId}/avatar.${ext}`;
-  const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
-    upsert: true,
+  const path = avatarObjectPath(userId, ext);
+
+  const { data: uploaded, error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+    upsert: false,
     contentType: file.type,
     cacheControl: "0",
   });
+
   if (upErr) {
     const msg = upErr.message.toLowerCase();
     if (msg.includes("size") || msg.includes("large") || msg.includes("payload")) {
@@ -108,10 +138,15 @@ export async function uploadUserAvatar(
     }
     return { error: upErr.message };
   }
+
+  const storagePath = uploaded?.path ?? path;
   const {
     data: { publicUrl },
-  } = supabase.storage.from("avatars").getPublicUrl(path);
-  return { publicUrl };
+  } = supabase.storage.from("avatars").getPublicUrl(storagePath);
+
+  await removePriorAvatarObjects(supabase, userId, storagePath);
+
+  return { publicUrl, storagePath };
 }
 
 /** Upload to storage, save versioned URL on profile, and confirm the row updated. */
@@ -123,15 +158,16 @@ export async function persistUserAvatar(
   const up = await uploadUserAvatar(supabase, userId, file);
   if ("error" in up) return up;
 
-  const profileAvatarUrl = avatarProfileUrl(up.publicUrl);
+  const updatedAt = new Date().toISOString();
+  const profileAvatarUrl = avatarProfileUrl(up.publicUrl, updatedAt);
   const { data, error: profErr } = await supabase
     .from("profiles")
     .update({
       avatar_url: profileAvatarUrl,
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
     })
     .eq("id", userId)
-    .select("avatar_url")
+    .select("avatar_url, updated_at")
     .single();
 
   if (profErr) {
@@ -141,5 +177,5 @@ export async function persistUserAvatar(
   if (!saved) {
     return { error: "Profile photo could not be saved. Try again." };
   }
-  return { profileAvatarUrl: saved };
+  return { profileAvatarUrl: displayAvatarUrl(saved, data.updated_at) ?? saved };
 }

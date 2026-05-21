@@ -3,6 +3,7 @@
 import { AppMenu } from "@/components/app-menu";
 
 type Props = {
+  userId: string;
   email: string;
   displayName: string;
   avatarUrl: string;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function AppHeaderNav({
+  userId,
   email,
   displayName,
   avatarUrl,
@@ -21,6 +23,7 @@ export function AppHeaderNav({
 }: Props) {
   return (
     <AppMenu
+      userId={userId}
       email={email}
       displayName={displayName}
       avatarUrl={avatarUrl}

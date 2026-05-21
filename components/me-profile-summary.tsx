@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ChangeAvatarControl } from "@/components/change-avatar-control";
+import { ProfileAvatarImg } from "@/components/profile-avatar-img";
 
 type Props = {
+  userId: string;
   displayName: string;
   avatarUrl: string | null;
   email: string;
@@ -20,13 +22,9 @@ function initialsFromName(name: string): string {
 /**
  * Profile preview for /me (name from invite list; photo editable).
  */
-export function MeProfileSummary({ displayName, avatarUrl, email }: Props) {
+export function MeProfileSummary({ userId, displayName, avatarUrl, email }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [displayAvatarUrl, setDisplayAvatarUrl] = useState(avatarUrl);
-
-  useEffect(() => {
-    setDisplayAvatarUrl(avatarUrl);
-  }, [avatarUrl]);
 
   useLayoutEffect(() => {
     const el = rootRef.current;
@@ -49,10 +47,9 @@ export function MeProfileSummary({ displayName, avatarUrl, email }: Props) {
       <div className="flex items-center gap-4 p-5 sm:gap-5 sm:p-6">
         <div className="relative size-[4.25rem] shrink-0 sm:size-24">
           {shownAvatar ? (
-            // eslint-disable-next-line @next/next/no-img-element -- dynamic Supabase public URL
-            <img
-              key={shownAvatar}
-              src={shownAvatar}
+            <ProfileAvatarImg
+              userId={userId}
+              initialUrl={shownAvatar}
               alt={displayName}
               className="size-full rounded-full object-cover shadow-md ring-2 ring-border/80"
             />
@@ -76,7 +73,7 @@ export function MeProfileSummary({ displayName, avatarUrl, email }: Props) {
             variant="outline"
             size="default"
             className="w-full sm:w-auto"
-            onAvatarUpdated={setDisplayAvatarUrl}
+            onAvatarUpdated={(url) => setDisplayAvatarUrl(url || avatarUrl)}
           />
         </div>
       </div>

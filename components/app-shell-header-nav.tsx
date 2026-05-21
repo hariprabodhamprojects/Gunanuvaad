@@ -30,7 +30,8 @@ export async function AppShellHeaderNav({ userId, email }: Props) {
     <AppHeaderNav
       email={email}
       displayName={scoreEntry?.display_name ?? profileName}
-      avatarUrl={scoreEntry?.avatar_url ?? profileAvatarUrl}
+      userId={userId}
+      avatarUrl={profileAvatarUrl || scoreEntry?.avatar_url || ""}
       totalScore={scoreEntry?.score ?? 0}
       totalStreak={streakEntry?.streak ?? 0}
       isOrganizer={isOrganizer}

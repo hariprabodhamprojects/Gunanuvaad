@@ -34,7 +34,12 @@ export default async function MePage() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-5">
-      <MeProfileSummary displayName={displayName} avatarUrl={avatarUrl} email={email} />
+      <MeProfileSummary
+        userId={user.id}
+        displayName={displayName}
+        avatarUrl={avatarUrl}
+        email={email}
+      />
       <MeSettingsCard email={email} />
     </div>
   );

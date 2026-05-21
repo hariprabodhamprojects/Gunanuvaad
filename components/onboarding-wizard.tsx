@@ -2,13 +2,12 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import {
   AVATAR_PICK_ACCEPT_MIMES,
-  persistUserAvatar,
   validateAvatarFile,
   validateAvatarPick,
 } from "@/lib/profile/avatar";
+import { saveProfileAvatarAction } from "@/lib/profile/save-avatar-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AvatarCropModal } from "@/components/avatar-crop-modal";
@@ -43,17 +42,7 @@ export function OnboardingWizard() {
 
     setBusy(true);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-        error: userErr,
-      } = await supabase.auth.getUser();
-      if (userErr || !user) {
-        toast.error("Your session expired. Sign in again.");
-        return;
-      }
-
-      const result = await persistUserAvatar(supabase, user.id, file);
+      const result = await saveProfileAvatarAction(file);
       if ("error" in result) {
         toast.error(result.error);
         return;

@@ -2,14 +2,13 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import {
   AVATAR_PICK_ACCEPT_MIMES,
-  persistUserAvatar,
   validateAvatarFile,
   validateAvatarPick,
 } from "@/lib/profile/avatar";
-import { revalidateAppProfileCaches } from "@/lib/profile/revalidate-profile";
+import { saveProfileAvatarAction } from "@/lib/profile/save-avatar-action";
+import { notifyProfileAvatarUpdated } from "@/lib/profile/use-fresh-profile-avatar";
 import { Button } from "@/components/ui/button";
 import { AvatarCropModal } from "@/components/avatar-crop-modal";
 import { toast } from "sonner";
@@ -20,7 +19,7 @@ type Props = {
   className?: string;
   label?: string;
   /** Called with the saved profile URL (includes cache-bust param) for instant UI updates. */
-  onAvatarUpdated?: (profileAvatarUrl: string) => void;
+  onAvatarUpdated?: (profileAvatarUrl: string | null) => void;
 };
 
 export function ChangeAvatarControl({
@@ -55,29 +54,24 @@ export function ChangeAvatarControl({
       toast.error(err);
       return;
     }
+    const previewUrl = URL.createObjectURL(file);
+    onAvatarUpdated?.(previewUrl);
     setBusy(true);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-        error: userErr,
-      } = await supabase.auth.getUser();
-      if (userErr || !user) {
-        toast.error("Your session expired. Sign in again.");
-        return;
-      }
-      const result = await persistUserAvatar(supabase, user.id, file);
+      const result = await saveProfileAvatarAction(file);
       if ("error" in result) {
         toast.error(result.error);
+        onAvatarUpdated?.(null);
         return;
       }
       onAvatarUpdated?.(result.profileAvatarUrl);
-      await revalidateAppProfileCaches();
+      notifyProfileAvatarUpdated(result.profileAvatarUrl);
       toast.success("Photo updated.");
       if (src) URL.revokeObjectURL(src);
       setSrc(null);
       router.refresh();
     } finally {
+      URL.revokeObjectURL(previewUrl);
       setBusy(false);
     }
   }

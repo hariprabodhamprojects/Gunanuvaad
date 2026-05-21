@@ -6,10 +6,12 @@ import { useEffect, useState, useTransition, type MouseEvent } from "react";
 import { CalendarDays, Shield, X } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
 import { buttonVariants } from "@/components/ui/button";
+import { ProfileAvatarImg } from "@/components/profile-avatar-img";
 import { SettingsPanel } from "@/components/settings-panel";
 import { cn } from "@/lib/utils";
 
 type Props = {
+  userId: string;
   email: string;
   displayName: string;
   avatarUrl: string;
@@ -26,6 +28,7 @@ function initialsFromName(name: string): string {
 }
 
 export function AppMenu({
+  userId,
   email,
   displayName,
   avatarUrl,
@@ -83,10 +86,9 @@ export function AppMenu({
         aria-label="Open profile and settings"
       >
         {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- dynamic Supabase public URL
-          <img
-            key={avatarUrl}
-            src={avatarUrl}
+          <ProfileAvatarImg
+            userId={userId}
+            initialUrl={avatarUrl}
             alt={displayName}
             className="size-full rounded-full object-cover ring-1 ring-border/70"
           />
@@ -138,10 +140,9 @@ export function AppMenu({
               <div className="mb-5 rounded-xl border border-border/70 bg-muted/20 p-3.5">
                 <div className="flex items-center gap-3">
                   {avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- dynamic Supabase public URL
-                    <img
-                      key={avatarUrl}
-                      src={avatarUrl}
+                    <ProfileAvatarImg
+                      userId={userId}
+                      initialUrl={avatarUrl}
                       alt={displayName}
                       className="size-12 rounded-full object-cover ring-1 ring-border/70"
                     />
