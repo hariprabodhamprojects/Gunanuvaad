@@ -13,7 +13,12 @@ function hasSupabaseAuthCookies(request: NextRequest): boolean {
  * App routes and OAuth still refresh every time.
  */
 function shouldRefreshSession(request: NextRequest): boolean {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Do not call getUser() while the route handler is exchanging the OAuth code (race / wasted work).
+  if (pathname.startsWith("/auth/callback") && searchParams.has("code")) {
+    return false;
+  }
 
   if (pathname.startsWith("/auth/callback")) return true;
   if (pathname.startsWith("/onboarding")) return true;
