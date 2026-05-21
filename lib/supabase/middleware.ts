@@ -1,15 +1,67 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+/** Fail open before Vercel's middleware invocation limit (504 MIDDLEWARE_INVOCATION_TIMEOUT). */
+const SESSION_REFRESH_TIMEOUT_MS = 4_000;
+
+function hasSupabaseAuthCookies(request: NextRequest): boolean {
+  return request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
+}
+
 /**
- * Used only by root `middleware.ts` — refreshes the auth cookie on each matched request
- * so Server Components always see an up-to-date session.
+ * Skip remote auth refresh for anonymous landing traffic (biggest spike during link shares).
+ * App routes and OAuth still refresh every time.
+ */
+function shouldRefreshSession(request: NextRequest): boolean {
+  const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/auth/callback")) return true;
+  if (pathname.startsWith("/onboarding")) return true;
+
+  const appPrefixes = [
+    "/home",
+    "/feed",
+    "/standings",
+    "/swadhyay",
+    "/smruti",
+    "/calendar",
+    "/me",
+    "/admin",
+    "/pick",
+  ];
+  if (appPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    return true;
+  }
+
+  if (pathname === "/" && hasSupabaseAuthCookies(request)) return true;
+
+  return false;
+}
+
+async function refreshSessionWithTimeout(
+  supabase: ReturnType<typeof createServerClient>,
+): Promise<void> {
+  await Promise.race([
+    supabase.auth.getUser(),
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("session_refresh_timeout")), SESSION_REFRESH_TIMEOUT_MS);
+    }),
+  ]);
+}
+
+/**
+ * Refreshes the auth cookie on navigations that need it.
+ * Anonymous `/` visits skip Supabase entirely to survive traffic spikes.
  */
 export async function updateSession(request: NextRequest) {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
+    return NextResponse.next({ request });
+  }
+
+  if (!shouldRefreshSession(request)) {
     return NextResponse.next({ request });
   }
 
@@ -38,8 +90,11 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Triggers refresh if token is close to expiry — important for long-lived sessions.
-  await supabase.auth.getUser();
+  try {
+    await refreshSessionWithTimeout(supabase);
+  } catch (error) {
+    console.error("[middleware] session refresh failed — continuing without blocking", error);
+  }
 
   return supabaseResponse;
 }
