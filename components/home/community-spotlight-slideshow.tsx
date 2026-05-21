@@ -1,7 +1,7 @@
 "use client";
 
 import gsap from "gsap";
-import { Image as ImageIcon, User } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { CommunitySpotlightSlide } from "@/lib/home/community-spotlight";
 import { SMRUTI_PHOTO_MATTE_URL, smrutiPublicUrl } from "@/lib/smruti/public-url";
@@ -39,32 +39,32 @@ function chip(kind: CommunitySpotlightSlide["kind"]): string {
   return "Swadhyay";
 }
 
+/** Same placeholder as calendar / roster for invite-only recipients. */
+const INVITE_PLACEHOLDER_AVATAR = "/logo.png";
+
 function headline(slide: CommunitySpotlightSlide): string {
-  if (slide.kind === "note") return slide.recipient_display_name.trim() || "Community member";
+  if (slide.kind === "note") {
+    return slide.recipient_display_name.trim() || "Someone";
+  }
   return slide.author_display_name.trim() || "Member";
 }
 
 function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   if (slide.kind === "note") {
-    const hasAvatar = slide.recipient_avatar_url.trim().length > 0;
+    const avatarSrc = slide.recipient_avatar_url.trim();
+    const src = avatarSrc.startsWith("http") ? avatarSrc : INVITE_PLACEHOLDER_AVATAR;
     return (
       <div className="flex min-h-0 flex-1 items-center gap-3 sm:gap-3.5 md:gap-5 lg:gap-6">
         <div className={ghunPhotoColumnClass}>
-          {hasAvatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={slide.recipient_avatar_url}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
-              className="size-full object-cover object-[center_15%]"
-            />
-          ) : (
-            <div className="flex size-full min-h-[7rem] items-center justify-center text-muted-foreground">
-              <User className="size-10 opacity-60 sm:size-12" strokeWidth={1.25} aria-hidden />
-            </div>
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            className="size-full object-cover object-[center_15%]"
+          />
         </div>
         <div
           className={cn(
@@ -285,7 +285,7 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
       <span className="sr-only">
         {current
           ? current.kind === "note"
-            ? `Ghun for ${current.recipient_display_name.trim() || "community member"}.`
+            ? `Ghun for ${current.recipient_display_name.trim() || "someone"}.`
             : current.kind === "smruti"
               ? `Smruti by ${current.author_display_name.trim() || "member"}.`
               : `Swadhyay in ${current.topic_title}.`

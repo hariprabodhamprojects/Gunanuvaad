@@ -135,7 +135,7 @@ function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
     gsap.to(el, { scale: 1, y: 0, duration: 0.2, ease: "power3.out", overwrite: "auto" });
   };
 
-  const avatarSrc = note.recipient_avatar_url?.trim() || "/globe.svg";
+  const avatarSrc = note.recipient_avatar_url?.trim() || "/logo.png";
 
   return (
     <div className="mx-auto w-full max-w-md" onPointerEnter={onEnter} onPointerLeave={onLeave}>
