@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { LandingSessionRedirect } from "@/components/landing-session-redirect";
 import { LandingSplash } from "@/components/landing-splash";
 import { OAuthCallbackRecovery } from "@/components/oauth-callback-recovery";
-import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "MananChintan",
@@ -43,16 +43,6 @@ export default async function MarketingPage({
     redirect(`/auth/callback?${qs.toString()}`);
   }
 
-  if (!errorKey) {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      redirect(redirectNext);
-    }
-  }
-
   const errorMessage =
     errorKey && ERROR_MESSAGES[errorKey] ? ERROR_MESSAGES[errorKey] : errorKey
       ? "Something went wrong. Try again."
@@ -61,6 +51,7 @@ export default async function MarketingPage({
   return (
     <Suspense fallback={null}>
       <OAuthCallbackRecovery />
+      {!errorKey ? <LandingSessionRedirect redirectNext={redirectNext} /> : null}
       <LandingSplash redirectNext={redirectNext} errorMessage={errorMessage} />
     </Suspense>
   );

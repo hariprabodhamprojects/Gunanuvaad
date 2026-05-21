@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const PORTAL_ID = "app-min-loading-splash-portal";
-const MIN_MS = 3000;
+/** Keep short so a slow auth check does not feel like an infinite load. */
+const MIN_MS = 900;
 
 const easeLux: [number, number, number, number] = [0.16, 1, 0.3, 1];
 

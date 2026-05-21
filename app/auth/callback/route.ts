@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { PENDING_SIGNIN_COOKIE } from "@/lib/auth/pending-signin-cookie";
+import { getUserWithTimeout, rpcBooleanWithTimeout } from "@/lib/supabase/auth-timeout";
+
+const CALLBACK_AUTH_MS = 8_000;
+
+function timeoutPromise(ms: number): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error("supabase_auth_timeout")), ms);
+  });
+}
 
 /**
  * OAuth (Google) returns here with `?code=`. We exchange it for a session cookie (PKCE),
@@ -44,25 +53,36 @@ export async function GET(request: Request) {
     },
   );
 
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+  let exchangeError: { message: string } | null = null;
+  try {
+    const result = await Promise.race([
+      supabase.auth.exchangeCodeForSession(code),
+      timeoutPromise(CALLBACK_AUTH_MS),
+    ]);
+    exchangeError = result.error;
+  } catch {
+    return NextResponse.redirect(`${origin}/?error=auth`);
+  }
   if (exchangeError) {
     return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, timedOut: userTimedOut } = await getUserWithTimeout(
+    supabase,
+    CALLBACK_AUTH_MS,
+  );
 
-  if (!user) {
+  if (userTimedOut || !user) {
     return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
   cookieStore.delete(PENDING_SIGNIN_COOKIE);
 
-  const { data: allowed, error: allowErr } = await supabase.rpc("is_allowlisted_session");
+  const { value: allowed, timedOut: allowTimedOut, error: allowErr } =
+    await rpcBooleanWithTimeout(supabase, "is_allowlisted_session", CALLBACK_AUTH_MS);
 
-  if (allowErr) {
-    console.error("[auth/callback] is_allowlisted_session", allowErr.message);
+  if (allowTimedOut || allowErr) {
+    if (allowErr) console.error("[auth/callback] is_allowlisted_session", allowErr.message);
     await supabase.auth.signOut();
     return NextResponse.redirect(`${origin}/?error=auth`);
   }
@@ -72,16 +92,32 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/not-invited`);
   }
 
-  const { error: syncErr } = await supabase.rpc("sync_invited_display_name");
-  if (syncErr) {
-    console.error("[auth/callback] sync_invited_display_name", syncErr.message);
+  try {
+    const { error: syncErr } = await Promise.race([
+      supabase.rpc("sync_invited_display_name"),
+      timeoutPromise(CALLBACK_AUTH_MS),
+    ]);
+    if (syncErr) {
+      console.error("[auth/callback] sync_invited_display_name", syncErr.message);
+    }
+  } catch {
+    /* non-blocking */
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  let profile: { display_name: string | null; avatar_url: string | null } | null = null;
+  try {
+    const { data } = await Promise.race([
+      supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle(),
+      timeoutPromise(CALLBACK_AUTH_MS),
+    ]);
+    profile = data;
+  } catch {
+    return NextResponse.redirect(`${origin}/?error=auth`);
+  }
 
   const needsOnboarding =
     !profile?.display_name?.trim() || !profile?.avatar_url?.trim();

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import { getUserWithTimeout, rpcBooleanWithTimeout } from "@/lib/supabase/auth-timeout";
 import { createClient } from "@/lib/supabase/server";
 
 export type AllowlistedUser = {
@@ -31,9 +32,11 @@ function resolveSessionEmail(user: User): string | null {
  */
 export async function requireAllowlistedUser(): Promise<AllowlistedUser> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, timedOut: userTimedOut } = await getUserWithTimeout(supabase);
+
+  if (userTimedOut) {
+    redirect("/?error=auth");
+  }
 
   if (!user) {
     redirect("/?next=/home");
@@ -45,7 +48,12 @@ export async function requireAllowlistedUser(): Promise<AllowlistedUser> {
     redirect("/not-invited");
   }
 
-  const { data: allowed, error } = await supabase.rpc("is_allowlisted_session");
+  const { value: allowed, timedOut: allowTimedOut, error } =
+    await rpcBooleanWithTimeout(supabase, "is_allowlisted_session");
+
+  if (allowTimedOut) {
+    redirect("/?error=auth");
+  }
 
   if (error) {
     console.error("[auth] allowlist check failed", error.message);
