@@ -12,20 +12,21 @@ const INTERVAL_MS = 4500;
 const SLIDE_DURATION = 0.28;
 const SLIDE_EASE = "power3.out";
 
-/** Tall enough for portrait Smruti; ghun/swadhyay slides fill height with flex. */
-const VIEWPORT_H = "h-[min(52dvh,320px)] min-h-[280px] sm:h-[300px] md:h-[380px] lg:h-[420px]";
+/** Side-by-side ghun + tall Smruti on larger breakpoints. */
+const VIEWPORT_H = "h-[236px] sm:h-[280px] md:h-[360px] lg:h-[440px]";
 
 const spotlightCaptionClass =
-  "font-heading line-clamp-3 shrink-0 text-center font-semibold leading-snug text-primary text-base sm:text-lg md:text-xl";
+  "font-heading line-clamp-3 shrink-0 font-semibold leading-relaxed text-primary text-sm sm:text-base md:text-lg";
 
 const spotlightHeadlineClass =
-  "min-w-0 flex-1 truncate font-heading text-base font-semibold text-foreground sm:text-lg md:text-xl";
+  "min-w-0 flex-1 truncate font-heading font-semibold text-foreground text-sm sm:text-base md:text-lg";
 
+/** Ghun / Swadhyay body — left column, larger than the original text-sm. */
 const spotlightBodyClass =
-  "text-pretty text-center font-medium leading-snug text-foreground text-base sm:text-lg sm:leading-relaxed md:text-xl md:leading-relaxed";
+  "text-pretty text-left font-medium leading-relaxed text-foreground text-base sm:text-[17px] sm:leading-relaxed md:text-lg md:leading-relaxed";
 
 const spotlightMetaClass =
-  "shrink-0 truncate text-center font-medium text-muted-foreground text-sm sm:text-base md:text-lg";
+  "shrink-0 truncate text-left font-medium text-muted-foreground text-xs sm:text-sm md:text-base";
 
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
@@ -42,12 +43,11 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   if (slide.kind === "note") {
     const hasAvatar = slide.recipient_avatar_url.trim().length > 0;
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-stretch gap-2 sm:gap-3">
+      <div className="flex min-h-0 flex-1 gap-3 sm:gap-3.5">
         <div
           className={cn(
-            "relative mx-auto w-[min(72%,12.5rem)] shrink-0 overflow-hidden rounded-2xl",
-            "bg-muted/40 ring-1 ring-border/50 shadow-sm",
-            "aspect-[4/5] sm:w-[min(68%,14rem)] md:w-[min(62%,15.5rem)]",
+            "relative w-[38%] max-w-[8.75rem] shrink-0 self-stretch overflow-hidden rounded-xl",
+            "bg-muted/40 ring-1 ring-border/50 sm:max-w-[9.5rem] md:max-w-[10.5rem]",
           )}
         >
           {hasAvatar ? (
@@ -58,22 +58,23 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
               loading="lazy"
               decoding="async"
               fetchPriority="low"
-              className="size-full object-cover object-[center_12%]"
+              className="size-full object-cover object-[center_15%]"
             />
           ) : (
-            <div className="flex size-full items-center justify-center text-muted-foreground">
-              <User className="size-14 opacity-60 sm:size-16" strokeWidth={1.25} aria-hidden />
+            <div className="flex size-full min-h-[7rem] items-center justify-center text-muted-foreground">
+              <User className="size-10 opacity-60 sm:size-12" strokeWidth={1.25} aria-hidden />
             </div>
           )}
         </div>
         <div
           className={cn(
-            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain px-0.5",
+            "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pr-0.5",
+            spotlightBodyClass,
             "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
             "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
           )}
         >
-          <p className={cn(spotlightBodyClass, "whitespace-pre-wrap")}>{slide.body}</p>
+          <p className="whitespace-pre-wrap">{slide.body}</p>
         </div>
       </div>
     );
@@ -109,16 +110,17 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-1.5 sm:gap-2 md:gap-2.5">
       <p className={spotlightMetaClass}>{slide.topic_title}</p>
       <div
         className={cn(
-          "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto",
+          "min-h-0 flex-1 overflow-y-auto",
+          spotlightBodyClass,
           "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
           "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
         )}
       >
-        <p className={cn(spotlightBodyClass, "whitespace-pre-wrap")}>{slide.body}</p>
+        <p className="whitespace-pre-wrap">{slide.body}</p>
       </div>
     </div>
   );
@@ -126,9 +128,9 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
 
 function SlideFrame({ slide }: { slide: CommunitySpotlightSlide }) {
   return (
-    <div className={cn("flex h-full min-h-0 flex-col gap-1.5 px-3 py-2 sm:gap-2 sm:px-4 sm:py-2.5 md:gap-2.5 md:px-5 md:py-3")}>
+    <div className={cn("flex h-full min-h-0 flex-col gap-2 px-3 py-2.5 sm:gap-2.5 sm:px-3.5 sm:py-3 md:gap-3 md:px-5 md:py-4")}>
       <div className="flex shrink-0 items-center gap-2">
-        <span className="rounded-full bg-primary/12 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary sm:text-xs">
+        <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
           {chip(slide.kind)}
         </span>
         <p className={spotlightHeadlineClass}>{headline(slide)}</p>
