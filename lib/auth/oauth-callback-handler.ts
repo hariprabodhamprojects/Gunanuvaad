@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { PENDING_SIGNIN_COOKIE } from "@/lib/auth/pending-signin-cookie";
+import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 const ALLOWLIST_ATTEMPTS = 4;
 const PROFILE_ATTEMPTS = 5;
@@ -25,6 +26,7 @@ function createCallbackClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: getSupabaseCookieOptions(),
       cookies: {
         getAll() {
           return cookieStore.getAll();

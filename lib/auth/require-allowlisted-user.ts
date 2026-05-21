@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { getUserWithTimeout, rpcBooleanWithTimeout } from "@/lib/supabase/auth-timeout";
 import { createClient } from "@/lib/supabase/server";
+import { resolveSessionUser } from "@/lib/supabase/resolve-session-user";
 
 export type AllowlistedUser = {
   user: User;
@@ -32,11 +32,7 @@ function resolveSessionEmail(user: User): string | null {
  */
 export async function requireAllowlistedUser(): Promise<AllowlistedUser> {
   const supabase = await createClient();
-  const { user, timedOut: userTimedOut } = await getUserWithTimeout(supabase);
-
-  if (userTimedOut) {
-    redirect("/?error=auth");
-  }
+  const user = await resolveSessionUser(supabase);
 
   if (!user) {
     redirect("/?next=/home");
@@ -48,17 +44,12 @@ export async function requireAllowlistedUser(): Promise<AllowlistedUser> {
     redirect("/not-invited");
   }
 
-  const { value: allowed, timedOut: allowTimedOut, error } =
-    await rpcBooleanWithTimeout(supabase, "is_allowlisted_session");
-
-  if (allowTimedOut) {
-    redirect("/?error=auth");
-  }
+  const { data: allowed, error } = await supabase.rpc("is_allowlisted_session");
 
   if (error) {
     console.error("[auth] allowlist check failed", error.message);
-    await supabase.auth.signOut();
-    redirect("/not-invited");
+    // Transient DB errors must not wipe a valid session (felt like “deploy logged everyone out”).
+    redirect("/?error=auth");
   }
 
   if (!allowed) {

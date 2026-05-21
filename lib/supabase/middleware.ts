@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { getSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
-/** Fail open before Vercel's middleware invocation limit (504 MIDDLEWARE_INVOCATION_TIMEOUT). */
-const SESSION_REFRESH_TIMEOUT_MS = 4_000;
+/** Cold Vercel + Supabase after deploy can exceed 4s; timing out skips cookie refresh → mass sign-out. */
+const SESSION_REFRESH_TIMEOUT_MS = 12_000;
 
 function hasSupabaseAuthCookies(request: NextRequest): boolean {
   return request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
@@ -70,6 +71,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  if (!hasSupabaseAuthCookies(request)) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -78,6 +83,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: getSupabaseCookieOptions(),
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -99,6 +105,11 @@ export async function updateSession(request: NextRequest) {
     await refreshSessionWithTimeout(supabase);
   } catch (error) {
     console.error("[middleware] session refresh failed — continuing without blocking", error);
+    try {
+      await refreshSessionWithTimeout(supabase);
+    } catch (retryError) {
+      console.error("[middleware] session refresh retry failed", retryError);
+    }
   }
 
   return supabaseResponse;
