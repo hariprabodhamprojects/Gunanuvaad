@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ChangeAvatarControl } from "@/components/change-avatar-control";
 
@@ -22,6 +22,11 @@ function initialsFromName(name: string): string {
  */
 export function MeProfileSummary({ displayName, avatarUrl, email }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [displayAvatarUrl, setDisplayAvatarUrl] = useState(avatarUrl);
+
+  useEffect(() => {
+    setDisplayAvatarUrl(avatarUrl);
+  }, [avatarUrl]);
 
   useLayoutEffect(() => {
     const el = rootRef.current;
@@ -37,15 +42,17 @@ export function MeProfileSummary({ displayName, avatarUrl, email }: Props) {
   }, []);
 
   const initials = initialsFromName(displayName);
+  const shownAvatar = displayAvatarUrl?.trim() || null;
 
   return (
     <div ref={rootRef} className="glass-card overflow-hidden">
       <div className="flex items-center gap-4 p-5 sm:gap-5 sm:p-6">
         <div className="relative size-[4.25rem] shrink-0 sm:size-24">
-          {avatarUrl ? (
+          {shownAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element -- dynamic Supabase public URL
             <img
-              src={avatarUrl}
+              key={shownAvatar}
+              src={shownAvatar}
               alt={displayName}
               className="size-full rounded-full object-cover shadow-md ring-2 ring-border/80"
             />
@@ -65,7 +72,12 @@ export function MeProfileSummary({ displayName, avatarUrl, email }: Props) {
               {email}
             </p>
           </div>
-          <ChangeAvatarControl variant="outline" size="default" className="w-full sm:w-auto" />
+          <ChangeAvatarControl
+            variant="outline"
+            size="default"
+            className="w-full sm:w-auto"
+            onAvatarUpdated={setDisplayAvatarUrl}
+          />
         </div>
       </div>
     </div>

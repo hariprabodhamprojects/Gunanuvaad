@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   AVATAR_PICK_ACCEPT_MIMES,
-  uploadUserAvatar,
+  persistUserAvatar,
   validateAvatarFile,
   validateAvatarPick,
 } from "@/lib/profile/avatar";
@@ -53,22 +53,9 @@ export function OnboardingWizard() {
         return;
       }
 
-      const up = await uploadUserAvatar(supabase, user.id, file);
-      if ("error" in up) {
-        toast.error(up.error);
-        return;
-      }
-
-      const { error: profErr } = await supabase
-        .from("profiles")
-        .update({
-          avatar_url: up.publicUrl,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
-      if (profErr) {
-        toast.error(profErr.message);
+      const result = await persistUserAvatar(supabase, user.id, file);
+      if ("error" in result) {
+        toast.error(result.error);
         return;
       }
 

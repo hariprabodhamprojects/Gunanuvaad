@@ -84,7 +84,12 @@ export function AppMenu({
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- dynamic Supabase public URL
-          <img src={avatarUrl} alt={displayName} className="size-full rounded-full object-cover ring-1 ring-border/70" />
+          <img
+            key={avatarUrl}
+            src={avatarUrl}
+            alt={displayName}
+            className="size-full rounded-full object-cover ring-1 ring-border/70"
+          />
         ) : (
           <span className="flex size-full items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground ring-1 ring-border/70">
             {initials}
@@ -134,7 +139,12 @@ export function AppMenu({
                 <div className="flex items-center gap-3">
                   {avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element -- dynamic Supabase public URL
-                    <img src={avatarUrl} alt={displayName} className="size-12 rounded-full object-cover ring-1 ring-border/70" />
+                    <img
+                      key={avatarUrl}
+                      src={avatarUrl}
+                      alt={displayName}
+                      className="size-12 rounded-full object-cover ring-1 ring-border/70"
+                    />
                   ) : (
                     <span className="flex size-12 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground ring-1 ring-border/70">
                       {initials}

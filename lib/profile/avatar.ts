@@ -76,6 +76,19 @@ export function avatarExtFromMime(mime: string): string {
   return "jpg";
 }
 
+/** Profile + img src URL — busts browser/CDN cache after re-uploading the same storage path. */
+export function avatarProfileUrl(publicUrl: string, version: number | string = Date.now()): string {
+  const v = String(version);
+  try {
+    const u = new URL(publicUrl);
+    u.searchParams.set("v", v);
+    return u.toString();
+  } catch {
+    const base = publicUrl.split("?")[0] ?? publicUrl;
+    return `${base}?v=${encodeURIComponent(v)}`;
+  }
+}
+
 export async function uploadUserAvatar(
   supabase: SupabaseClient,
   userId: string,
@@ -86,6 +99,7 @@ export async function uploadUserAvatar(
   const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
     upsert: true,
     contentType: file.type,
+    cacheControl: "0",
   });
   if (upErr) {
     const msg = upErr.message.toLowerCase();
@@ -98,4 +112,34 @@ export async function uploadUserAvatar(
     data: { publicUrl },
   } = supabase.storage.from("avatars").getPublicUrl(path);
   return { publicUrl };
+}
+
+/** Upload to storage, save versioned URL on profile, and confirm the row updated. */
+export async function persistUserAvatar(
+  supabase: SupabaseClient,
+  userId: string,
+  file: File,
+): Promise<{ profileAvatarUrl: string } | { error: string }> {
+  const up = await uploadUserAvatar(supabase, userId, file);
+  if ("error" in up) return up;
+
+  const profileAvatarUrl = avatarProfileUrl(up.publicUrl);
+  const { data, error: profErr } = await supabase
+    .from("profiles")
+    .update({
+      avatar_url: profileAvatarUrl,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId)
+    .select("avatar_url")
+    .single();
+
+  if (profErr) {
+    return { error: profErr.message };
+  }
+  const saved = data?.avatar_url?.trim();
+  if (!saved) {
+    return { error: "Profile photo could not be saved. Try again." };
+  }
+  return { profileAvatarUrl: saved };
 }
