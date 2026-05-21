@@ -1,11 +1,11 @@
-import { CommunitySpotlightSlideshow } from "@/components/home/community-spotlight-slideshow";
+import { Suspense } from "react";
+import { HomeRosterSection } from "@/components/home/home-roster-section";
+import { HomeRosterSkeleton, HomeSpotlightSkeleton } from "@/components/home/home-section-skeletons";
+import { HomeSpotlightSection } from "@/components/home/home-spotlight-section";
 import { MotionPageHero } from "@/components/motion-page-hero";
 import { CampaignDayNotification } from "@/components/notes/campaign-day-ux";
-import { RosterPickExperience } from "@/components/roster/roster-pick-experience";
-import { requireAllowlistedUser } from "@/lib/auth/require-allowlisted-user";
-import { getCommunitySpotlightSlides } from "@/lib/home/community-spotlight";
+import { getAllowlistedUser } from "@/lib/auth/get-allowlisted-user";
 import { getDailyCampaignStatus } from "@/lib/notes/daily-campaign-status";
-import { getRosterMembers } from "@/lib/roster/get-roster";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -15,22 +15,18 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * Home — same screen as roster: one hub, no extra hop to another route.
+ * Home — hero + campaign load first; spotlight and roster stream in (no prefetch flood).
  */
 export default async function HomePage() {
-  const { user } = await requireAllowlistedUser();
+  const { user } = await getAllowlistedUser();
   const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", user.id)
-    .maybeSingle();
+
+  const [{ data: profile }, dailyCampaignStatus] = await Promise.all([
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+    getDailyCampaignStatus(user.id),
+  ]);
 
   const displayName = profile?.display_name?.trim() ?? "";
-  const members = await getRosterMembers();
-
-  const spotlightSlides = await getCommunitySpotlightSlides();
-  const dailyCampaignStatus = await getDailyCampaignStatus(user.id);
 
   return (
     <div className="layout-reading space-y-6">
@@ -47,12 +43,15 @@ export default async function HomePage() {
           !
         </h1>
       </MotionPageHero>
-      <CommunitySpotlightSlideshow slides={spotlightSlides} />
-      <RosterPickExperience
-        members={members}
-        currentUserId={user.id}
-        dailyCampaignStatus={dailyCampaignStatus}
-      />
+      <Suspense fallback={<HomeSpotlightSkeleton />}>
+        <HomeSpotlightSection />
+      </Suspense>
+      <Suspense fallback={<HomeRosterSkeleton />}>
+        <HomeRosterSection
+          currentUserId={user.id}
+          dailyCampaignStatus={dailyCampaignStatus}
+        />
+      </Suspense>
     </div>
   );
 }

@@ -45,7 +45,7 @@ export const AppNavLink = forwardRef<HTMLAnchorElement, Props>(function AppNavLi
     <Link
       ref={ref}
       href={item.href}
-      prefetch
+      prefetch={false}
       scroll={false}
       aria-current={active ? "page" : undefined}
       className={cn(className, active ? activeClassName : inactiveClassName)}

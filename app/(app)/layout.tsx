@@ -4,7 +4,6 @@ import { AppAuthenticatedBoundary } from "@/components/app-authenticated-boundar
 import { AppBottomNav } from "@/components/app-bottom-nav";
 import { AppHeaderNavSkeleton } from "@/components/app-header-nav-skeleton";
 import { AppMainLoadingFallback } from "@/components/app-main-loading-fallback";
-import { AppRouteWarmup } from "@/components/app-route-warmup";
 import { AppShellHeaderNav } from "@/components/app-shell-header-nav";
 import { AppSidebar } from "@/components/app-sidebar";
 import { NavigationPendingBar } from "@/components/navigation-pending-bar";
@@ -52,7 +51,6 @@ export default function AppShellLayout({
           </main>
         </div>
         <AppBottomNav />
-        <AppRouteWarmup />
       </div>
     </NavSelectionProvider>
   );
