@@ -51,12 +51,16 @@ const spotlightScrollClass =
 const photoSlideLayoutClass =
   "flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-stretch sm:gap-3.5 md:gap-5 lg:gap-6";
 
+/** Full photo in frame — object-contain + matte letterboxing (same as Smruti feed). */
+const spotlightPhotoImgClass =
+  "relative z-[1] max-h-full max-w-full object-contain object-center";
+
 /**
  * Ghun avatar — wider banner on phone (~176px), portrait column on sm+.
  * Phone height is fixed so the note body below always has predictable room.
  */
 const ghunPhotoColumnClass =
-  "relative h-44 w-full shrink-0 overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[11.5rem] sm:max-w-[11.5rem] sm:shrink-0 sm:self-stretch md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]";
+  "relative flex h-44 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[11.5rem] sm:max-w-[11.5rem] sm:shrink-0 sm:self-stretch md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]";
 
 /**
  * Smruti photo — fills ALL remaining vertical space on phone (the photo IS the
@@ -103,6 +107,11 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
     return (
       <div className={photoSlideLayoutClass}>
         <div className={ghunPhotoColumnClass}>
+          <div
+            aria-hidden
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll opacity-90"
+            style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
+          />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
@@ -110,7 +119,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
             loading="lazy"
             decoding="async"
             fetchPriority="low"
-            className="size-full object-cover object-[center_15%]"
+            className={spotlightPhotoImgClass}
           />
         </div>
         <div className={cn(ghunBodyBoxClass, spotlightHighlightTextClass, spotlightScrollClass)}>
@@ -134,7 +143,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
           <img
             src={src}
             alt=""
-            className="relative z-[1] max-h-full max-w-full object-contain object-center sm:size-full"
+            className={spotlightPhotoImgClass}
             loading="lazy"
             decoding="async"
           />
