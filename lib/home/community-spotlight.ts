@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { displayAvatarUrl } from "@/lib/profile/avatar-display";
 
 export type CommunitySpotlightNote = {
   kind: "note";
@@ -41,8 +42,10 @@ function parseSlide(raw: unknown): CommunitySpotlightSlide | null {
     const body = typeof o.body === "string" ? o.body : "";
     const recipient_display_name =
       typeof o.recipient_display_name === "string" ? o.recipient_display_name : "";
+    const rawAvatar =
+      typeof o.recipient_avatar_url === "string" ? o.recipient_avatar_url.trim() : "";
     const recipient_avatar_url =
-      typeof o.recipient_avatar_url === "string" ? o.recipient_avatar_url : "";
+      rawAvatar.startsWith("http") ? (displayAvatarUrl(rawAvatar) ?? rawAvatar) : rawAvatar || "/logo.png";
     return { kind: "note", id, body, recipient_display_name, recipient_avatar_url };
   }
   if (kind === "smruti") {
