@@ -51,35 +51,35 @@ const spotlightScrollClass =
 const photoSlideLayoutClass =
   "flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-stretch sm:gap-3.5 md:gap-5 lg:gap-6";
 
-/** Full photo in frame — object-contain, no crop. */
+/** Full photo in frame — object-contain, no crop (same treatment for Ghun + Smruti). */
 const spotlightPhotoImgClass = "max-h-full max-w-full object-contain object-center";
 
-/**
- * Ghun avatar — wider banner on phone (~176px), portrait column on sm+.
- * Phone height is fixed so the note body below always has predictable room.
- */
-const ghunPhotoColumnClass =
-  "relative flex h-44 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[11.5rem] sm:max-w-[11.5rem] sm:shrink-0 sm:self-stretch md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]";
+/** Phone: photo grows to fill the card (vertical portrait reads large). sm+: side column. */
+const spotlightPhotoColumnBase =
+  "relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:flex-none sm:shrink-0 sm:self-stretch";
+
+const ghunPhotoColumnClass = cn(
+  spotlightPhotoColumnBase,
+  "sm:w-[11.5rem] sm:max-w-[11.5rem] md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]",
+);
+
+const smrutiPhotoColumnClass = cn(
+  spotlightPhotoColumnBase,
+  "sm:w-[13rem] sm:max-w-[13rem] md:w-[14.5rem] md:max-w-[14.5rem] lg:w-[16rem] lg:max-w-[16rem] xl:w-[17.5rem] xl:max-w-[17.5rem]",
+);
 
 /**
- * Smruti photo — fills remaining vertical space on phone; portrait column on sm+.
- */
-const smrutiPhotoColumnClass =
-  "relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[13rem] sm:max-w-[13rem] sm:flex-none sm:shrink-0 sm:self-stretch md:w-[14.5rem] md:max-w-[14.5rem] lg:w-[16rem] lg:max-w-[16rem] xl:w-[17.5rem] xl:max-w-[17.5rem]";
-
-/**
- * Smruti caption — capped on phone (~3.5 lines, scrollable for longer), so the
- * photo above stays the dominant element. On sm+ it stretches in the side row.
+ * Smruti caption — reserved band under the photo on phone (~3.5 lines).
  */
 const smrutiCaptionBoxClass =
   "shrink-0 max-h-[5.75rem] w-full overflow-y-auto overscroll-y-contain sm:min-h-0 sm:max-h-none sm:flex-1 sm:shrink sm:self-stretch sm:py-1";
 
 /**
- * Ghun note body — fills the remaining space below the avatar banner on phone
- * and the side column on sm+. Always scrollable so long ghunos stay readable.
+ * Ghun note — slightly taller band than Smruti caption so the ghun text is visible;
+ * photo above is still full-width / flex-1 like Smruti, just ~1.5rem shorter.
  */
-const ghunBodyBoxClass =
-  "flex min-h-0 w-full flex-1 flex-col justify-start overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 sm:justify-center sm:py-1";
+const ghunNoteBoxClass =
+  "shrink-0 min-h-[4.25rem] max-h-[7.25rem] w-full overflow-y-auto overscroll-y-contain sm:min-h-0 sm:max-h-none sm:flex-1 sm:shrink sm:self-stretch sm:justify-center sm:py-1";
 
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
@@ -114,7 +114,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
             className={spotlightPhotoImgClass}
           />
         </div>
-        <div className={cn(ghunBodyBoxClass, spotlightHighlightTextClass, spotlightScrollClass)}>
+        <div className={cn(ghunNoteBoxClass, spotlightHighlightTextClass, spotlightScrollClass)}>
           <p className="whitespace-pre-wrap">{slide.body}</p>
         </div>
       </div>
