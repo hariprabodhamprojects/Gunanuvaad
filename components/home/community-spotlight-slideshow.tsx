@@ -16,9 +16,6 @@ const SLIDE_EASE = "power3.out";
 const VIEWPORT_H =
   "h-[236px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[340px]";
 
-const spotlightCaptionClass =
-  "font-heading line-clamp-3 shrink-0 font-semibold leading-relaxed text-primary text-sm sm:text-base md:text-lg lg:text-xl";
-
 const spotlightHeadlineClass =
   "min-w-0 flex-1 truncate font-heading font-semibold text-foreground text-sm sm:text-base md:text-lg lg:text-xl";
 
@@ -26,12 +23,24 @@ const spotlightHeadlineClass =
 const spotlightBodyClass =
   "text-pretty text-left font-medium leading-relaxed text-foreground text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
 
+/** Smruti caption — right column, font-heading semibold to read like a memory title. */
+const smrutiCaptionClass =
+  "font-heading text-pretty text-left font-semibold leading-relaxed text-primary text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
+
 const spotlightMetaClass =
   "shrink-0 truncate text-left font-medium text-muted-foreground text-xs sm:text-sm md:text-base lg:text-lg";
 
-/** Photo column — capped on phone; fixed wider column on md+ so laptop isn’t a tiny thumb + ocean of whitespace. */
+/** Ghun avatar column — capped on phone; fixed wider column on md+ so laptop isn’t a tiny thumb + ocean of whitespace. */
 const ghunPhotoColumnClass =
   "relative w-[38%] max-w-[8.75rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:max-w-[9.5rem] md:w-[11.5rem] md:max-w-[11.5rem] lg:w-[13rem] lg:max-w-[13rem] xl:w-[14rem] xl:max-w-[14rem]";
+
+/**
+ * Smruti photo column — portrait-shaped so vertical photos fill cleanly and
+ * landscape photos still read large with only a thin matte band. Slightly wider
+ * than the Ghun avatar column because the photo IS the content for a smruti.
+ */
+const smrutiPhotoColumnClass =
+  "relative isolate w-[46%] max-w-[10rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-muted/25 ring-1 ring-inset ring-border/40 sm:max-w-[11rem] md:w-[13rem] md:max-w-[13rem] lg:w-[15rem] lg:max-w-[15rem] xl:w-[16.5rem] xl:max-w-[16.5rem]";
 
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
@@ -83,13 +92,8 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   if (slide.kind === "smruti") {
     const src = smrutiPublicUrl(slide.storage_path);
     return (
-      <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5 md:gap-3">
-        <div
-          className={cn(
-            "relative isolate flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg",
-            "bg-muted/25 ring-1 ring-inset ring-border/40",
-          )}
-        >
+      <div className="flex min-h-0 flex-1 items-stretch gap-3 sm:gap-3.5 md:gap-5 lg:gap-6">
+        <div className={smrutiPhotoColumnClass}>
           <div
             aria-hidden
             className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll opacity-90"
@@ -99,12 +103,21 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
           <img
             src={src}
             alt=""
-            className="relative z-[1] max-h-full max-w-full object-contain object-center"
+            className="relative z-[1] size-full object-contain object-center"
             loading="lazy"
             decoding="async"
           />
         </div>
-        <p className={spotlightCaptionClass}>{slide.caption}</p>
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 md:py-1",
+            smrutiCaptionClass,
+            "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
+            "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
+          )}
+        >
+          <p className="whitespace-pre-wrap">{slide.caption}</p>
+        </div>
       </div>
     );
   }
@@ -163,6 +176,8 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
     channel: "home-community-spotlight",
     subscriptions: [
       { table: "approved_daily_notes" },
+      { table: "daily_notes" },
+      { table: "profiles" },
       { table: "smruti_posts" },
       { table: "smruti_post_media" },
       { table: "swadhyay_posts" },

@@ -1,7 +1,6 @@
 "use client";
 
 import gsap from "gsap";
-import { User } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ApprovedSlide } from "@/lib/home/approved-slideshow";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
@@ -15,8 +14,11 @@ const SLIDE_EASE = "power3.out";
 const AVATAR_BOX = "size-[7.25rem] shrink-0 sm:size-32";
 const NOTE_MAX_H = "max-h-[5.25rem] sm:max-h-24";
 
+const INVITE_PLACEHOLDER_AVATAR = "/logo.png";
+
 function SlideRow({ slide }: { slide: ApprovedSlide }) {
-  const hasAvatar = slide.recipient_avatar_url.trim().length > 0;
+  const avatarSrc = slide.recipient_avatar_url.trim();
+  const src = avatarSrc.startsWith("http") ? avatarSrc : INVITE_PLACEHOLDER_AVATAR;
   const label = slide.recipient_display_name.trim() || "Community member";
 
   return (
@@ -31,18 +33,13 @@ function SlideRow({ slide }: { slide: ApprovedSlide }) {
           AVATAR_BOX,
         )}
       >
-        {hasAvatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={slide.recipient_avatar_url}
-            alt=""
-            className="size-full object-cover object-top"
-          />
-        ) : (
-          <div className="flex size-full items-center justify-center text-muted-foreground">
-            <User className="size-12 opacity-60" strokeWidth={1.25} aria-hidden />
-          </div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={src}
+          src={src}
+          alt=""
+          className="size-full object-cover object-top"
+        />
       </div>
       <div className="min-w-0 flex-1 flex flex-col gap-2">
         <p className="font-heading text-base font-semibold leading-tight text-foreground sm:text-lg">
@@ -79,7 +76,11 @@ export function ApprovedNotesSlideshow({ slides }: Props) {
   // Live-update the carousel when admins approve or revoke notes.
   useRealtimeRefresh({
     channel: "home-approved-slideshow",
-    subscriptions: [{ table: "approved_daily_notes" }],
+    subscriptions: [
+      { table: "approved_daily_notes" },
+      { table: "daily_notes" },
+      { table: "profiles" },
+    ],
   });
 
   const safeIndex = slides.length === 0 ? 0 : Math.min(index, slides.length - 1);

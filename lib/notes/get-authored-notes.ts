@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { normalizeCampaignDate } from "@/lib/notes/normalize-campaign-date";
+import { resolveRecipientAvatarUrl, resolveRecipientName } from "@/lib/notes/recipient-display";
 
 export type AuthoredDailyNote = {
   id: string;
@@ -11,11 +12,6 @@ export type AuthoredDailyNote = {
   recipient_name: string;
   recipient_avatar_url: string;
 };
-
-function nameFromEmail(email: string): string {
-  const local = email.split("@")[0]?.replace(/[._-]+/g, " ").trim();
-  return local || email;
-}
 
 export async function getAuthoredDailyNotes(): Promise<AuthoredDailyNote[]> {
   const supabase = await createClient();
@@ -72,13 +68,8 @@ export async function getAuthoredDailyNotes(): Promise<AuthoredDailyNote[]> {
     const byId = note.recipient_id ? byRecipientId.get(note.recipient_id) : undefined;
     const byEmail = email ? byRecipientEmail.get(email) : undefined;
 
-    const recipient_name =
-      byId?.name ||
-      byEmail?.name ||
-      (email ? nameFromEmail(email) : "Someone");
-
-    const recipient_avatar_url =
-      byId?.avatarUrl || byEmail?.avatarUrl || "/logo.png";
+    const recipient_name = resolveRecipientName(byId, byEmail, email);
+    const recipient_avatar_url = resolveRecipientAvatarUrl(byId, byEmail);
 
     return {
       ...note,
