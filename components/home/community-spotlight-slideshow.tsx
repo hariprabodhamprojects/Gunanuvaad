@@ -22,9 +22,13 @@ type DragState = {
   dragDx: number;
 };
 
-/** Taller on phone so photos and captions read clearly; same height for every slide kind. */
+/**
+ * Mobile is intentionally tall so a vertical photo can breathe AND the caption /
+ * note stays fully readable. From `sm` up we switch to a compact side-by-side
+ * layout, so tablets and laptops don't waste vertical space.
+ */
 const VIEWPORT_H =
-  "h-[292px] sm:h-[308px] md:h-[328px] lg:h-[348px] xl:h-[368px]";
+  "h-[460px] sm:h-[308px] md:h-[328px] lg:h-[348px] xl:h-[368px]";
 
 const spotlightHeadlineClass =
   "min-w-0 flex-1 truncate font-heading font-semibold text-foreground text-sm sm:text-base md:text-lg lg:text-xl";
@@ -45,15 +49,36 @@ const spotlightScrollClass =
 
 /** Phone: photo on top (full width). sm+: side column beside text. */
 const photoSlideLayoutClass =
-  "flex min-h-0 flex-1 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3.5 md:gap-5 lg:gap-6";
+  "flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-stretch sm:gap-3.5 md:gap-5 lg:gap-6";
 
-/** Ghun avatar — wide banner on phone; portrait column from sm up. */
+/**
+ * Ghun avatar — wider banner on phone (~176px), portrait column on sm+.
+ * Phone height is fixed so the note body below always has predictable room.
+ */
 const ghunPhotoColumnClass =
-  "relative h-[10.75rem] w-full shrink-0 overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[11.5rem] sm:max-w-[11.5rem] sm:shrink-0 sm:self-stretch md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]";
+  "relative h-44 w-full shrink-0 overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[11.5rem] sm:max-w-[11.5rem] sm:shrink-0 sm:self-stretch md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]";
 
-/** Smruti photo — full-width band on phone; wider portrait column from sm up. */
+/**
+ * Smruti photo — fills ALL remaining vertical space on phone (the photo IS the
+ * content), so vertical photos look big with side matte and horizontal photos
+ * still fill the width. sm+ keeps the portrait side column.
+ */
 const smrutiPhotoColumnClass =
-  "relative isolate flex h-[10.75rem] w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted/25 ring-1 ring-inset ring-border/40 sm:h-auto sm:w-[13rem] sm:max-w-[13rem] sm:shrink-0 sm:self-stretch md:w-[14.5rem] md:max-w-[14.5rem] lg:w-[16rem] lg:max-w-[16rem] xl:w-[17.5rem] xl:max-w-[17.5rem]";
+  "relative isolate flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl bg-muted/25 ring-1 ring-inset ring-border/40 sm:h-auto sm:w-[13rem] sm:max-w-[13rem] sm:flex-none sm:shrink-0 sm:self-stretch md:w-[14.5rem] md:max-w-[14.5rem] lg:w-[16rem] lg:max-w-[16rem] xl:w-[17.5rem] xl:max-w-[17.5rem]";
+
+/**
+ * Smruti caption — capped on phone (~3.5 lines, scrollable for longer), so the
+ * photo above stays the dominant element. On sm+ it stretches in the side row.
+ */
+const smrutiCaptionBoxClass =
+  "shrink-0 max-h-[5.75rem] w-full overflow-y-auto overscroll-y-contain sm:min-h-0 sm:max-h-none sm:flex-1 sm:shrink sm:self-stretch sm:py-1";
+
+/**
+ * Ghun note body — fills the remaining space below the avatar banner on phone
+ * and the side column on sm+. Always scrollable so long ghunos stay readable.
+ */
+const ghunBodyBoxClass =
+  "flex min-h-0 w-full flex-1 flex-col justify-start overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 sm:justify-center sm:py-1";
 
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
@@ -88,13 +113,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
             className="size-full object-cover object-[center_15%]"
           />
         </div>
-        <div
-          className={cn(
-            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 sm:py-1",
-            spotlightHighlightTextClass,
-            spotlightScrollClass,
-          )}
-        >
+        <div className={cn(ghunBodyBoxClass, spotlightHighlightTextClass, spotlightScrollClass)}>
           <p className="whitespace-pre-wrap">{slide.body}</p>
         </div>
       </div>
@@ -120,13 +139,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
             decoding="async"
           />
         </div>
-        <div
-          className={cn(
-            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 sm:py-1",
-            spotlightHighlightTextClass,
-            spotlightScrollClass,
-          )}
-        >
+        <div className={cn(smrutiCaptionBoxClass, spotlightHighlightTextClass, spotlightScrollClass)}>
           <p className="whitespace-pre-wrap">{slide.caption}</p>
         </div>
       </div>
