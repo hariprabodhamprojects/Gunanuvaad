@@ -1,13 +1,30 @@
--- Community spotlight: rotate through decks (2 ghun + 2 smruti + 2 swadhyay per deck)
--- instead of pure random each load. Deck index is stored per user; advancement happens
--- via community_spotlight_advance_deck() (see 20260522160000_spotlight_advance_deck_on_demand.sql).
+-- Deck index must NOT advance on every spotlight fetch (refresh/realtime skipped decks).
+-- Client calls community_spotlight_advance_deck() after the user finishes one full carousel loop.
 
-alter table public.profiles
-  add column if not exists community_spotlight_deck_index bigint not null default 0;
+create or replace function public.community_spotlight_advance_deck()
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null or not public.is_allowlisted_session() then
+    return;
+  end if;
 
-comment on column public.profiles.community_spotlight_deck_index is
-  'Per-user cursor for community_spotlight_random deck rotation (wraps when pool exhausted).';
+  update public.profiles
+  set community_spotlight_deck_index = community_spotlight_deck_index + 1
+  where id = v_uid;
+end;
+$$;
 
+revoke all on function public.community_spotlight_advance_deck() from public;
+grant execute on function public.community_spotlight_advance_deck() to authenticated;
+
+-- Re-define spotlight fetch: read current deck only (no increment here).
 create or replace function public.community_spotlight_random()
 returns jsonb
 language plpgsql
@@ -71,7 +88,6 @@ begin
   v_deck := v_deck % v_decks;
   v_off := v_deck * 2;
 
-  -- Note 1
   select
     jsonb_build_object(
       'kind', 'note',
@@ -111,7 +127,6 @@ begin
   offset case when v_n_notes > 0 then (v_off % v_n_notes) else 0 end
   limit 1;
 
-  -- Note 2
   if v_n_notes > 0 then
     select
       jsonb_build_object(
@@ -194,7 +209,6 @@ begin
     end if;
   end if;
 
-  -- Smruti 1
   select
     jsonb_build_object(
       'kind', 'smruti',
@@ -219,7 +233,6 @@ begin
   offset case when v_n_sm > 0 then (v_off % v_n_sm) else 0 end
   limit 1;
 
-  -- Smruti 2
   if v_n_sm > 0 then
     select
       jsonb_build_object(
@@ -272,7 +285,6 @@ begin
     end if;
   end if;
 
-  -- Swadhyay 1
   select
     jsonb_build_object(
       'kind', 'swadhyay',
@@ -294,7 +306,6 @@ begin
   offset case when v_n_sw > 0 then (v_off % v_n_sw) else 0 end
   limit 1;
 
-  -- Swadhyay 2
   if v_n_sw > 0 then
     select
       jsonb_build_object(

@@ -2,7 +2,9 @@
 
 import gsap from "gsap";
 import { Image as ImageIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { advanceCommunitySpotlightDeck } from "@/lib/home/community-spotlight-actions";
 import type { CommunitySpotlightSlide } from "@/lib/home/community-spotlight";
 import { smrutiPublicUrl } from "@/lib/smruti/public-url";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
@@ -179,6 +181,7 @@ type Props = {
 };
 
 export function CommunitySpotlightSlideshow({ slides }: Props) {
+  const router = useRouter();
   const [index, setIndex] = useState(0);
   const [isHeld, setIsHeld] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -187,6 +190,7 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
   const indexRef = useRef(0);
   const dragRef = useRef<DragState | null>(null);
   const isDraggingRef = useRef(false);
+  const advancingDeckRef = useRef(false);
 
   useRealtimeRefresh({
     channel: "home-community-spotlight",
@@ -207,6 +211,7 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
   useLayoutEffect(() => {
     setIndex(0);
     firstSyncRef.current = true;
+    advancingDeckRef.current = false;
   }, [slidesKey]);
 
   useLayoutEffect(() => {
@@ -222,14 +227,29 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
     gsap.set(track, { x: -slideIndex * w + dragOffset, overwrite: true });
   }, []);
 
-  /** Auto-advance pauses while the user is pressing/holding anywhere on the carousel. */
+  /**
+   * Auto-advance through the current deck; after the last slide, load the next deck
+   * instead of looping the same slides forever.
+   */
   useLayoutEffect(() => {
     if (!canSwipe || isHeld) return;
     const t = window.setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
+      setIndex((i) => {
+        if (i >= slides.length - 1) {
+          if (!advancingDeckRef.current) {
+            advancingDeckRef.current = true;
+            void advanceCommunitySpotlightDeck().then((res) => {
+              if (res.ok) router.refresh();
+              else advancingDeckRef.current = false;
+            });
+          }
+          return i;
+        }
+        return i + 1;
+      });
     }, INTERVAL_MS);
     return () => window.clearInterval(t);
-  }, [canSwipe, isHeld, slides.length]);
+  }, [canSwipe, isHeld, slides.length, router]);
 
   useLayoutEffect(() => {
     const track = trackRef.current;

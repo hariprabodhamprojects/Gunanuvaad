@@ -72,8 +72,9 @@ function parseSlide(raw: unknown): CommunitySpotlightSlide | null {
 
 /**
  * Mixed spotlight: up to 2 ghun + 2 Smruti + 2 Swadhyay (7-day), interleaved.
- * Deck rotates per user via `profiles.community_spotlight_deck_index` (see migration
- * 20260522150000_community_spotlight_deck_rotation.sql) — not pure random each load.
+ * Deck rotates per user via `profiles.community_spotlight_deck_index`. The next deck
+ * loads after one full carousel loop (`community_spotlight_advance_deck`), not on
+ * every page refresh.
  */
 export async function getCommunitySpotlightSlides(): Promise<CommunitySpotlightSlide[]> {
   const supabase = await createClient();
