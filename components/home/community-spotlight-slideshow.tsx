@@ -2,7 +2,7 @@
 
 import gsap from "gsap";
 import { Image as ImageIcon } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { CommunitySpotlightSlide } from "@/lib/home/community-spotlight";
 import { SMRUTI_PHOTO_MATTE_URL, smrutiPublicUrl } from "@/lib/smruti/public-url";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
@@ -12,35 +12,48 @@ const INTERVAL_MS = 4500;
 const SLIDE_DURATION = 0.28;
 const SLIDE_EASE = "power3.out";
 
-/** Mobile: compact side-by-side. Laptop: taller card, photo + text scale up. */
+type DragState = {
+  startX: number;
+  startY: number;
+  width: number;
+  pointerId: number;
+  dragging: boolean;
+  locked: "h" | "v" | null;
+  dragDx: number;
+};
+
+/** Taller on phone so photos and captions read clearly; same height for every slide kind. */
 const VIEWPORT_H =
-  "h-[236px] sm:h-[280px] md:h-[300px] lg:h-[320px] xl:h-[340px]";
+  "h-[292px] sm:h-[308px] md:h-[328px] lg:h-[348px] xl:h-[368px]";
 
 const spotlightHeadlineClass =
   "min-w-0 flex-1 truncate font-heading font-semibold text-foreground text-sm sm:text-base md:text-lg lg:text-xl";
 
-/** Ghun / Swadhyay body — right column; scales up on laptop. */
+/** Ghun + Smruti text — primary orange, matches Smruti feed captions. */
+const spotlightHighlightTextClass =
+  "font-heading text-pretty text-left font-semibold leading-relaxed text-primary text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
+
+/** Swadhyay body — foreground for long-form reflection text. */
 const spotlightBodyClass =
   "text-pretty text-left font-medium leading-relaxed text-foreground text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
-
-/** Smruti caption — right column, font-heading semibold to read like a memory title. */
-const smrutiCaptionClass =
-  "font-heading text-pretty text-left font-semibold leading-relaxed text-primary text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
 
 const spotlightMetaClass =
   "shrink-0 truncate text-left font-medium text-muted-foreground text-xs sm:text-sm md:text-base lg:text-lg";
 
-/** Ghun avatar column — capped on phone; fixed wider column on md+ so laptop isn’t a tiny thumb + ocean of whitespace. */
-const ghunPhotoColumnClass =
-  "relative w-[38%] max-w-[8.75rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:max-w-[9.5rem] md:w-[11.5rem] md:max-w-[11.5rem] lg:w-[13rem] lg:max-w-[13rem] xl:w-[14rem] xl:max-w-[14rem]";
+const spotlightScrollClass =
+  "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent";
 
-/**
- * Smruti photo column — portrait-shaped so vertical photos fill cleanly and
- * landscape photos still read large with only a thin matte band. Slightly wider
- * than the Ghun avatar column because the photo IS the content for a smruti.
- */
+/** Phone: photo on top (full width). sm+: side column beside text. */
+const photoSlideLayoutClass =
+  "flex min-h-0 flex-1 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3.5 md:gap-5 lg:gap-6";
+
+/** Ghun avatar — wide banner on phone; portrait column from sm up. */
+const ghunPhotoColumnClass =
+  "relative h-[10.75rem] w-full shrink-0 overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[11.5rem] sm:max-w-[11.5rem] sm:shrink-0 sm:self-stretch md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]";
+
+/** Smruti photo — full-width band on phone; wider portrait column from sm up. */
 const smrutiPhotoColumnClass =
-  "relative isolate w-[46%] max-w-[10rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-muted/25 ring-1 ring-inset ring-border/40 sm:max-w-[11rem] md:w-[13rem] md:max-w-[13rem] lg:w-[15rem] lg:max-w-[15rem] xl:w-[16.5rem] xl:max-w-[16.5rem]";
+  "relative isolate flex h-[10.75rem] w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted/25 ring-1 ring-inset ring-border/40 sm:h-auto sm:w-[13rem] sm:max-w-[13rem] sm:shrink-0 sm:self-stretch md:w-[14.5rem] md:max-w-[14.5rem] lg:w-[16rem] lg:max-w-[16rem] xl:w-[17.5rem] xl:max-w-[17.5rem]";
 
 function chip(kind: CommunitySpotlightSlide["kind"]): string {
   if (kind === "note") return "Ghun";
@@ -63,7 +76,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
     const avatarSrc = slide.recipient_avatar_url.trim();
     const src = avatarSrc.startsWith("http") ? avatarSrc : INVITE_PLACEHOLDER_AVATAR;
     return (
-      <div className="flex min-h-0 flex-1 items-center gap-3 sm:gap-3.5 md:gap-5 lg:gap-6">
+      <div className={photoSlideLayoutClass}>
         <div className={ghunPhotoColumnClass}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -77,10 +90,9 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
         </div>
         <div
           className={cn(
-            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 md:py-1",
-            spotlightBodyClass,
-            "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
-            "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
+            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 sm:py-1",
+            spotlightHighlightTextClass,
+            spotlightScrollClass,
           )}
         >
           <p className="whitespace-pre-wrap">{slide.body}</p>
@@ -92,7 +104,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   if (slide.kind === "smruti") {
     const src = smrutiPublicUrl(slide.storage_path);
     return (
-      <div className="flex min-h-0 flex-1 items-stretch gap-3 sm:gap-3.5 md:gap-5 lg:gap-6">
+      <div className={photoSlideLayoutClass}>
         <div className={smrutiPhotoColumnClass}>
           <div
             aria-hidden
@@ -103,17 +115,16 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
           <img
             src={src}
             alt=""
-            className="relative z-[1] size-full object-contain object-center"
+            className="relative z-[1] max-h-full max-w-full object-contain object-center sm:size-full"
             loading="lazy"
             decoding="async"
           />
         </div>
         <div
           className={cn(
-            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 md:py-1",
-            smrutiCaptionClass,
-            "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
-            "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
+            "flex min-h-0 flex-1 flex-col justify-center overflow-y-auto overscroll-y-contain py-0.5 pr-0.5 sm:py-1",
+            spotlightHighlightTextClass,
+            spotlightScrollClass,
           )}
         >
           <p className="whitespace-pre-wrap">{slide.caption}</p>
@@ -125,14 +136,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col justify-center gap-1.5 sm:gap-2 md:gap-2.5">
       <p className={spotlightMetaClass}>{slide.topic_title}</p>
-      <div
-        className={cn(
-          "min-h-0 flex-1 overflow-y-auto",
-          spotlightBodyClass,
-          "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full",
-          "[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent",
-        )}
-      >
+      <div className={cn("min-h-0 flex-1 overflow-y-auto", spotlightBodyClass, spotlightScrollClass)}>
         <p className="whitespace-pre-wrap">{slide.body}</p>
       </div>
     </div>
@@ -167,10 +171,13 @@ type Props = {
 
 export function CommunitySpotlightSlideshow({ slides }: Props) {
   const [index, setIndex] = useState(0);
+  const [isHeld, setIsHeld] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const firstSyncRef = useRef(true);
   const indexRef = useRef(0);
+  const dragRef = useRef<DragState | null>(null);
+  const isDraggingRef = useRef(false);
 
   useRealtimeRefresh({
     channel: "home-community-spotlight",
@@ -185,23 +192,35 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
   });
 
   const safeIndex = slides.length === 0 ? 0 : Math.min(index, slides.length - 1);
+  const canSwipe = slides.length > 1;
 
   useLayoutEffect(() => {
     indexRef.current = safeIndex;
   }, [safeIndex]);
 
+  const setTrackX = useCallback((slideIndex: number, dragOffset = 0) => {
+    const track = trackRef.current;
+    const vp = viewportRef.current;
+    if (!track || !vp) return;
+    const w = vp.offsetWidth;
+    if (w === 0) return;
+    gsap.set(track, { x: -slideIndex * w + dragOffset, overwrite: true });
+  }, []);
+
+  /** Auto-advance pauses while the user is pressing/holding anywhere on the carousel. */
   useLayoutEffect(() => {
-    if (slides.length <= 1) return;
+    if (!canSwipe || isHeld) return;
     const t = window.setInterval(() => {
       setIndex((i) => (i + 1) % slides.length);
     }, INTERVAL_MS);
     return () => window.clearInterval(t);
-  }, [slides.length]);
+  }, [canSwipe, isHeld, slides.length]);
 
   useLayoutEffect(() => {
     const track = trackRef.current;
     const vp = viewportRef.current;
     if (!track || !vp || slides.length === 0) return;
+    if (isDraggingRef.current) return;
 
     const w = vp.offsetWidth;
     if (w === 0) return;
@@ -230,15 +249,124 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
     if (!vp || slides.length === 0) return;
 
     const sync = () => {
-      const track = trackRef.current;
-      if (!track) return;
-      gsap.set(track, { x: -indexRef.current * vp.offsetWidth });
+      if (isDraggingRef.current) return;
+      setTrackX(indexRef.current);
     };
 
     const ro = new ResizeObserver(sync);
     ro.observe(vp);
     return () => ro.disconnect();
-  }, [slides.length]);
+  }, [slides.length, setTrackX]);
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!canSwipe) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    setIsHeld(true);
+    const vp = viewportRef.current;
+    if (!vp) return;
+
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      width: vp.offsetWidth,
+      pointerId: e.pointerId,
+      dragging: false,
+      locked: null,
+      dragDx: 0,
+    };
+  };
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId) return;
+
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+
+    if (d.locked === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      d.locked = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+      if (d.locked === "v") {
+        dragRef.current = null;
+        isDraggingRef.current = false;
+        return;
+      }
+      d.dragging = true;
+      isDraggingRef.current = true;
+      gsap.killTweensOf(trackRef.current);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if (d.locked !== "h") return;
+
+    e.preventDefault();
+    let next = dx;
+    const idx = indexRef.current;
+    if (idx === 0 && next > 0) next *= 0.35;
+    if (idx === slides.length - 1 && next < 0) next *= 0.35;
+    d.dragDx = next;
+    setTrackX(idx, next);
+  };
+
+  const endPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
+    setIsHeld(false);
+
+    const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId) {
+      dragRef.current = null;
+      isDraggingRef.current = false;
+      return;
+    }
+
+    const idx = indexRef.current;
+    const threshold = Math.max(40, d.width * 0.18);
+    let nextIndex = idx;
+
+    if (d.dragging) {
+      if (d.dragDx <= -threshold && idx < slides.length - 1) nextIndex = idx + 1;
+      else if (d.dragDx >= threshold && idx > 0) nextIndex = idx - 1;
+    }
+
+    dragRef.current = null;
+    isDraggingRef.current = false;
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+
+    const track = trackRef.current;
+    const vp = viewportRef.current;
+    if (!track || !vp) return;
+
+    const w = vp.offsetWidth;
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (nextIndex !== idx) {
+      setIndex(nextIndex);
+      return;
+    }
+
+    if (reduceMotion || !d.dragging) {
+      gsap.set(track, { x: -idx * w });
+      return;
+    }
+
+    gsap.to(track, {
+      x: -idx * w,
+      duration: SLIDE_DURATION,
+      ease: SLIDE_EASE,
+      overwrite: "auto",
+    });
+  };
 
   if (slides.length === 0) return null;
 
@@ -259,8 +387,16 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
           <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_right,var(--palette-bg-subtle)_0%,transparent_8%,transparent_92%,var(--palette-bg-subtle)_100%)] opacity-25 mix-blend-overlay" />
           <div
             ref={viewportRef}
-            className={cn("w-full overflow-hidden", VIEWPORT_H)}
+            className={cn(
+              "w-full touch-pan-y overflow-hidden",
+              canSwipe && "cursor-grab active:cursor-grabbing",
+              VIEWPORT_H,
+            )}
             aria-roledescription="carousel"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endPointer}
+            onPointerCancel={endPointer}
           >
             <div
               ref={trackRef}
@@ -298,6 +434,9 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
         </div>
       ) : null}
       <span className="sr-only">
+        {canSwipe
+          ? "Swipe left or right to change slides. Press and hold to pause automatic rotation. "
+          : null}
         {current
           ? current.kind === "note"
             ? `Ghun for ${current.recipient_display_name.trim() || "someone"}.`
