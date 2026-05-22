@@ -202,6 +202,12 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
 
   const safeIndex = slides.length === 0 ? 0 : Math.min(index, slides.length - 1);
   const canSwipe = slides.length > 1;
+  const slidesKey = slides.map((s) => `${s.kind}-${s.id}`).join("|");
+
+  useLayoutEffect(() => {
+    setIndex(0);
+    firstSyncRef.current = true;
+  }, [slidesKey]);
 
   useLayoutEffect(() => {
     indexRef.current = safeIndex;

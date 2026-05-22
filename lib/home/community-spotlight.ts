@@ -70,7 +70,11 @@ function parseSlide(raw: unknown): CommunitySpotlightSlide | null {
   return null;
 }
 
-/** Mixed spotlight: 2 notes + 2 Smruti + 2 Swadhyay (7-day), interleaved when all exist. */
+/**
+ * Mixed spotlight: up to 2 ghun + 2 Smruti + 2 Swadhyay (7-day), interleaved.
+ * Deck rotates per user via `profiles.community_spotlight_deck_index` (see migration
+ * 20260522150000_community_spotlight_deck_rotation.sql) — not pure random each load.
+ */
 export async function getCommunitySpotlightSlides(): Promise<CommunitySpotlightSlide[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("community_spotlight_random");
