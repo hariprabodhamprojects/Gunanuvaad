@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { Image as ImageIcon } from "lucide-react";
 import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { CommunitySpotlightSlide } from "@/lib/home/community-spotlight";
-import { SMRUTI_PHOTO_MATTE_URL, smrutiPublicUrl } from "@/lib/smruti/public-url";
+import { smrutiPublicUrl } from "@/lib/smruti/public-url";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
 
@@ -51,9 +51,8 @@ const spotlightScrollClass =
 const photoSlideLayoutClass =
   "flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-row sm:items-stretch sm:gap-3.5 md:gap-5 lg:gap-6";
 
-/** Full photo in frame — object-contain + matte letterboxing (same as Smruti feed). */
-const spotlightPhotoImgClass =
-  "relative z-[1] max-h-full max-w-full object-contain object-center";
+/** Full photo in frame — object-contain, no crop. */
+const spotlightPhotoImgClass = "max-h-full max-w-full object-contain object-center";
 
 /**
  * Ghun avatar — wider banner on phone (~176px), portrait column on sm+.
@@ -63,12 +62,10 @@ const ghunPhotoColumnClass =
   "relative flex h-44 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[11.5rem] sm:max-w-[11.5rem] sm:shrink-0 sm:self-stretch md:w-[12.5rem] md:max-w-[12.5rem] lg:w-[14rem] lg:max-w-[14rem] xl:w-[15rem] xl:max-w-[15rem]";
 
 /**
- * Smruti photo — fills ALL remaining vertical space on phone (the photo IS the
- * content), so vertical photos look big with side matte and horizontal photos
- * still fill the width. sm+ keeps the portrait side column.
+ * Smruti photo — fills remaining vertical space on phone; portrait column on sm+.
  */
 const smrutiPhotoColumnClass =
-  "relative isolate flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl bg-muted/25 ring-1 ring-inset ring-border/40 sm:h-auto sm:w-[13rem] sm:max-w-[13rem] sm:flex-none sm:shrink-0 sm:self-stretch md:w-[14.5rem] md:max-w-[14.5rem] lg:w-[16rem] lg:max-w-[16rem] xl:w-[17.5rem] xl:max-w-[17.5rem]";
+  "relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-xl bg-muted/40 ring-1 ring-border/50 sm:h-auto sm:w-[13rem] sm:max-w-[13rem] sm:flex-none sm:shrink-0 sm:self-stretch md:w-[14.5rem] md:max-w-[14.5rem] lg:w-[16rem] lg:max-w-[16rem] xl:w-[17.5rem] xl:max-w-[17.5rem]";
 
 /**
  * Smruti caption — capped on phone (~3.5 lines, scrollable for longer), so the
@@ -107,11 +104,6 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
     return (
       <div className={photoSlideLayoutClass}>
         <div className={ghunPhotoColumnClass}>
-          <div
-            aria-hidden
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll opacity-90"
-            style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
-          />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
@@ -134,11 +126,6 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
     return (
       <div className={photoSlideLayoutClass}>
         <div className={smrutiPhotoColumnClass}>
-          <div
-            aria-hidden
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-scroll opacity-90"
-            style={{ backgroundImage: `url(${SMRUTI_PHOTO_MATTE_URL})` }}
-          />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
