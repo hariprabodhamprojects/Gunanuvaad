@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatPublicDisplayName } from "@/lib/notes/recipient-display";
 import { displayAvatarUrl } from "@/lib/profile/avatar-display";
 
 export type CommunitySpotlightNote = {
@@ -40,8 +41,10 @@ function parseSlide(raw: unknown): CommunitySpotlightSlide | null {
   if (!id) return null;
   if (kind === "note") {
     const body = typeof o.body === "string" ? o.body : "";
-    const recipient_display_name =
-      typeof o.recipient_display_name === "string" ? o.recipient_display_name : "";
+    const recipient_display_name = formatPublicDisplayName(
+      typeof o.recipient_display_name === "string" ? o.recipient_display_name : "",
+      "Someone",
+    );
     const rawAvatar =
       typeof o.recipient_avatar_url === "string" ? o.recipient_avatar_url.trim() : "";
     const recipient_avatar_url =
@@ -50,8 +53,10 @@ function parseSlide(raw: unknown): CommunitySpotlightSlide | null {
   }
   if (kind === "smruti") {
     const caption = typeof o.caption === "string" ? o.caption : "";
-    const author_display_name =
-      typeof o.author_display_name === "string" ? o.author_display_name : "";
+    const author_display_name = formatPublicDisplayName(
+      typeof o.author_display_name === "string" ? o.author_display_name : "",
+      "Member",
+    );
     const author_avatar_url =
       typeof o.author_avatar_url === "string" ? o.author_avatar_url : "";
     const storage_path = typeof o.storage_path === "string" ? o.storage_path : "";
@@ -61,8 +66,10 @@ function parseSlide(raw: unknown): CommunitySpotlightSlide | null {
   if (kind === "swadhyay") {
     const body = typeof o.body === "string" ? o.body : "";
     const topic_title = typeof o.topic_title === "string" ? o.topic_title : "";
-    const author_display_name =
-      typeof o.author_display_name === "string" ? o.author_display_name : "";
+    const author_display_name = formatPublicDisplayName(
+      typeof o.author_display_name === "string" ? o.author_display_name : "",
+      "Member",
+    );
     const author_avatar_url =
       typeof o.author_avatar_url === "string" ? o.author_avatar_url : "";
     return { kind: "swadhyay", id, body, topic_title, author_display_name, author_avatar_url };

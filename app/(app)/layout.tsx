@@ -8,6 +8,7 @@ import { AppShellHeaderNav } from "@/components/app-shell-header-nav";
 import { AppSidebar } from "@/components/app-sidebar";
 import { NavigationPendingBar } from "@/components/navigation-pending-bar";
 import { NavSelectionProvider } from "@/components/nav-selection-provider";
+import { NotificationsBootstrapper } from "@/components/notifications/notifications-bootstrapper";
 import { getAllowlistedUser } from "@/lib/auth/get-allowlisted-user";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export default function AppShellLayout({
   return (
     <NavSelectionProvider>
       <NavigationPendingBar />
+      <NotificationsBootstrapper />
       <div className="bg-app-gradient flex h-[100dvh] min-h-[100dvh] w-full min-w-0 max-w-[100vw] flex-col overflow-x-hidden overflow-y-hidden">
         <header className="glass-header sticky top-0 z-40 w-full min-w-0 shrink-0 pt-[env(safe-area-inset-top,0px)]">
           <div className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-2 sm:h-14 sm:gap-3 sm:px-4 sm:py-0 lg:px-6 xl:px-8 2xl:px-10">

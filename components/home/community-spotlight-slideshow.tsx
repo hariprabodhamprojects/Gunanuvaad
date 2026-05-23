@@ -94,9 +94,9 @@ const INVITE_PLACEHOLDER_AVATAR = "/logo.png";
 
 function headline(slide: CommunitySpotlightSlide): string {
   if (slide.kind === "note") {
-    return slide.recipient_display_name.trim() || "Someone";
+    return slide.recipient_display_name;
   }
-  return slide.author_display_name.trim() || "Member";
+  return slide.author_display_name;
 }
 
 function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {

@@ -30,3 +30,13 @@ export function resolveRecipientName(
   const local = email.split("@")[0]?.replace(/[._-]+/g, " ").trim();
   return local || email;
 }
+
+/**
+ * Spotlight / public cards: only show a real name from the DB (profile or
+ * allowlist display_name). Never show an email or a derived local-part label.
+ */
+export function formatPublicDisplayName(raw: string | null | undefined, fallback = "Someone"): string {
+  const trimmed = raw?.trim() ?? "";
+  if (!trimmed || trimmed.includes("@")) return fallback;
+  return trimmed;
+}
