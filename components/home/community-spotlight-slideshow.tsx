@@ -191,6 +191,10 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
   const dragRef = useRef<DragState | null>(null);
   const isDraggingRef = useRef(false);
   const advancingDeckRef = useRef(false);
+  const nextDeckReadyRef = useRef(false);
+  const nextDeckPrefetchStartedRef = useRef(false);
+  const slidesLengthRef = useRef(slides.length);
+  slidesLengthRef.current = slides.length;
 
   useRealtimeRefresh({
     channel: "home-community-spotlight",
@@ -212,7 +216,21 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
     setIndex(0);
     firstSyncRef.current = true;
     advancingDeckRef.current = false;
+    nextDeckReadyRef.current = false;
+    nextDeckPrefetchStartedRef.current = false;
   }, [slidesKey]);
+
+  /** Start loading the next deck while the user is still on the last slide. */
+  useLayoutEffect(() => {
+    const last = slides.length - 1;
+    if (last < 1 || safeIndex !== last || nextDeckPrefetchStartedRef.current) return;
+
+    nextDeckPrefetchStartedRef.current = true;
+    void advanceCommunitySpotlightDeck().then((res) => {
+      if (res.ok) nextDeckReadyRef.current = true;
+      else nextDeckPrefetchStartedRef.current = false;
+    });
+  }, [safeIndex, slides.length, slidesKey]);
 
   useLayoutEffect(() => {
     indexRef.current = safeIndex;
@@ -228,28 +246,72 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
   }, []);
 
   /**
-   * Auto-advance through the current deck; after the last slide, load the next deck
-   * instead of looping the same slides forever.
+   * One timeout per slide (not setInterval) so a new deck always gets a full
+   * INTERVAL_MS on slide 1. setInterval kept firing on the last slide during the
+   * slow advance+refresh, so the timer was out of phase when the next deck loaded.
    */
   useLayoutEffect(() => {
     if (!canSwipe || isHeld) return;
-    const t = window.setInterval(() => {
-      setIndex((i) => {
-        if (i >= slides.length - 1) {
-          if (!advancingDeckRef.current) {
-            advancingDeckRef.current = true;
-            void advanceCommunitySpotlightDeck().then((res) => {
-              if (res.ok) router.refresh();
-              else advancingDeckRef.current = false;
-            });
+
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const clearTimer = () => {
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
+    };
+
+    const scheduleNext = (delayMs = INTERVAL_MS) => {
+      clearTimer();
+      if (cancelled || advancingDeckRef.current) return;
+
+      timeoutId = window.setTimeout(() => {
+        if (cancelled) return;
+
+        setIndex((current) => {
+          const last = slidesLengthRef.current - 1;
+          if (last < 0) return current;
+
+          if (current >= last) {
+            if (!advancingDeckRef.current) {
+              advancingDeckRef.current = true;
+              const showNextDeck = () => {
+                if (!cancelled) router.refresh();
+                else advancingDeckRef.current = false;
+              };
+              if (nextDeckReadyRef.current) {
+                showNextDeck();
+              } else {
+                void advanceCommunitySpotlightDeck().then((res) => {
+                  if (res.ok) showNextDeck();
+                  else {
+                    advancingDeckRef.current = false;
+                    if (!cancelled) scheduleNext();
+                  }
+                });
+              }
+            }
+            return current;
           }
-          return i;
+
+          return current + 1;
+        });
+
+        if (!cancelled && !advancingDeckRef.current) {
+          scheduleNext();
         }
-        return i + 1;
-      });
-    }, INTERVAL_MS);
-    return () => window.clearInterval(t);
-  }, [canSwipe, isHeld, slides.length, router]);
+      }, delayMs);
+    };
+
+    scheduleNext();
+
+    return () => {
+      cancelled = true;
+      clearTimer();
+    };
+  }, [canSwipe, isHeld, slidesKey, router]);
 
   useLayoutEffect(() => {
     const track = trackRef.current;
