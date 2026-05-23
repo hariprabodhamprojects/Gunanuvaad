@@ -9,14 +9,13 @@ import {
 import { getReminderSlotById, pickReminderSlot } from "@/lib/notifications/reminder-copy";
 
 /**
- * Vercel Cron invokes this once per reminder slot (see `vercel.json`).
- * Hobby plan: max one run per day per cron entry — use five entries, not `*/15`.
- * Pro plan: may switch to a single `*/15` job + `pickReminderSlot()` if preferred.
+ * Vercel Cron invokes this once per reminder slot (see vercel.json).
+ * Hobby (free): one run per day per cron entry — five separate schedules.
+ * Pro: can use a single job every 15 minutes with pickReminderSlot() instead.
  *
- * Optional query: `?slot=morning-note` (set in vercel.json per cron).
+ * Optional query: ?slot=morning-note (set in vercel.json per cron).
  *
- * Sends to **all** subscribed devices. To test on your phone only, use
- * `POST /api/push/test` while signed in.
+ * Sends to all subscribed devices. To test on your phone only, use POST /api/push/test.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
