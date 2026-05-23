@@ -6,13 +6,17 @@ import {
   fanOutPush,
   type PushSubscriptionRow,
 } from "@/lib/notifications/push-send";
-import { pickReminderSlot } from "@/lib/notifications/reminder-copy";
+import { getReminderSlotById, pickReminderSlot } from "@/lib/notifications/reminder-copy";
 
 /**
- * Vercel Cron hits this every 15 minutes (see `vercel.json`).
+ * Vercel Cron invokes this once per reminder slot (see `vercel.json`).
+ * Hobby plan: max one run per day per cron entry — use five entries, not `*/15`.
+ * Pro plan: may switch to a single `*/15` job + `pickReminderSlot()` if preferred.
+ *
+ * Optional query: `?slot=morning-note` (set in vercel.json per cron).
  *
  * Sends to **all** subscribed devices. To test on your phone only, use
- * `POST /api/push/test` while signed in (see that route's comment).
+ * `POST /api/push/test` while signed in.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,9 +32,14 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
-  const slot = pickReminderSlot();
+  const slotId = request.nextUrl.searchParams.get("slot")?.trim();
+  const slot = slotId ? getReminderSlotById(slotId) : pickReminderSlot();
   if (!slot) {
-    return NextResponse.json({ ok: true, skipped: true, reason: "outside-slot-window" });
+    return NextResponse.json({
+      ok: true,
+      skipped: true,
+      reason: slotId ? "unknown-slot" : "outside-slot-window",
+    });
   }
 
   const vapid = configureWebPushVapid();

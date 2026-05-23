@@ -2,8 +2,24 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/cron/reminders",
-      "schedule": "*/15 * * * *"
+      "path": "/api/cron/reminders?slot=morning-note",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/reminders?slot=midday-note",
+      "schedule": "30 16 * * *"
+    },
+    {
+      "path": "/api/cron/reminders?slot=afternoon-feed",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/reminders?slot=evening-note",
+      "schedule": "30 23 * * *"
+    },
+    {
+      "path": "/api/cron/reminders?slot=night-swadhyay",
+      "schedule": "30 1 * * *"
     }
   ]
 }
