@@ -254,7 +254,7 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
     if (!canSwipe || isHeld) return;
 
     let cancelled = false;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let timeoutId: number | undefined;
 
     const clearTimer = () => {
       if (timeoutId !== undefined) {
