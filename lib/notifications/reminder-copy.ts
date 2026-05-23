@@ -29,7 +29,7 @@ export const REMINDER_SLOTS: readonly ReminderSlot[] = [
     time: "09:00",
     url: "/home",
     title: "જય સ્વામિનારાયણ ✨",
-    body: "Start your day with ghun sharing of bhaktos. ગુણ ગાવાથી જીવ બ્રહ્મરૂપ થઈ જાય.",
+    body: "Start your day with ghun sharing. ગુણ ગાવાથી જીવ બ્રહ્મરૂપ થઈ જાય.",
   },
   {
     id: "midday-note",
@@ -57,7 +57,7 @@ export const REMINDER_SLOTS: readonly ReminderSlot[] = [
     time: "21:30",
     url: "/swadhyay",
     title: "This week's Swadhyay",
-    body: "Reflect on the swadhyay topic and share before you sleep — even one line counts.",
+    body: "Share your swadhyay before you sleep — even one line counts.",
   },
 ] as const;
 
