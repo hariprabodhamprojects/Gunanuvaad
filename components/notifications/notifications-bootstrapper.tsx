@@ -10,8 +10,8 @@ import {
   subscribeToPush,
 } from "@/lib/notifications/web-push-client";
 
-const PROMPT_STORAGE_KEY = "mc-push-prompt-shown-v1";
-const PROMPT_DELAY_MS = 4_500;
+const PROMPT_DELAY_MS = 3_000;
+const PROMPT_TOAST_ID = "mc-push-prompt";
 
 /**
  * Mounted once inside the authenticated shell. Responsible for:
@@ -19,12 +19,10 @@ const PROMPT_DELAY_MS = 4_500;
  *   2. Listening for the SW's `mc-resubscribe` message (browser-rotated endpoint).
  *   3. Silently re-persisting an existing subscription if our DB lost it
  *      (e.g. user signed in on a new device).
- *   4. Showing a single, gentle prompt the first time we see a signed-in user
- *      whose browser permission is still `default`. Browser security forbids
- *      auto-requesting permission, so we surface a button inside a toast.
- *
- * Notifications are conceptually "on by default" per product call — this only
- * controls *when we ask the OS for permission*, not whether we send.
+ *   4. Prompting on **every app open** while browser permission is still
+ *      `default`. Once the user grants (or denies) permission, the prompt
+ *      stops appearing. Browser security forbids auto-requesting permission,
+ *      so we surface a button inside a sticky toast they have to tap.
  */
 export function NotificationsBootstrapper() {
   const ranRef = useRef(false);
@@ -60,29 +58,24 @@ export function NotificationsBootstrapper() {
 
       if (permission !== "default") return;
       if (typeof window === "undefined") return;
-      try {
-        if (localStorage.getItem(PROMPT_STORAGE_KEY) === "1") return;
-      } catch {
-        // Safari Private Mode etc. — fall through and prompt anyway.
-      }
 
       promptTimer = setTimeout(() => {
         if (cancelled) return;
-        try {
-          localStorage.setItem(PROMPT_STORAGE_KEY, "1");
-        } catch {
-          // best-effort
-        }
         toast("Turn on daily reminders", {
-          description: "Gentle nudges to write a note, share on the feed, or post a Swadhyay.",
-          duration: 12_000,
+          id: PROMPT_TOAST_ID,
+          description:
+            "Gentle nudges to write a note, share on the feed, or post a Swadhyay. You can change this any time from your profile.",
+          duration: Infinity,
+          dismissible: true,
           action: {
             label: "Turn on",
             onClick: async () => {
               const result = await subscribeToPush();
               if (result.ok) {
+                toast.dismiss(PROMPT_TOAST_ID);
                 toast.success("Reminders are on. જય સ્વામિનારાયણ ✨");
               } else if (result.reason === "permission-denied") {
+                toast.dismiss(PROMPT_TOAST_ID);
                 toast.error(result.message ?? "Reminders are blocked in your browser.");
               } else {
                 toast.error(result.message ?? "Couldn't enable reminders.");

@@ -9,17 +9,11 @@ import { getReminderSlotById, REMINDER_SLOTS } from "@/lib/notifications/reminde
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Send one reminder-style push to **this signed-in user only** (all of their
- * saved device endpoints). Use this to verify the full pipeline on your phone
- * without waking everyone else's devices.
+ * Organizer-only: send one reminder-style push to **this signed-in user's**
+ * devices only (never other members). Scheduled reminders use /api/cron/reminders.
  *
  *   POST /api/push/test
  *   Body (optional): { "slotId": "morning-note" }
- *
- * Prerequisites on the device:
- *   - Daily reminders ON (subscription saved in push_subscriptions)
- *   - HTTPS (production, or `next dev --experimental-https` locally)
- *   - iOS: app installed to Home Screen
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +27,18 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   if (authErr || !user) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+
+  const { data: isOrganizer, error: orgErr } = await supabase.rpc("is_organizer_session");
+  if (orgErr) {
+    console.error("[push/test] is_organizer_session", orgErr.message);
+    return NextResponse.json({ ok: false, error: "organizer-check-failed" }, { status: 500 });
+  }
+  if (!isOrganizer) {
+    return NextResponse.json(
+      { ok: false, error: "forbidden", message: "Test notifications are organizer-only." },
+      { status: 403 },
+    );
   }
 
   let slotId = REMINDER_SLOTS[0]!.id;
@@ -54,7 +60,8 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const { data: subs, error } = await supabase
     .from("push_subscriptions")
-    .select("id, endpoint, p256dh, auth");
+    .select("id, endpoint, p256dh, auth")
+    .eq("user_id", user.id);
 
   if (error) {
     console.error("[push/test] load subscriptions", error.message);
@@ -77,7 +84,11 @@ export async function POST(request: NextRequest): Promise<Response> {
   const { sent, failed, expiredIds } = await fanOutPush(rows, payload);
 
   if (expiredIds.length > 0) {
-    await supabase.from("push_subscriptions").delete().in("id", expiredIds);
+    await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("user_id", user.id)
+      .in("id", expiredIds);
   }
 
   if (sent === 0) {

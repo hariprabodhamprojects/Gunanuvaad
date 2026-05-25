@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { configureWebPushVapid } from "@/lib/notifications/push-send";
+import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -20,6 +21,7 @@ export async function GET(): Promise<Response> {
   }
 
   const vapid = configureWebPushVapid();
+  const isOrganizer = await getIsOrganizerSession();
 
   const { data: subs, error: subsErr } = await supabase
     .from("push_subscriptions")
@@ -34,6 +36,7 @@ export async function GET(): Promise<Response> {
     ok: true,
     email: user.email,
     userId: user.id,
+    isOrganizer,
     vapidConfigured: vapid.ok,
     vapidError: vapid.ok ? null : vapid.error,
     subscriptionCount: subs?.length ?? 0,
@@ -62,6 +65,8 @@ export async function GET(): Promise<Response> {
                 "On your phone: Profile → Daily reminders ON (accept the OS prompt).",
                 "iPhone: open the app from the Home Screen icon (not Safari tabs).",
               ]
-            : ["Profile → tap Send test notification."],
+            : isOrganizer
+              ? ["Profile → tap Send test notification (organizer only; your devices)."]
+              : ["Scheduled reminders will arrive at the daily cron times when enabled."],
   });
 }

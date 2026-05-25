@@ -12,12 +12,13 @@ import { SettingsPanel } from "@/components/settings-panel";
 
 type Props = {
   email: string;
+  showPushTest?: boolean;
 };
 
 /**
  * Settings block with a light staggered entrance after the profile card.
  */
-export function MeSettingsCard({ email }: Props) {
+export function MeSettingsCard({ email, showPushTest = false }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -46,7 +47,7 @@ export function MeSettingsCard({ email }: Props) {
           <CardTitle>Settings</CardTitle>
         </CardHeader>
         <CardContent>
-          <SettingsPanel email={email} showEmail={false} />
+          <SettingsPanel email={email} showEmail={false} showPushTest={showPushTest} />
         </CardContent>
       </Card>
     </div>

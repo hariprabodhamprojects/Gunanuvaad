@@ -207,7 +207,7 @@ export function AppMenu({
                 <CalendarDays className="size-4 shrink-0 opacity-80" aria-hidden />
                 Calendar
               </Link>
-              <SettingsPanel email={email} />
+              <SettingsPanel email={email} showPushTest={isOrganizer} />
             </div>
           </Dialog.Popup>
         </Dialog.Viewport>

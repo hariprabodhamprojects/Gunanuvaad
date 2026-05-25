@@ -1,5 +1,6 @@
 import { MeProfileSummary } from "@/components/me-profile-summary";
 import { MeSettingsCard } from "@/components/me-settings-card";
+import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -31,6 +32,7 @@ export default async function MePage() {
   }
 
   const email = profile?.email || user.email || "";
+  const isOrganizer = await getIsOrganizerSession();
 
   return (
     <div className="flex flex-col gap-4 sm:gap-5">
@@ -40,7 +42,7 @@ export default async function MePage() {
         avatarUrl={avatarUrl}
         email={email}
       />
-      <MeSettingsCard email={email} />
+      <MeSettingsCard email={email} showPushTest={isOrganizer} />
     </div>
   );
 }

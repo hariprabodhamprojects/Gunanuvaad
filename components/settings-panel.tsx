@@ -21,9 +21,11 @@ type Props = {
   email?: string;
   /** Hide the email line (e.g. when shown on the profile card above). @default true */
   showEmail?: boolean;
+  /** Organizer-only push test (server also enforces). @default false */
+  showPushTest?: boolean;
 };
 
-export function SettingsPanel({ email, showEmail = true }: Props) {
+export function SettingsPanel({ email, showEmail = true, showPushTest = false }: Props) {
   const { theme, setTheme } = useTheme();
   const mounted = theme !== undefined;
   const darkEnabled = theme === "dark";
@@ -111,8 +113,12 @@ export function SettingsPanel({ email, showEmail = true }: Props) {
         );
         return;
       }
+      if (res.status === 403) {
+        toast.error(data.message ?? "Test notifications are organizer-only.");
+        return;
+      }
       if (res.ok && data.ok) {
-        toast.success("Test sent — check your notification tray.");
+        toast.success("Test sent to your devices only — check your notification tray.");
       } else if (data.error === "no-subscription") {
         toast.error(
           data.message ??
@@ -155,7 +161,7 @@ export function SettingsPanel({ email, showEmail = true }: Props) {
             />
           </div>
           <NotificationsHint support={support} permission={permission} enabled={checked} />
-          {checked ? (
+          {showPushTest && checked ? (
             <Button
               type="button"
               variant="outline"
@@ -164,7 +170,7 @@ export function SettingsPanel({ email, showEmail = true }: Props) {
               disabled={testBusy || busy}
               onClick={sendTestNotification}
             >
-              {testBusy ? "Sending…" : "Send test notification"}
+              {testBusy ? "Sending…" : "Send test notification (you only)"}
             </Button>
           ) : null}
         </div>
