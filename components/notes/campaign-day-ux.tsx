@@ -100,14 +100,14 @@ export function CampaignDayNotification({
 
   const line = !sentToday
     ? [
-        "Send your first note today to earn today’s Daily Note points.",
+        "Send a note today — each note earns 1 point.",
         countdown ? `${countdown} left in today’s window.` : "",
       ]
         .filter(Boolean)
         .join(" ")
     : [
-        "Today’s Daily Note points are locked in 🔥",
-        countdown ? `You can still send more notes; next point window starts in ${countdown}.` : "",
+        "Each note earns 1 point — send another to climb the board 🔥",
+        countdown ? `Today’s window ends in ${countdown}.` : "",
       ]
         .filter(Boolean)
         .join(" ");
@@ -149,11 +149,11 @@ function DialogCampaignTeaserSent({ nextResetAt }: { nextResetAt: string }) {
       role="status"
     >
       <p>
-        <span className="font-medium">Today&apos;s Daily Note points already counted.</span>
+        <span className="font-medium">Each note earns 1 point on the leaderboard.</span>
         {countdown ? (
           <>
             {" "}
-            You can still send more notes. Next point window opens in{" "}
+            Send another below. Today&apos;s window ends in{" "}
             <span className="tabular-nums font-semibold">{countdown}</span>.
           </>
         ) : (

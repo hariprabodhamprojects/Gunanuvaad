@@ -104,7 +104,7 @@ function eligibilityHint(elig: WriteEligibility | null): string | null {
   if (!elig || elig.ok) return null;
   switch (elig.code) {
     case "already_today":
-      return "Today’s points are already counted, but you can still send notes.";
+      return "You can keep sending notes — each one earns 1 point.";
     case "invalid_recipient":
     case "self":
       return "You can’t send a note to this person from here.";

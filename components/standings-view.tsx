@@ -70,10 +70,9 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
 
   // Live-update points/streaks whenever anything that feeds the scoring
   // formula changes. The current `standings_leaderboards()` RPC (see
-  // `supabase/migrations/20260418120000_swadhyay_weekly_redesign.sql`) reads
-  // from three sources:
-  //   1. `daily_notes`          — +2 points per distinct campaign_date with
-  //                                at least one note by the author.
+  // `supabase/migrations/20260525120000_standings_one_point_per_daily_note.sql`)
+  // reads from three sources:
+  //   1. `daily_notes`          — +1 point per note row.
   //   2. `swadhyay_posts`       — non-revoked post on an active published
   //                                topic = +2 points per unique campaign
   //                                date. Revoke flips `is_revoked` via
