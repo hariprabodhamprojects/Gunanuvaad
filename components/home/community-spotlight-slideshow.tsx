@@ -99,6 +99,37 @@ function headline(slide: CommunitySpotlightSlide): string {
   return slide.author_display_name;
 }
 
+/** Swadhyay body with a scroll-fade hint that disappears once the user reaches the bottom. */
+function SwadhyayBody({ body }: { body: string }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [hasMore, setHasMore] = useState(false);
+
+  const checkOverflow = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setHasMore(el.scrollHeight > el.clientHeight + 4 && el.scrollTop + el.clientHeight < el.scrollHeight - 8);
+  }, []);
+
+  useLayoutEffect(() => {
+    checkOverflow();
+  }, [checkOverflow, body]);
+
+  return (
+    <div className="relative min-h-0 flex-1">
+      <div
+        ref={scrollRef}
+        onScroll={checkOverflow}
+        className={cn("h-full overflow-y-auto touch-pan-y overscroll-contain", spotlightBodyClass, spotlightScrollClass)}
+      >
+        <p className="whitespace-pre-wrap pb-3">{body}</p>
+      </div>
+      {hasMore && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card/90 to-transparent" />
+      )}
+    </div>
+  );
+}
+
 function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   if (slide.kind === "note") {
     const avatarSrc = slide.recipient_avatar_url.trim();
@@ -145,11 +176,9 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col justify-center gap-1.5 sm:gap-2 md:gap-2.5">
+    <div className="flex min-h-0 flex-1 flex-col justify-start gap-1.5 sm:gap-2 md:gap-2.5">
       <p className={spotlightMetaClass}>{slide.topic_title}</p>
-      <div className={cn("min-h-0 flex-1 overflow-y-auto", spotlightBodyClass, spotlightScrollClass)}>
-        <p className="whitespace-pre-wrap">{slide.body}</p>
-      </div>
+      <SwadhyayBody body={slide.body} />
     </div>
   );
 }
