@@ -79,9 +79,10 @@ function parseSlide(raw: unknown): CommunitySpotlightSlide | null {
 
 /**
  * Mixed spotlight: up to 2 ghun + 2 Smruti + 2 Swadhyay (7-day), interleaved.
+ * If a second Swadhyay is missing, that slot is filled with another ghun or Smruti.
  * Deck rotates per user via `profiles.community_spotlight_deck_index`. The next deck
  * loads after one full carousel loop (`community_spotlight_advance_deck`), not on
- * every page refresh.
+ * every page refresh. See `20260528150000_spotlight_deck_stride_three.sql`.
  */
 export async function getCommunitySpotlightSlides(): Promise<CommunitySpotlightSlide[]> {
   const supabase = await createClient();
@@ -101,10 +102,15 @@ export async function getCommunitySpotlightSlides(): Promise<CommunitySpotlightS
     }
   }
   if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
   const out: CommunitySpotlightSlide[] = [];
   for (const row of raw) {
     const s = parseSlide(row);
-    if (s) out.push(s);
+    if (!s) continue;
+    const key = `${s.kind}-${s.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(s);
   }
   return out;
 }

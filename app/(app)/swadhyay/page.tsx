@@ -9,6 +9,7 @@ import {
   formatSwadhyayWeekRange,
   swadhyayWeekProgress,
 } from "@/lib/swadhyay/topic-dates";
+import { isGeneralSwadhyayTopic } from "@/lib/swadhyay/general-topic";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Swadhyay — MananChintan" };
@@ -35,8 +36,12 @@ export default async function SwadhyayPage() {
       today <= topic.end_date,
   );
 
-  const weekRange = topic ? formatSwadhyayWeekRange(topic.start_date, topic.end_date) : null;
-  const progress = topic ? swadhyayWeekProgress(topic.start_date, topic.end_date, today) : null;
+  const isGeneral = isGeneralSwadhyayTopic(topic);
+  // The General topic spans all dates — week range / progress are meaningless for it.
+  const weekRange =
+    topic && !isGeneral ? formatSwadhyayWeekRange(topic.start_date, topic.end_date) : null;
+  const progress =
+    topic && !isGeneral ? swadhyayWeekProgress(topic.start_date, topic.end_date, today) : null;
 
   return (
     <div className="layout-reading space-y-5">
@@ -77,6 +82,10 @@ export default async function SwadhyayPage() {
                   <p className="mt-1 text-xs text-muted-foreground sm:text-[13px]">
                     Week of {weekRange}
                   </p>
+                ) : isGeneral ? (
+                  <p className="mt-1 text-xs text-muted-foreground sm:text-[13px]">
+                    Share a reflection with the community.
+                  </p>
                 ) : null}
               </div>
               {progress ? (
@@ -114,6 +123,7 @@ export default async function SwadhyayPage() {
 
           <SwadhyayPostsFeed
             topic={topic}
+            isGeneral={isGeneral}
             currentUserId={user.id}
             currentUserDisplayName={currentUserDisplayName}
             currentUserAvatarUrl={currentUserAvatarUrl}

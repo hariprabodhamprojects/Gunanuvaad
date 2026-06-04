@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   topic: SwadhyayTopic;
+  /** Generic (non-weekly) mode — use neutral copy instead of a topic title. */
+  isGeneral?: boolean;
   currentUserId: string;
   currentUserDisplayName: string;
   currentUserAvatarUrl: string;
@@ -57,6 +59,7 @@ function buildOptimisticPost(params: {
 
 export function SwadhyayPostsFeed({
   topic,
+  isGeneral = false,
   currentUserId,
   currentUserDisplayName,
   currentUserAvatarUrl,
@@ -162,7 +165,9 @@ export function SwadhyayPostsFeed({
           onChange={(e) => setNewPost(e.target.value)}
           placeholder={
             canPost
-              ? `Share a thought on "${topic.title}"…`
+              ? isGeneral
+                ? "Share your Swadhyay…"
+                : `Share a thought on "${topic.title}"…`
               : "Posting is closed for today"
           }
           maxLength={POST_MAX_LEN}
@@ -236,7 +241,9 @@ export function SwadhyayPostsFeed({
           />
           <p className="text-sm font-medium text-foreground/75">No reflections yet.</p>
           <p className="mt-1 text-xs text-foreground/55">
-            Be the first to share a thought on this week&apos;s theme.
+            {isGeneral
+              ? "Be the first to share your Swadhyay."
+              : "Be the first to share a thought on this week\u2019s theme."}
           </p>
         </div>
       ) : (

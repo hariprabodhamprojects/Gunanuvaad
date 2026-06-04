@@ -39,10 +39,6 @@ const spotlightHeadlineClass =
 const spotlightHighlightTextClass =
   "font-heading text-pretty text-left font-semibold leading-relaxed text-primary text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
 
-/** Swadhyay body — foreground for long-form reflection text. */
-const spotlightBodyClass =
-  "text-pretty text-left font-medium leading-relaxed text-foreground text-base sm:text-[17px] sm:leading-relaxed md:text-lg lg:text-xl lg:leading-relaxed xl:text-[1.35rem] xl:leading-relaxed";
-
 const spotlightMetaClass =
   "shrink-0 truncate text-left font-medium text-muted-foreground text-xs sm:text-sm md:text-base lg:text-lg";
 
@@ -119,7 +115,11 @@ function SwadhyayBody({ body }: { body: string }) {
       <div
         ref={scrollRef}
         onScroll={checkOverflow}
-        className={cn("h-full overflow-y-auto touch-pan-y overscroll-contain", spotlightBodyClass, spotlightScrollClass)}
+        className={cn(
+          "h-full overflow-y-auto touch-pan-y overscroll-contain",
+          spotlightHighlightTextClass,
+          spotlightScrollClass,
+        )}
       >
         <p className="whitespace-pre-wrap pb-3">{body}</p>
       </div>
@@ -177,7 +177,7 @@ function SlideContent({ slide }: { slide: CommunitySpotlightSlide }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col justify-start gap-1.5 sm:gap-2 md:gap-2.5">
-      <p className={spotlightMetaClass}>{slide.topic_title}</p>
+      <p className={cn(spotlightMetaClass, "text-primary")}>{slide.topic_title}</p>
       <SwadhyayBody body={slide.body} />
     </div>
   );
