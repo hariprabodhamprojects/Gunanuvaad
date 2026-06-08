@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { STANDINGS_HEADER_REVALIDATE_SEC } from "@/lib/supabase/realtime-tuning";
 import type { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
@@ -46,11 +45,19 @@ async function fetchStandingsBoard(): Promise<StandingsBoard | null> {
   return parseBoard(data);
 }
 
-const getStandingsBoardCached = unstable_cache(
-  fetchStandingsBoard,
-  ["standings-board"],
-  { revalidate: STANDINGS_HEADER_REVALIDATE_SEC },
-);
+/** Per-instance TTL cache — avoids `unstable_cache` (cannot call `cookies()` inside it). */
+let headerBoardCache: { at: number; board: StandingsBoard | null } | null = null;
+
+async function fetchStandingsBoardForHeader(): Promise<StandingsBoard | null> {
+  const ttlMs = STANDINGS_HEADER_REVALIDATE_SEC * 1000;
+  const now = Date.now();
+  if (headerBoardCache && now - headerBoardCache.at < ttlMs) {
+    return headerBoardCache.board;
+  }
+  const board = await fetchStandingsBoard();
+  headerBoardCache = { at: now, board };
+  return board;
+}
 
 /** Fresh leaderboard — used on /standings and after explicit user actions. */
 export async function getStandings(): Promise<StandingsPayload | null> {
@@ -70,7 +77,7 @@ export async function getStandings(): Promise<StandingsPayload | null> {
  * Same board for all users; only `viewer_id` is stamped per session.
  */
 export async function getStandingsForHeader(userId: string): Promise<StandingsPayload | null> {
-  const board = await getStandingsBoardCached();
+  const board = await fetchStandingsBoardForHeader();
   if (!board) return null;
   return { ...board, viewer_id: userId };
 }
