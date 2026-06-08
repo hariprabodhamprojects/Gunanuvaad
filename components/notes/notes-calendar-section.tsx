@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { AuthoredDailyNote } from "@/lib/notes/get-authored-notes";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
+import { REALTIME } from "@/lib/supabase/realtime-tuning";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
 
@@ -189,7 +190,8 @@ function NoteRecipientCard({ note }: { note: AuthoredDailyNote }) {
 export function NotesCalendarSection({ notes, campaignToday }: Props) {
   useRealtimeRefresh({
     channel: "calendar-authored-notes",
-    subscriptions: [{ table: "profiles" }, { table: "daily_notes" }],
+    subscriptions: [{ table: "daily_notes", event: "INSERT" }],
+    debounceMs: REALTIME.calendar.debounceMs,
   });
 
   const sortedDates = useMemo(() => sortDatesAsc([...new Set(notes.map((n) => n.campaign_date))]), [notes]);

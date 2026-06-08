@@ -29,7 +29,7 @@ begin
   from public.profiles p
   inner join public.allowed_emails ae on ae.email = lower(trim(p.email))
   where ae.is_organizer = true
-  order by p.created_at asc
+  order by ae.created_at asc
   limit 1;
 
   if v_owner is null then

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { REALTIME } from "@/lib/supabase/realtime-tuning";
 
 type PgEvent = "INSERT" | "UPDATE" | "DELETE" | "*";
 
@@ -27,15 +28,7 @@ type Options = {
   subscriptions: RealtimeSubscription[];
   /**
    * Milliseconds to wait before calling router.refresh() after an event.
-   * Default 150 ms — responsive without hammering the server on bursts.
-   *
-   * Scheduling is leading-edge + trailing-edge coalescing: the first event
-   * in a quiet period schedules a refresh at T+debounceMs, and any events
-   * that arrive inside that window are guaranteed to trigger exactly one
-   * additional refresh on the trailing edge — so we never miss the "final"
-   * state of a burst even if the last write lands microseconds before the
-   * leading-edge timer fires (which, historically, was the cause of the
-   * flaky "standings didn't update after revoke" bug).
+   * Default from {@link REALTIME.defaultDebounceMs}.
    */
   debounceMs?: number;
   /** Set to `false` to pause the subscription. Defaults to `true`. */
@@ -43,10 +36,29 @@ type Options = {
   /**
    * Optional periodic refresh fallback (ms). Useful when websocket delivery
    * is flaky in specific environments — keeps server-rendered pages fresh
-   * without requiring manual reloads.
+   * without requiring manual reloads. Skipped while the tab is hidden.
    */
   fallbackIntervalMs?: number;
+  /**
+   * Tear down Realtime and skip refreshes while the document is hidden
+   * (background tab / phone app switched away). Defaults to `true`.
+   */
+  pauseWhenHidden?: boolean;
 };
+
+function usePageVisible(pauseWhenHidden: boolean): boolean {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (!pauseWhenHidden || typeof document === "undefined") return;
+    const sync = () => setVisible(!document.hidden);
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, [pauseWhenHidden]);
+
+  return pauseWhenHidden ? visible : true;
+}
 
 /**
  * Subscribe to Supabase Realtime `postgres_changes` for one or more tables
@@ -54,38 +66,25 @@ type Options = {
  *
  * Intended for pages whose data is rendered by a React Server Component —
  * a refresh re-runs the server fetch and streams an updated tree down.
- *
- * Requirements:
- * 1. Each `table` must be in the `supabase_realtime` publication
- *    (see `supabase/migrations/*_realtime*.sql`).
- * 2. RLS must let the current user `SELECT` the affected row, otherwise
- *    Supabase filters the event out before delivery.
- * 3. For `UPDATE` events on tables with RLS: the table must be set to
- *    `REPLICA IDENTITY FULL`. Postgres's default replica identity only
- *    logs the primary key of the *old* row, which isn't enough for
- *    Supabase Realtime to evaluate the SELECT policy against the
- *    pre-image. Without FULL, UPDATE events are silently dropped and
- *    subscribers never refresh. See
- *    `supabase/migrations/20260420130000_swadhyay_redesign_realtime.sql`
- *    for the pattern.
  */
 export function useRealtimeRefresh({
   channel,
   subscriptions,
-  debounceMs = 150,
+  debounceMs = REALTIME.defaultDebounceMs,
   enabled = true,
   fallbackIntervalMs,
+  pauseWhenHidden = true,
 }: Options) {
   const router = useRouter();
-  // Re-subscribe only when the logical shape of the subscription list changes.
-  // Serializing keeps the effect dependency stable even if the parent rebuilds
-  // the array on every render.
+  const pageVisible = usePageVisible(pauseWhenHidden);
+  const active = enabled && pageVisible;
+
   const key = subscriptions
     .map((s) => `${s.table}|${s.event ?? "*"}|${s.filter ?? ""}`)
     .join("||");
 
   useEffect(() => {
-    if (!enabled || subscriptions.length === 0) return;
+    if (!active || subscriptions.length === 0) return;
 
     const DEBUG = false;
     const log = (...args: unknown[]) => {
@@ -95,16 +94,8 @@ export function useRealtimeRefresh({
     const supabase = createClient();
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     let fallbackTimer: ReturnType<typeof setInterval> | null = null;
-    // Leading-edge + trailing-edge coalescing debounce.
-    //   - First event in a quiet period → schedule refresh at T+debounceMs.
-    //   - Events arriving while the timer is running → set `trailingPending`.
-    //   - When timer fires: refresh. If trailing was pending, start another
-    //     window so we always capture the "final" state of a burst.
-    // This replaces an earlier leading-edge-only throttle that dropped every
-    // event after the first, occasionally missing the trailing event if it
-    // landed just before the timer fired (see P0 bug "standings didn't
-    // update after revoke").
     let trailingPending = false;
+
     const fireRefresh = () => {
       log("calling router.refresh()");
       router.refresh();
@@ -129,10 +120,6 @@ export function useRealtimeRefresh({
       runTimer();
     };
 
-    // Supabase's typed `.on("postgres_changes", ...)` signature uses a
-    // complex overload that doesn't compose well when the filter is built
-    // dynamically; casting to a loose shape is safe here because the server
-    // is the source of truth for event validation.
     const ch = supabase.channel(channel);
     const onAny = ch.on.bind(ch) as (
       type: "postgres_changes",
@@ -176,7 +163,19 @@ export function useRealtimeRefresh({
       supabase.removeChannel(ch);
       log("channel torn down");
     };
-    // `key` captures every meaningful change in the subscription list.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel, key, debounceMs, enabled, fallbackIntervalMs, router]);
+  }, [channel, key, debounceMs, active, fallbackIntervalMs, router]);
+
+  /** One catch-up refresh when the user returns to the tab (not on first mount). */
+  const wasHiddenRef = useRef(false);
+  useEffect(() => {
+    if (!pauseWhenHidden || !enabled) return;
+    if (!pageVisible) {
+      wasHiddenRef.current = true;
+      return;
+    }
+    if (!wasHiddenRef.current) return;
+    wasHiddenRef.current = false;
+    router.refresh();
+  }, [pageVisible, pauseWhenHidden, enabled, router]);
 }

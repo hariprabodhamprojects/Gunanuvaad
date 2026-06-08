@@ -1,6 +1,6 @@
 import { AppHeaderNav } from "@/components/app-header-nav";
 import { getIsOrganizerSession } from "@/lib/auth/require-organizer";
-import { getStandings } from "@/lib/standings/get-standings";
+import { getStandingsForHeader } from "@/lib/standings/get-standings";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = {
@@ -17,7 +17,7 @@ export async function AppShellHeaderNav({ userId, email }: Props) {
       .select("display_name, avatar_url")
       .eq("id", userId)
       .maybeSingle(),
-    getStandings(),
+    getStandingsForHeader(userId),
     getIsOrganizerSession(),
   ]);
 

@@ -7,6 +7,7 @@ import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent as Re
 import { advanceCommunitySpotlightDeck } from "@/lib/home/community-spotlight-actions";
 import type { CommunitySpotlightSlide } from "@/lib/home/community-spotlight";
 import { smrutiPublicUrl } from "@/lib/smruti/public-url";
+import { REALTIME } from "@/lib/supabase/realtime-tuning";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import { cn } from "@/lib/utils";
 
@@ -229,12 +230,12 @@ export function CommunitySpotlightSlideshow({ slides }: Props) {
     channel: "home-community-spotlight",
     subscriptions: [
       { table: "approved_daily_notes" },
-      { table: "daily_notes" },
-      { table: "profiles" },
-      { table: "smruti_posts" },
-      { table: "smruti_post_media" },
-      { table: "swadhyay_posts" },
+      { table: "smruti_posts", event: "INSERT" },
+      { table: "smruti_post_media", event: "INSERT" },
+      { table: "swadhyay_posts", event: "INSERT" },
+      { table: "swadhyay_posts", event: "UPDATE" },
     ],
+    debounceMs: REALTIME.spotlight.debounceMs,
   });
 
   const safeIndex = slides.length === 0 ? 0 : Math.min(index, slides.length - 1);

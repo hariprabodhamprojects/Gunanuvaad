@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MotionPageHero } from "@/components/motion-page-hero";
 import { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
+import { REALTIME } from "@/lib/supabase/realtime-tuning";
 import { cn } from "@/lib/utils";
 
 function ListEntry({ 
@@ -90,15 +91,12 @@ export function StandingsView({ data }: { data: StandingsPayload }) {
     channel: "standings-live",
     subscriptions: [
       { table: "daily_notes", event: "INSERT" },
-      { table: "swadhyay_posts" },
+      { table: "swadhyay_posts", event: "INSERT" },
+      { table: "swadhyay_posts", event: "UPDATE" },
       { table: "swadhyay_topics", event: "UPDATE" },
     ],
-    // Leaderboard churn is low; wait a bit longer so a burst of submissions
-    // coalesces into a single re-fetch instead of one per row.
-    debounceMs: 500,
-    // Safety net: if websocket events are dropped in a given browser/runtime,
-    // standings still self-heal without manual refresh.
-    fallbackIntervalMs: 4000,
+    debounceMs: REALTIME.standings.debounceMs,
+    fallbackIntervalMs: REALTIME.standings.fallbackIntervalMs,
   });
 
   const rows = tab === "score" ? data.points : data.streaks;

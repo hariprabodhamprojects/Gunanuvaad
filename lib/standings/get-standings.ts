@@ -1,4 +1,6 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { STANDINGS_HEADER_REVALIDATE_SEC } from "@/lib/supabase/realtime-tuning";
 import type { StandingsEntry, StandingsPayload } from "@/lib/standings/types";
 
 function parseEntry(raw: unknown, key: "score" | "streak"): StandingsEntry | null {
@@ -20,19 +22,19 @@ function parseEntry(raw: unknown, key: "score" | "streak"): StandingsEntry | nul
   return { ...base, streak };
 }
 
-function parsePayload(raw: unknown): StandingsPayload | null {
+type StandingsBoard = Omit<StandingsPayload, "viewer_id">;
+
+function parseBoard(raw: unknown): StandingsBoard | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
-  const viewer_id = typeof o.viewer_id === "string" ? o.viewer_id : null;
-  if (!viewer_id) return null;
   const pointsIn = Array.isArray(o.points) ? o.points : [];
   const streaksIn = Array.isArray(o.streaks) ? o.streaks : [];
   const points = pointsIn.map((p) => parseEntry(p, "score")).filter(Boolean) as StandingsEntry[];
   const streaks = streaksIn.map((p) => parseEntry(p, "streak")).filter(Boolean) as StandingsEntry[];
-  return { points, streaks, viewer_id };
+  return { points, streaks };
 }
 
-export async function getStandings(): Promise<StandingsPayload | null> {
+async function fetchStandingsBoard(): Promise<StandingsBoard | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("standings_leaderboards");
 
@@ -41,5 +43,34 @@ export async function getStandings(): Promise<StandingsPayload | null> {
     return null;
   }
   if (data == null) return null;
-  return parsePayload(data);
+  return parseBoard(data);
+}
+
+const getStandingsBoardCached = unstable_cache(
+  fetchStandingsBoard,
+  ["standings-board"],
+  { revalidate: STANDINGS_HEADER_REVALIDATE_SEC },
+);
+
+/** Fresh leaderboard — used on /standings and after explicit user actions. */
+export async function getStandings(): Promise<StandingsPayload | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const board = await fetchStandingsBoard();
+  if (!board) return null;
+  return { ...board, viewer_id: user.id };
+}
+
+/**
+ * Cached leaderboard for the shell header (score + streak in the menu).
+ * Same board for all users; only `viewer_id` is stamped per session.
+ */
+export async function getStandingsForHeader(userId: string): Promise<StandingsPayload | null> {
+  const board = await getStandingsBoardCached();
+  if (!board) return null;
+  return { ...board, viewer_id: userId };
 }

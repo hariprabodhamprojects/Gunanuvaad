@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SwadhyayPostCard } from "@/components/swadhyay/swadhyay-post-card";
 import { postSwadhyayReflectionAction } from "@/lib/swadhyay/actions";
 import { getCampaignDateTodayISO } from "@/lib/notes/campaign-today";
+import { REALTIME } from "@/lib/supabase/realtime-tuning";
 import { useRealtimeRefresh } from "@/lib/supabase/use-realtime-refresh";
 import type { SwadhyayPost, SwadhyayTopic } from "@/lib/swadhyay/types";
 import { cn } from "@/lib/utils";
@@ -81,11 +82,14 @@ export function SwadhyayPostsFeed({
     channel: `swadhyay-topic-${topic.id}`,
     subscriptions: [
       { table: "swadhyay_posts", filter: `topic_id=eq.${topic.id}` },
-      { table: "swadhyay_post_replies" },
-      { table: "swadhyay_post_reactions" },
-      { table: "swadhyay_reply_reactions" },
+      { table: "swadhyay_post_replies", event: "INSERT" },
+      { table: "swadhyay_post_reactions", event: "INSERT" },
+      { table: "swadhyay_post_reactions", event: "DELETE" },
+      { table: "swadhyay_reply_reactions", event: "INSERT" },
+      { table: "swadhyay_reply_reactions", event: "DELETE" },
       { table: "swadhyay_topics", event: "UPDATE", filter: `id=eq.${topic.id}` },
     ],
+    debounceMs: REALTIME.swadhyayFeed.debounceMs,
   });
 
   useLayoutEffect(() => {
